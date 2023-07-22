@@ -13,6 +13,8 @@ class TrainingExercise(EmbeddedDocument):
     num_repeats = IntField()
     num_runs = IntField()
 
+    meta = {"allow_inheritance": True}
+
 
 class ClientTrainingExercise(TrainingExercise):
     weight = IntField()
@@ -35,21 +37,28 @@ class Training(EmbeddedDocument):
     training_exercises = EmbeddedDocumentListField(ClientTrainingExercise)
 
 
+
+
+
+class Trainer(Document):
+    tg_id = IntField()
+    tg_username = StringField()
+    name = StringField()
+    surname = StringField()
+    visibility = BooleanField()
+    photo_link = StringField()
+
 class Client(Document):
-    tg_id = StringField()
-    tg_username = StringField(required=True)
+    tg_id = IntField()
+    tg_username = StringField()
+    phone_number = StringField()
+    visibility = BooleanField()
+    photo_link = StringField()
     name = StringField()
     surname = StringField()
     weight = FloatField()
     height = IntField()
+    trainer = ReferenceField(Trainer)
     training_plan = EmbeddedDocumentField(TrainingPlan)
     trainings = EmbeddedDocumentListField(Training)
-
-
-class Trainer(Document):
-    tg_id = StringField()
-    tg_username = StringField(required=True)
-    name = StringField()
-    surname = StringField()
-    clients = ListField(ReferenceField(Client))
 

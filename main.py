@@ -1,14 +1,21 @@
-from aiogram import executor
-from app.bot import dp
-from app.settings import message_handlers #callback_handlers
+import asyncio
+import os
+from app.bot import dp, bot
 import logging
+from mongoengine import connect
+from app.workflows.registration.handlers import registration_router
 
-for handler in message_handlers:
-    dp.register_message_handler(handler)
-#for handler in callback_handlers:
-   # dp.register_callback_query_handler(handler)
+
+
 
 logging.basicConfig(level=logging.INFO)
+dp.include_router(registration_router)
+
+async def main():
+    connect("test", host="localhost", port=27017, username="myuser", password="mypassword")
+    await bot.delete_webhook(drop_pending_updates=True)
+
+    await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
