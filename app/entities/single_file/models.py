@@ -9,7 +9,8 @@ class Exercise(Document):
 
 
 class TrainingExercise(EmbeddedDocument):
-    exercise = ReferenceField(Exercise, required=True)
+     # exercise = ReferenceField(Exercise, required=True)
+    name = StringField()
     num_repeats = IntField()
     num_runs = IntField()
 
@@ -33,7 +34,8 @@ class TrainingPlan(EmbeddedDocument):
 
 class Training(EmbeddedDocument):
     date = DateField(required=True)
-    day_number = IntField(required=True)
+    name = StringField()
+    day_number = IntField()
     training_exercises = EmbeddedDocumentListField(ClientTrainingExercise)
 
 

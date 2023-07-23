@@ -4,12 +4,14 @@ from app.bot import dp, bot
 import logging
 from mongoengine import connect
 from app.workflows.registration.handlers import registration_router
-
-
+from app.workflows.client.handlers import client_router
 
 
 logging.basicConfig(level=logging.INFO)
+
 dp.include_router(registration_router)
+dp.include_router(client_router)
+
 
 async def main():
     connect("test", host="localhost", port=27017, username="myuser", password="mypassword")

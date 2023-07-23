@@ -1,19 +1,19 @@
 from aiogram import Router
-from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile
-from aiogram.types import CallbackQuery
-from magic_filter import F
-from aiogram.types import Message
+from aiogram.types import URLInputFile, CallbackQuery, Message
+from aiogram import F
 from aiogram.fsm.context import FSMContext
-from .utils.states import RegisterStates
-from app.utilities.callback_types import ChooseCallback, ChooseCallbackOptions, ChooseCallbackTargets, YesNoOptions, SeePhotoCallback, SeePhotoActions
-from .keyboards.process_photo import create_yes_no_keyboard
-from .keyboards.temporary import create_see_photo_keyboard
+from app.utilities.callback_types import ChooseCallback, ChooseCallbackOptions, ChooseCallbackTargets, YesNoOptions,\
+    SeePhotoCallback, SeePhotoActions
 from app.bot import bot
 from app.entities.single_file.models import Client, Trainer
-from app.entities.single_file.crud import create_client, create_trainer, get_client_by_id, get_trainer
+from app.entities.single_file.crud import create_client, create_trainer
+from app.workflows.client.keyboards.client_main_menu import create_client_main_menu_keyboard
 from app.s3.uploader import upload_file
 from app.s3.downloader import create_presigned_url
 from app.config import PHOTO_BUCKET
+from .keyboards.process_photo import create_yes_no_keyboard
+from .keyboards.temporary import create_see_photo_keyboard
+from .utils.states import RegisterStates
 import os
 
 
@@ -144,13 +144,16 @@ async def process_visibility(callback: CallbackQuery, callback_data: ChooseCallb
                                surname=user_info['surname'],
                                photo_link=user_info['photo_link'],
                                visibility=user_info['visibility']))
-    if user_info['photo_link'] == None:
-        await callback.message.edit_text(f'Настройка сохранена\nДавай проверим твои данные:\nИмя: {user_info["name"]}\nФамилия: {user_info["surname"]}\nТип пользователя: {user_type}\nВидимость другим: {user_visibility}',
+    if user_info['usr_type'] == 'trainer':
+        if user_info['photo_link'] == None:
+            await callback.message.edit_text(f'Настройка сохранена\nДавай проверим твои данные:\nИмя: {user_info["name"]}\nФамилия: {user_info["surname"]}\nТип пользователя: {user_type}\nВидимость другим: {user_visibility}',
                                      )
-    else:
-        await callback.message.edit_text(
+        else:
+            await callback.message.edit_text(
             f'Настройка сохранена\nДавай проверим твои данные:\nИмя: {user_info["name"]}\nФамилия: {user_info["surname"]}\nТип пользователя: {user_type}\nВидимость другим: {user_visibility}',
             reply_markup=create_see_photo_keyboard())
+    elif user_info['usr_type'] == 'client':
+        await callback.message.edit_text('Добро пожаловать в меню клиента, тут ты можешь добавлять тренировки и просмотривать информацию о уже добавленных тренировках', reply_markup=create_client_main_menu_keyboard())
     await state.clear()
     await callback.answer()
 
@@ -166,9 +169,3 @@ async def send_avatar(callback: CallbackQuery, callback_data: SeePhotoCallback, 
         photo=image_from_url,
         caption="Твое фото"
     )
-
-
-
-
-
-

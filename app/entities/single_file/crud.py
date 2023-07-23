@@ -1,5 +1,5 @@
 from mongoengine import *
-from .models import Trainer, Client
+from .models import Trainer, Client, Training
 
 
 def create_trainer(trainer: Trainer):
@@ -33,6 +33,11 @@ def get_clients(first: int, range: int, trainer_id):
     return clients
 
 
+def create_training(tg_id: int, training: Training):
+    client = Client.objects(tg_id=tg_id).first()
+    client.trainings.append(training)
+    client.save()
+    return True
 # @mongo_connection
 # def check_user(telegram_id):
 #     return mongo.db.users.find_one({'_id': telegram_id})
