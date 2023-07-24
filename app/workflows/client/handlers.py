@@ -1,21 +1,22 @@
 import os
-
 from aiogram import Router
-from aiogram.types import URLInputFile, CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message
 from aiogram import F
 from aiogram.fsm.context import FSMContext
-from app.utilities.callback_types import ChooseCallback, YesNoOptions
-from .utils.callbacks.callbacks import CreateTrainingCallback, CreateTrainingCallbackActions, ClientMainMenuTargets, ClientMainMenuOptions, ClientExerciseTargets
-from .utils.states.states import ClientStates
+
+from app.utilities.default_callbacks.choose_callback import ChooseCallback, YesNoOptions
+from app.workflows.client.utils.callback_properties import CreateTrainingCallback, CreateTrainingCallbackActions, ClientMainMenuTargets,\
+    ClientMainMenuOptions, ClientExerciseTargets
+
+from app.workflows.client.utils.states import ClientStates
 from app.bot import bot
-from app.entities.single_file.models import Client, Training, ClientTrainingExercise
-from app.entities.single_file.crud import create_client, create_trainer, create_training, get_client_by_id
-from .keyboards.client_main_menu import create_client_main_menu_keyboard
-from .keyboards.create_trainings import create_add_exercise_keyboard
-from app.workflows.registration.keyboards.process_photo import create_yes_no_keyboard
+
+from app.entities.single_file.models import Training, ClientTrainingExercise
+from app.entities.single_file.crud import create_training, get_client_by_id
+from app.workflows.client.utils.keyboards.client_main_menu import create_client_main_menu_keyboard
+from app.workflows.client.utils.keyboards.create_trainings import create_add_exercise_keyboard
+from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
 from app.s3.uploader import upload_file
-from app.s3.downloader import create_presigned_url
-from app.config import PHOTO_BUCKET
 from datetime import date
 
 
@@ -91,7 +92,15 @@ async def send_video_message(callback: CallbackQuery, callback_data: ChooseCallb
 async def no_process_video(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     state_data['exercise']['video_link'] = None
+
     await state.update_data(state_data)
+    exercise = state_data['exercise']
+    state_data.pop('exercise')
+    state_data['training'].training_exercises.append(ClientTrainingExercise(name=exercise['name'],
+                                                                            num_runs=exercise['runs'],
+                                                                            num_repeats=exercise['repeats'],
+                                                                            weight=exercise['weight'],
+                                                                            video_link=exercise['video_link']))
     await callback.message.edit_text('Учти, без видео тренер не сможет дать комментарий, желаешь добавить еще одно упражнение?',
                                      reply_markup=create_add_exercise_keyboard())
 
@@ -118,6 +127,7 @@ async def process_video(message: Message, state: FSMContext):
                                                                    num_repeats=exercise['repeats'],
                                                                    weight=exercise['weight'],
                                                                    video_link=exercise['video_link']))
+    print(state_data['training'].training_exercises)
 
     await message.answer(f'Прекрасно, так тренер сможет прокомментировать твою технику,  желаешь добавить еще одно упражнение?',
                          reply_markup=create_add_exercise_keyboard())
@@ -128,6 +138,7 @@ async def process_video(message: Message, state: FSMContext):
 async def save_training(callback: CallbackQuery, callback_data: CreateTrainingCallback, state: FSMContext):
     state_data = await state.get_data()
     training = state_data['training']
+    print(training.training_exercises)
     create_training(tg_id=callback.from_user.id, training=training)
 
     await state.clear()

@@ -1,6 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
-from app.utilities.callback_types import ChooseCallback, ChooseCallbackOptions, YesNoOptions, ChooseCallbackTargets
+from ..default_callbacks.choose_callback import ChooseCallback, YesNoOptions
 
 
 def create_yes_no_keyboard(target):

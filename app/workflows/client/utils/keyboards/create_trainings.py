@@ -1,5 +1,5 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from ..utils.callbacks.callbacks import CreateTrainingCallback, CreateTrainingCallbackActions
+from app.workflows.client.utils.callback_properties import CreateTrainingCallback, CreateTrainingCallbackActions
 
 
 def create_add_exercise_keyboard():

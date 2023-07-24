@@ -1,6 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from app.utilities.callback_types import ChooseCallback
-from ..utils.callbacks.callbacks import ClientMainMenuTargets, ClientMainMenuOptions
+from app.utilities.default_callbacks.choose_callback import ChooseCallback
+from app.workflows.client.utils.callback_properties import ClientMainMenuTargets, ClientMainMenuOptions
 
 
 def create_client_main_menu_keyboard():
