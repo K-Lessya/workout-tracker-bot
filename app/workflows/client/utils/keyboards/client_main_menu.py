@@ -1,5 +1,5 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from app.utilities.default_callbacks.choose_callback import ChooseCallback
+from app.utilities.default_callbacks.default_callbacks import ChooseCallback
 from app.workflows.client.utils.callback_properties import ClientMainMenuTargets, ClientMainMenuOptions
 
 

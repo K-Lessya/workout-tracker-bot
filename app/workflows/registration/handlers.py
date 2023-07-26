@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.types import CallbackQuery, Message
 from aiogram import F
 from aiogram.fsm.context import FSMContext
-from app.utilities.default_callbacks.choose_callback import ChooseCallback, YesNoOptions
+from app.utilities.default_callbacks.default_callbacks import ChooseCallback, YesNoOptions
 from .utils.callback_properties import RegistrationCallbackTargets, ChooseUsrTypeOptions
 from app.bot import bot
 from app.entities.single_file.models import Client, Trainer

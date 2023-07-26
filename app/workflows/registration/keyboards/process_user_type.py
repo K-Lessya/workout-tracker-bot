@@ -1,6 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
-from app.utilities.default_callbacks.choose_callback import ChooseCallback
+from app.utilities.default_callbacks.default_callbacks import ChooseCallback
 from ..utils.callback_properties import ChooseUsrTypeOptions, RegistrationCallbackTargets
 
 

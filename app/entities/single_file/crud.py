@@ -34,6 +34,11 @@ def fill_client_name_surname(tg_username: str, tg_id: int, name: str, surname:st
     client.save()
 
 
+def client_add_new_trainer_request(client: Client, trainer: Trainer):
+    client.trainers_requests.append(trainer)
+    client.save()
+
+
 def get_all_not_assigned_clients_with_name():
     return Client.objects(name__exists=True, trainer__exists=False, visibility=True)
 

@@ -38,7 +38,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
 
 
 @dp.message(Command("admin"))
-async def cmd_start(message: types.Message):
+async def cmd_start(message: types.Message, state: FSMContext):
+    await state.clear()
     if get_client_by_id(tg_id=message.from_user.id):
         await message.answer(f'Привет {get_client_by_id(tg_id=message.from_user.id).name}, ты клиент')
     elif get_trainer(tg_id=message.from_user.id):

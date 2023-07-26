@@ -26,6 +26,7 @@ class Trainer(Document):
     visibility = BooleanField()
     photo_link = StringField()
 
+
 class Client(Document):
     tg_id = IntField()
     tg_username = StringField()
@@ -37,6 +38,7 @@ class Client(Document):
     weight = FloatField()
     height = IntField()
     trainer = ReferenceField(Trainer)
+    trainers_requests = ListField(ReferenceField(Trainer))
     training_plan = EmbeddedDocumentField(TrainingPlan)
     trainings = EmbeddedDocumentListField(Training)
 

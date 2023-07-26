@@ -3,31 +3,31 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from app.bot import bot
-from app.utilities.default_callbacks.choose_callback import ChooseCallback, YesNoOptions
+from app.utilities.default_callbacks.default_callbacks import ChooseCallback, MoveToCallback, YesNoOptions
 from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
 from ..utils.keyboards.add_client_options import create_add_client_options_keyboard
 from ..utils.keyboards.trainer_main_menu import create_trainer_main_menu_keyboard
 from ..utils.keyboards.choose_existing_clients import create_choose_existing_clients_keyboard
 from ..utils.states import TrainerStates
-from ..utils.callback_properties import TrainerAddClientTargets, TrainerMainMenuTargets
+from app.workflows.common.utils.callback_properties.movetos import AddClientMoveTo, CommonGoBackMoveTo
+from ..utils.callback_properties.movetos import TrainerMainMenuMoveTo
+from ..utils.callback_properties.targets import TrainerAddClientTargets
 from app.config import PHOTO_BUCKET
 from app.entities.single_file.crud import *
 from app.s3.downloader import create_presigned_url
 
 
-
 add_client_router = Router()
 
 
-# Add client to clients list
-@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerMainMenuTargets.add_client))
+@add_client_router.callback_query(MoveToCallback.filter(F.move_to == TrainerMainMenuMoveTo.add_client))
 async def choose_add_flow(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await callback.message.edit_text(f'Выбери как ты хочешь добавить клиента из списка',
                                      reply_markup=create_add_client_options_keyboard())
     await callback.answer()
 
 
-@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerAddClientTargets.by_contact))
+@add_client_router.callback_query(MoveToCallback.filter(F.move_to == AddClientMoveTo.by_contact))
 async def start_add_client(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.set_state(TrainerStates.add_client.process_contact)
     await callback.message.edit_text(f'Для того чтобы добавить клиента, поделись его контактом со мной')
@@ -45,10 +45,11 @@ async def process_client_contact(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(f'Клиент добавлен', reply_markup=create_trainer_main_menu_keyboard())
 
-@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerAddClientTargets.by_username))
+
+@add_client_router.callback_query(MoveToCallback.filter(F.move_to == AddClientMoveTo.by_username))
 async def start_add_client(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.set_state(TrainerStates.add_client.process_username)
-    await callback.message.edit_text(f'Для того чтобы добавить клиента, пришли мне ссылку на него или его username')
+    await callback.message.edit_text(f'Для того чтобы добавить клиента, пришли мне ссылку на него')
 
 
 @add_client_router.message(TrainerStates.add_client.process_username)
@@ -63,7 +64,8 @@ async def process_client_contact(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(f'Клиент добавлен', reply_markup=create_trainer_main_menu_keyboard())
 
-@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerAddClientTargets.by_existing))
+
+@add_client_router.callback_query(MoveToCallback.filter(F.move_to == AddClientMoveTo.by_existing))
 async def add_client_by_existing(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     clients = get_all_not_assigned_clients_with_name()
     print(clients)
@@ -76,7 +78,7 @@ async def add_client_by_existing(callback: CallbackQuery, callback_data: ChooseC
     await callback.answer()
 
 
-@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerMainMenuTargets.choose_existing_client))
+@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerAddClientTargets.show_clients))
 async def show_user_profile(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     client = get_client_by_id(int(callback_data.option))
     photo_link = create_presigned_url(bucket_name=PHOTO_BUCKET, object_name=client.photo_link)
@@ -86,31 +88,29 @@ async def show_user_profile(callback: CallbackQuery, callback_data: ChooseCallba
     await callback.answer()
 
 
-@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerAddClientTargets.add_existing_client),
-                               ChooseCallback.filter(F.option == YesNoOptions.yes))
+@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerAddClientTargets.add_existing_client))
 async def add_client_profile(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    state_data = await state.get_data()
-    print(state_data)
-    client_id = state_data['tg_id']
-    client = get_client_by_id(client_id)
-    trainer = get_trainer(callback.from_user.id)
-    update_client_trainer(client=client,trainer=trainer)
-    await state.clear()
-    await bot.send_message(chat_id=callback.from_user.id,text='Клиент добавлен',
-                           reply_markup=create_trainer_main_menu_keyboard())
-    await callback.message.delete()
+    if callback_data.option == YesNoOptions.yes:
+        state_data = await state.get_data()
+        client_id = state_data['tg_id']
+        client = get_client_by_id(client_id)
+        trainer = get_trainer(callback.from_user.id)
+        # update_client_trainer(client=client, trainer=trainer)
+        client_add_new_trainer_request(client, trainer)
+        await state.clear()
+        await bot.send_message(chat_id=callback.from_user.id, text='Клиенту отправлена заявка',
+                               reply_markup=create_trainer_main_menu_keyboard())
+        await bot.send_message(chat_id=client_id, text='Тебе поступило новое предложение от тренера, посмотри его')
+        await callback.message.delete()
+    elif callback_data.option == YesNoOptions.no:
+        clients = get_all_not_assigned_clients_with_name()
+        await state.clear()
+        await bot.send_message(chat_id=callback.from_user.id, text=f'Хорошо, посмотрим других',
+                               reply_markup=create_choose_existing_clients_keyboard(clients))
+        await callback.message.delete()
 
-@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerAddClientTargets.add_existing_client),
-                               ChooseCallback.filter(F.option == YesNoOptions.no))
-async def add_client_profile(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    clients = get_all_not_assigned_clients_with_name()
-    await state.clear()
-    await bot.send_message(chat_id=callback.from_user.id, text=f'Хорошо, посмотрим других',
-                           reply_markup=create_choose_existing_clients_keyboard(clients))
-    await callback.message.delete()
 
-
-@add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerMainMenuTargets.go_to_main_menu))
+@add_client_router.callback_query(MoveToCallback.filter(F.move_to == CommonGoBackMoveTo.to_trainer_main_menu))
 async def go_to_main_menu(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await callback.message.edit_text('Создание отменено, мы снова в главном меню',
                                      reply_markup=create_trainer_main_menu_keyboard())

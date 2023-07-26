@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram import F
 from aiogram.fsm.context import FSMContext
 
-from app.utilities.default_callbacks.choose_callback import ChooseCallback, YesNoOptions
+from app.utilities.default_callbacks.default_callbacks import ChooseCallback, YesNoOptions
 from app.workflows.client.utils.callback_properties import CreateTrainingCallback, CreateTrainingCallbackActions, ClientMainMenuTargets,\
     ClientMainMenuOptions, ClientExerciseTargets
 
