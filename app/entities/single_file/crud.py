@@ -49,6 +49,7 @@ def client_add_new_trainer_request(client: Client, trainer: Trainer):
 def client_delete_trainer_request(client: Client, trainer: Trainer):
     requests = ClientRequests.objects(client=client).first()
     requests.trainers.remove(trainer)
+    requests.save()
     return True
 
 

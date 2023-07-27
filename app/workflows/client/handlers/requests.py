@@ -49,7 +49,7 @@ async def process_income_request(callback: CallbackQuery, callback_data: ChooseC
         update_client_trainer(client=client, trainer=trainer)
         client_delete_trainer_request(client=client, trainer=trainer)
         await bot.send_message(chat_id=callback.from_user.id,
-                               text=f"Поздравляю, теперь ${trainer.name} ${trainer.surname} тренирует тебя",
+                               text=f"Поздравляю, теперь {trainer.name} {trainer.surname} тренирует тебя",
                                reply_markup=create_client_main_menu_keyboard(client=client))
 
         await bot.send_message(chat_id=trainer.tg_id, text=f'{client.name} {client.surname} принял твою заявку,'
