@@ -95,7 +95,6 @@ async def add_client_profile(callback: CallbackQuery, callback_data: ChooseCallb
         client_id = state_data['tg_id']
         client = get_client_by_id(client_id)
         trainer = get_trainer(callback.from_user.id)
-        # update_client_trainer(client=client, trainer=trainer)
         client_add_new_trainer_request(client, trainer)
         await state.clear()
         await bot.send_message(chat_id=callback.from_user.id, text='Клиенту отправлена заявка',

@@ -13,3 +13,11 @@ class MoveToCallback(CallbackData, prefix='move_to'):
 class YesNoOptions:
     yes = 'yes'
     no = 'no'
+
+
+class TestCallback(CallbackData, prefix='test'):
+    test_task: str
+
+
+class TestTasks:
+    delete_me = 'delete_me'

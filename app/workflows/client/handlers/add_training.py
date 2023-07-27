@@ -5,7 +5,7 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, YesNoOptions
-from app.workflows.client.utils.callback_properties import CreateTrainingCallback, CreateTrainingCallbackActions, ClientMainMenuTargets,\
+from app.workflows.client.utils.callback_property import CreateTrainingCallback, CreateTrainingCallbackActions, ClientMainMenuTargets,\
     ClientMainMenuOptions, ClientExerciseTargets
 
 from app.workflows.client.utils.states import ClientStates
@@ -20,17 +20,17 @@ from app.s3.uploader import upload_file
 from datetime import date
 
 
-client_router = Router()
+add_training_router = Router()
 
 # Create training flow
-@client_router.callback_query(ChooseCallback.filter(F.target == ClientMainMenuTargets.create_training),
+@add_training_router.callback_query(ChooseCallback.filter(F.target == ClientMainMenuTargets.create_training),
                               ChooseCallback.filter(F.option == ClientMainMenuOptions.new_training))
 async def start_creating_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.set_state(ClientStates.process_training_name)
     await callback.message.edit_text(f'Введи название тренировки')
     await callback.answer()
 
-@client_router.message(ClientStates.process_training_name)
+@add_training_router.message(ClientStates.process_training_name)
 async def process_training_name(message: Message, state: FSMContext):
     training = Training(name=message.text, date=date.today())
     # create_training(tg_id=message.from_user.id, training=training)
@@ -40,20 +40,20 @@ async def process_training_name(message: Message, state: FSMContext):
 
 
 
-@client_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.create_training))
+@add_training_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.create_training))
 async def process_exercise(callback: CallbackQuery, callback_data: CreateTrainingCallback, state: FSMContext):
     await state.set_state(ClientStates.process_exercise_name)
     await callback.message.edit_text(f'Введи название упражнения')
     await callback.answer()
 
-@client_router.message(ClientStates.process_exercise_name)
+@add_training_router.message(ClientStates.process_exercise_name)
 async def process_exercise_name(message: Message, state: FSMContext):
     await state.update_data({'exercise': {'name': message.text}})
     await state.set_state(ClientStates.process_exercise_runs)
     await message.answer(f'Отлично, теперь запиши количество подходов')
 
 
-@client_router.message(ClientStates.process_exercise_runs)
+@add_training_router.message(ClientStates.process_exercise_runs)
 async def process_exercise_name(message: Message, state: FSMContext):
     state_data = await state.get_data()
     state_data['exercise']['runs'] = message.text
@@ -62,7 +62,7 @@ async def process_exercise_name(message: Message, state: FSMContext):
     await message.answer(f'Отлично, теперь запиши количество потворений за подход')
 
 
-@client_router.message(ClientStates.process_exercise_repeats)
+@add_training_router.message(ClientStates.process_exercise_repeats)
 async def process_exercise_name(message: Message, state: FSMContext):
     state_data = await state.get_data()
     state_data['exercise']['repeats'] = message.text
@@ -70,7 +70,7 @@ async def process_exercise_name(message: Message, state: FSMContext):
     await state.set_state(ClientStates.process_exercise_weight)
     await message.answer(f'Отлично, теперь запиши рабочий вес')
 
-@client_router.message(ClientStates.process_exercise_weight)
+@add_training_router.message(ClientStates.process_exercise_weight)
 async def process_exercise_name(message: Message, state: FSMContext):
     state_data = await state.get_data()
     state_data['exercise']['weight'] = message.text
@@ -80,14 +80,14 @@ async def process_exercise_name(message: Message, state: FSMContext):
                          reply_markup=create_yes_no_keyboard(target=ClientExerciseTargets.attach_video))
 
 
-@client_router.callback_query(ChooseCallback.filter(F.target == ClientExerciseTargets.attach_video),
+@add_training_router.callback_query(ChooseCallback.filter(F.target == ClientExerciseTargets.attach_video),
                               ChooseCallback.filter(F.option == YesNoOptions.yes))
 async def send_video_message(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await callback.message.edit_text(f'Пришли мне видео выполнения упражнения')
     await callback.answer()
 
 
-@client_router.callback_query(ChooseCallback.filter(F.target == ClientExerciseTargets.attach_video),
+@add_training_router.callback_query(ChooseCallback.filter(F.target == ClientExerciseTargets.attach_video),
                               ChooseCallback.filter(F.option == YesNoOptions.no))
 async def no_process_video(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
@@ -105,7 +105,7 @@ async def no_process_video(callback: CallbackQuery, callback_data: ChooseCallbac
                                      reply_markup=create_add_exercise_keyboard())
 
 
-@client_router.message(ClientStates.process_exercise_video)
+@add_training_router.message(ClientStates.process_exercise_video)
 async def process_video(message: Message, state: FSMContext):
     destination = f'tmp/{message.video.file_id}.mp4'
 
@@ -134,7 +134,7 @@ async def process_video(message: Message, state: FSMContext):
 
 
 
-@client_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.save))
+@add_training_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.save))
 async def save_training(callback: CallbackQuery, callback_data: CreateTrainingCallback, state: FSMContext):
     state_data = await state.get_data()
     training = state_data['training']
@@ -149,7 +149,7 @@ async def save_training(callback: CallbackQuery, callback_data: CreateTrainingCa
                                      reply_markup=create_client_main_menu_keyboard())
     await callback.answer()
 
-@client_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.decline))
+@add_training_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.decline))
 async def decline_creation(callback: CallbackQuery, callback_data: CreateTrainingCallback, state: FSMContext):
     await state.clear()
     await callback.message.edit_text('Создание тренировки отклонено, мы снова в главном меню',

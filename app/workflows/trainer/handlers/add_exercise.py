@@ -5,11 +5,13 @@ from aiogram.types import CallbackQuery, Message
 from app.bot import bot
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback,MoveToCallback, YesNoOptions
 from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
+
 from ..utils.states import TrainerStates
 from ..utils.callback_properties.targets import CreateExerciseTargets
 from app.workflows.common.utils.keyboards.exercise_db_choose import create_exercise_db_choose_keyboard
 from app.workflows.common.utils.callback_properties.targets import ExerciseDbTargets
-from app.workflows.common.utils.callback_properties.movetos import ExerciseDbMoveTo, UpstreamMenuMoveTo
+from app.workflows.common.utils.callback_properties.movetos import ExerciseDbMoveTo, UpstreamMenuMoveTo,\
+    CommonGoBackMoveTo
 from app.s3.uploader import upload_file
 from app.entities.exercise.crud import *
 import os
@@ -20,22 +22,53 @@ add_exercise_router = Router()
 
 @add_exercise_router.callback_query(MoveToCallback.filter(F.move_to == ExerciseDbMoveTo.create_exercise))
 async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    await state.clear()
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_body_part_name)
-    await callback.message.edit_text(f'Введи название части тела на которую делается упражнение')
+    body_parts = get_all_body_parts()
+    await callback.message.edit_text(f'Введи название части тела на которую делается '
+                                     f'упражнение или выбери из существующих',
+                                     reply_markup=create_exercise_db_choose_keyboard(
+                                         options=body_parts, source=callback,
+                                         target=CreateExerciseTargets.process_body_part_name,
+                                         go_back_filter=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu)
+                                     ))
 
 
 @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_body_part_name)
-async def process_bodypart_name(message: Message, state: FSMContext):
+async def process_body_part_name_message(message: Message, state: FSMContext):
     await state.update_data({'body_part': message.text})
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
     await message.answer(f'Теперь введи группу мыщц для которой предназначено это упражнение')
 
+@add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_body_part_name))
+async def process_body_part_name_callback(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    body_part = get_body_part_by_id(callback_data.option)
+    muscle_groups = get_muscle_groups_by_body_part(body_part)
+    await state.update_data({'body_part': body_part})
+    await state.set_state(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
+    await callback.message.edit_text(f'Теперь введи группу мыщц для которой предназначено это упражнение'
+                                     f', или снова выбирай из списка',
+                                     reply_markup=create_exercise_db_choose_keyboard(
+                                         options=muscle_groups, source=callback,
+                                         target=CreateExerciseTargets.process_muscle_group_name,
+                                         go_back_filter=MoveToCallback(
+                                             move_to=CommonGoBackMoveTo.to_trainer_main_menu)))
+
 
 @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
-async def process_muscle_group_name(message: Message, state: FSMContext):
+async def process_muscle_group_name_message(message: Message, state: FSMContext):
     await state.update_data({'muscle_group': message.text})
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_exercise_name)
     await message.answer(f'А теперь введи название упражнения')
+
+@add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_muscle_group_name))
+async def process_muscle_group_name_callback(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    muscle_group = get_muscle_group_by_id(callback_data.option)
+    await state.update_data({'muscle_group': muscle_group})
+    await state.set_state(TrainerStates.exercises_db.add_exercise.process_exercise_name)
+    await callback.message.edit_text(f'А теперь введи название упражнения')
+
+
 
 
 @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_exercise_name)
@@ -112,16 +145,21 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
             await bot.download_file(file_path=state_data['file_path'], destination=state_data['local_path'])
             upload_file(file=state_data['local_path'], destination=state_data['exercise_photo_link'])
             os.remove(state_data['local_path'])
-
-        body_part = BodyPart(name=state_data['body_part'])
-        muscle_group = MuscleGroup(name=state_data['muscle_group'], body_part=body_part)
+        if isinstance(state_data['body_part'], BodyPart):
+            body_part = state_data['body_part']
+        else:
+            body_part = BodyPart(name=state_data['body_part'])
+            create_body_part(body_part)
+        if isinstance(state_data['muscle_group'], MuscleGroup):
+            muscle_group = state_data['muscle_group']
+        else:
+            muscle_group = MuscleGroup(name=state_data['muscle_group'], body_part=body_part)
+            create_muscle_group(muscle_group)
         exercise = Exercise(name=state_data['exercise_name'],
                             photo_link=state_data['exercise_photo_link'],
                             video_link=state_data['exercise_video_link'])
 
         exercise.muscle_groups.append(muscle_group)
-        create_body_part(body_part)
-        create_muscle_group(muscle_group)
         create_exercise(exercise)
         body_parts = get_all_body_parts()
         await callback.message.edit_text(f'Упражнение сохранено, теперь давай выберем упражнения',

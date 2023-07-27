@@ -2,6 +2,7 @@ from aiogram.types import InlineKeyboardButton, Message, CallbackQuery
 from app.utilities.default_keyboards.choose import create_choose_keyboard
 from app.utilities.default_callbacks.default_callbacks import MoveToCallback, ChooseCallback
 from app.workflows.common.utils.callback_properties.movetos import ExerciseDbMoveTo
+from app.workflows.trainer.utils.callback_properties.targets import CreateExerciseTargets
 from typing import Optional
 from app.entities.exercise.exercise import BodyPart, MuscleGroup, Exercise
 from app.entities.single_file.crud import get_client_by_id, get_trainer
@@ -16,6 +17,7 @@ add_exercise_button = InlineKeyboardButton(text=f'Добавить упражн�
 def create_go_back_button(move_to: ChooseCallback | MoveToCallback):
     go_back_button = InlineKeyboardButton(text=f"Назад",
                                           callback_data=move_to.pack())
+    print(move_to.pack())
     return go_back_button
 
 
@@ -37,10 +39,15 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
     elif get_trainer(user):
         if options:
             if isinstance(options[0], BodyPart):
-                return create_choose_keyboard(options=options,
-                                   additional_buttons=[add_exercise_button,
-                                                       create_go_back_button(go_back_filter)],
-                                   option_attr='id', target=target)
+                if target == CreateExerciseTargets.process_body_part_name:
+                    return create_choose_keyboard(options=options,
+                                                  additional_buttons=[create_go_back_button(go_back_filter)],
+                                                  option_attr='id', target=target)
+                else:
+                    return create_choose_keyboard(options=options,
+                                       additional_buttons=[add_exercise_button,
+                                                           create_go_back_button(go_back_filter)],
+                                       option_attr='id', target=target)
             else:
                 return create_choose_keyboard(options=options,
                                               additional_buttons=[create_go_back_button(

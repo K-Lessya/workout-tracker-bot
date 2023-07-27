@@ -38,7 +38,17 @@ class Client(Document):
     weight = FloatField()
     height = IntField()
     trainer = ReferenceField(Trainer)
-    trainers_requests = ListField(ReferenceField(Trainer))
     training_plan = EmbeddedDocumentField(TrainingPlan)
     trainings = EmbeddedDocumentListField(Training)
+
+
+class ClientRequests(Document):
+    client = ReferenceField(Client)
+    trainers = ListField(ReferenceField(Trainer))
+
+
+class TrainerRequests(Document):
+    trainer = ReferenceField(Trainer)
+    clients = ListField(ReferenceField(Client))
+
 

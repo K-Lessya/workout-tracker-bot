@@ -5,7 +5,7 @@ from aiogram.fsm.context import FSMContext
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, YesNoOptions
 from .utils.callback_properties import RegistrationCallbackTargets, ChooseUsrTypeOptions
 from app.bot import bot
-from app.entities.single_file.models import Client, Trainer
+from app.entities.single_file.models import Client, Trainer, ClientRequests
 from app.entities.single_file.crud import create_client, create_trainer
 from app.workflows.client.utils.keyboards.client_main_menu import create_client_main_menu_keyboard
 from app.workflows.trainer.utils.keyboards.trainer_main_menu import create_trainer_main_menu_keyboard
@@ -122,16 +122,20 @@ async def process_visibility(callback: CallbackQuery, callback_data: ChooseCallb
     else:
         username = None
     if user_info['usr_type'] == ChooseUsrTypeOptions.client:
-        create_client(Client(tg_id=callback.from_user.id,
+        new_client = Client(tg_id=callback.from_user.id,
                              name=user_info['name'],
                              surname=user_info['surname'],
                              tg_username=username,
                              photo_link=user_info['photo_link'],
-                             visibility=user_info['visibility']))
+                             visibility=user_info['visibility'],
+                            )
+        create_client(new_client)
+
+
         await callback.message.edit_text(
             'Добро пожаловать в меню клиента, тут ты можешь добавлять тренировки и просмотривать информацию о уже '
             'добавленных тренировках',
-            reply_markup=create_client_main_menu_keyboard())
+            reply_markup=create_client_main_menu_keyboard(client=new_client))
 
     elif user_info['usr_type'] == ChooseUsrTypeOptions.trainer:
         create_trainer(Trainer(tg_id=callback.from_user.id,
@@ -140,7 +144,7 @@ async def process_visibility(callback: CallbackQuery, callback_data: ChooseCallb
                                surname=user_info['surname'],
                                photo_link=user_info['photo_link'],
                                visibility=user_info['visibility']))
-        await callback.message.edit_text('Добро пожаловать в меню клиента, тут ты можешь добавлять тренировки и '
+        await callback.message.edit_text('Добро пожаловать в меню тренера, тут ты можешь добавлять тренировки и '
                                          'просмотривать информацию о уже добавленных тренировках',
                                          reply_markup=create_trainer_main_menu_keyboard())
 
