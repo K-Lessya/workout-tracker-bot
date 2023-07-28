@@ -17,7 +17,9 @@ class YesNoOptions:
 
 class TestCallback(CallbackData, prefix='test'):
     test_task: str
+    user: str
 
 
 class TestTasks:
-    delete_me = 'delete_me'
+    delete_me = 'delete_user'
+

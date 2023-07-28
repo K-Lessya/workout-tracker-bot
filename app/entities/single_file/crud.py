@@ -23,6 +23,9 @@ def get_trainer(tg_id: int):
 def get_trainer_by_obj_id(obj_id: str):
     return Trainer.objects(id=obj_id).first()
 
+def get_trainer_by_username(tg_username: str):
+    return Trainer.objects(tg_username=tg_username).first()
+
 
 def create_client(client: Client):
     client.save()

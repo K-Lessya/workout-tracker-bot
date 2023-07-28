@@ -6,7 +6,7 @@ from app.utilities.default_callbacks.default_callbacks import ChooseCallback, Ye
 from .utils.callback_properties import RegistrationCallbackTargets, ChooseUsrTypeOptions
 from app.bot import bot
 from app.entities.single_file.models import Client, Trainer, ClientRequests
-from app.entities.single_file.crud import create_client, create_trainer
+from app.entities.single_file.crud import *
 from app.workflows.client.utils.keyboards.client_main_menu import create_client_main_menu_keyboard
 from app.workflows.trainer.utils.keyboards.trainer_main_menu import create_trainer_main_menu_keyboard
 from app.s3.uploader import upload_file
@@ -20,13 +20,33 @@ registration_router = Router()
 
 @registration_router.callback_query(ChooseCallback.filter(F.target == RegistrationCallbackTargets.usr_type))
 async def start_registration_process(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    if callback_data.option == ChooseUsrTypeOptions.trainer:
-        usr_type =ChooseUsrTypeOptions.trainer
-        msg_text = "Привет тренер, введи свое имя"
+    state_data = await state.get_data()
+    if 'process_user' in state_data:
+        await callback.answer(text='Че, самый хитрожопый? Закончи эту ту регистрацию', show_alert=True)
+        await callback.message.delete()
+    else:
+        await state.update_data({'process_user': True})
+        if callback_data.option == ChooseUsrTypeOptions.trainer:
+            if get_client_by_id(tg_id=callback.from_user.id):
+                await callback.answer(text='Ты уже зарегистрирован как клиент', show_alert=True)
+                await callback.message.delete()
+            elif get_trainer(tg_id=callback.from_user.id):
+                await callback.answer(text='Ты уже зарегистрирован как тренер', show_alert=True)
+                await callback.message.delete()
+            else:
+                usr_type =ChooseUsrTypeOptions.trainer
+                msg_text = "Привет тренер, введи свое имя"
 
-    elif callback_data.option == ChooseUsrTypeOptions.client:
-        usr_type = ChooseUsrTypeOptions.client
-        msg_text = "Привет клиент, введи свое имя"
+        elif callback_data.option == ChooseUsrTypeOptions.client:
+            if get_trainer(tg_id=callback.from_user.id):
+                await callback.answer(text='Ты уже зарегистрирован как тренер', show_alert=True)
+                await callback.message.delete()
+            elif get_client_by_id(tg_id=callback.from_user.id):
+                await callback.answer(text='Ты уже зарегистрирован как клиент', show_alert=True)
+                await callback.message.delete()
+            else:
+                usr_type = ChooseUsrTypeOptions.client
+                msg_text = "Привет клиент, введи свое имя"
 
     await state.set_state(RegisterStates.process_name)
     await state.update_data({"usr_type": usr_type})
@@ -122,14 +142,23 @@ async def process_visibility(callback: CallbackQuery, callback_data: ChooseCallb
     else:
         username = None
     if user_info['usr_type'] == ChooseUsrTypeOptions.client:
-        new_client = Client(tg_id=callback.from_user.id,
-                             name=user_info['name'],
-                             surname=user_info['surname'],
-                             tg_username=username,
-                             photo_link=user_info['photo_link'],
-                             visibility=user_info['visibility'],
-                            )
-        create_client(new_client)
+        if get_client_by_id(tg_id=callback.from_user.id):
+            new_client = get_client_by_id(tg_id=callback.from_user.id)
+            new_client.name = user_info['name']
+            new_client.surname = user_info['surname']
+            new_client.tg_username = username
+            new_client.photo_link = user_info['photo_link']
+            new_client.visibility = user_info['visibility']
+            new_client.save()
+        else:
+            new_client = Client(tg_id=callback.from_user.id,
+                                 name=user_info['name'],
+                                 surname=user_info['surname'],
+                                 tg_username=username,
+                                 photo_link=user_info['photo_link'],
+                                 visibility=user_info['visibility'],
+                                )
+            create_client(new_client)
 
 
         await callback.message.edit_text(

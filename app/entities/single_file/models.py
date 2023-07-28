@@ -19,7 +19,7 @@ class Training(EmbeddedDocument):
 
 
 class Trainer(Document):
-    tg_id = IntField()
+    tg_id = IntField(unique=True)
     tg_username = StringField()
     name = StringField()
     surname = StringField()
@@ -28,7 +28,7 @@ class Trainer(Document):
 
 
 class Client(Document):
-    tg_id = IntField()
+    tg_id = IntField(unique=True)
     tg_username = StringField()
     phone_number = StringField()
     visibility = BooleanField()
@@ -43,12 +43,12 @@ class Client(Document):
 
 
 class ClientRequests(Document):
-    client = ReferenceField(Client)
+    client = ReferenceField(Client, unique=True)
     trainers = ListField(ReferenceField(Trainer))
 
 
 class TrainerRequests(Document):
-    trainer = ReferenceField(Trainer)
+    trainer = ReferenceField(Trainer, unique=True)
     clients = ListField(ReferenceField(Client))
 
 

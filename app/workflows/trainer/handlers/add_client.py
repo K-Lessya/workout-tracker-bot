@@ -15,6 +15,7 @@ from ..utils.callback_properties.targets import TrainerAddClientTargets
 from app.config import PHOTO_BUCKET
 from app.entities.single_file.crud import *
 from app.s3.downloader import create_presigned_url
+from app.workflows.client.utils.keyboards.notifications import create_new_trainer_request_keyboard
 
 
 add_client_router = Router()
@@ -36,14 +37,25 @@ async def start_add_client(callback: CallbackQuery, callback_data: ChooseCallbac
 @add_client_router.message(TrainerStates.add_client.process_contact)
 async def process_client_contact(message: Message, state: FSMContext):
     if get_client_by_id(message.contact.user_id):
-        client = get_client_by_id(message.contact.user_id)
-        trainer = get_trainer(tg_id=message.from_user.id)
-        update_client_trainer(client=client, trainer=trainer)
+        await message.answer(f'Этот человек зарегистрирован как тренер, ты не можешь доавить его как клиента',
+                             reply_markup=create_trainer_main_menu_keyboard())
+        await state.clear()
     else:
-        create_client(Client(tg_id=message.contact.user_id, phone_number=message.contact.phone_number,
-                             trainer=get_trainer(message.from_user.id)))
-    await state.clear()
-    await message.answer(f'Клиент добавлен', reply_markup=create_trainer_main_menu_keyboard())
+        if get_client_by_id(message.contact.user_id):
+            client = get_client_by_id(message.contact.user_id)
+            if client.trainer:
+                if client.trainer.tg_id == message.from_user.id:
+                    await message.answer(f'У тебя уже есть такой клиент', reply_markup=create_trainer_main_menu_keyboard())
+                else:
+                    await message.answer(f'Этот клиент уже занят', reply_markup=create_trainer_main_menu_keyboard())
+            else:
+                trainer = get_trainer(tg_id=message.from_user.id)
+                update_client_trainer(client=client, trainer=trainer)
+        else:
+            create_client(Client(tg_id=message.contact.user_id, phone_number=message.contact.phone_number,
+                                 trainer=get_trainer(message.from_user.id)))
+            await state.clear()
+            await message.answer(f'Клиент добавлен', reply_markup=create_trainer_main_menu_keyboard())
 
 
 @add_client_router.callback_query(MoveToCallback.filter(F.move_to == AddClientMoveTo.by_username))
@@ -54,15 +66,26 @@ async def start_add_client(callback: CallbackQuery, callback_data: ChooseCallbac
 
 @add_client_router.message(TrainerStates.add_client.process_username)
 async def process_client_contact(message: Message, state: FSMContext):
-    tg_username = message.text.replace('https://t.me/')
-    if get_client_by_username(tg_username=tg_username):
-        client = get_client_by_username(tg_username=tg_username)
-        trainer = get_trainer(tg_id=message.from_user.id)
-        update_client_trainer(client=client, trainer=trainer)
+    tg_username = message.text.replace('https://t.me/', '')
+    if get_trainer_by_username(tg_username=tg_username):
+        await message.answer(f'Этот человек зарегистрирован как тренер, ты не можешь доавить его как клиента',
+                             reply_markup=create_trainer_main_menu_keyboard())
+        await state.clear()
     else:
-        create_client(Client(tg_username=tg_username))
-    await state.clear()
-    await message.answer(f'Клиент добавлен', reply_markup=create_trainer_main_menu_keyboard())
+        if get_client_by_username(tg_username=tg_username):
+            client = get_client_by_username(tg_username=tg_username)
+            if client.trainer:
+                if client.trainer.tg_id == message.from_user.id:
+                    await message.answer(f'У тебя уже есть такой клиент', reply_markup=create_trainer_main_menu_keyboard())
+                else:
+                    await message.answer(f'Этот клиент уже занят', reply_markup=create_trainer_main_menu_keyboard())
+            else:
+                trainer = get_trainer(tg_id=message.from_user.id)
+                update_client_trainer(client=client, trainer=trainer)
+        else:
+            create_client(Client(tg_username=tg_username))
+            await state.clear()
+            await message.answer(f'Клиент добавлен', reply_markup=create_trainer_main_menu_keyboard())
 
 
 @add_client_router.callback_query(MoveToCallback.filter(F.move_to == AddClientMoveTo.by_existing))
@@ -99,7 +122,8 @@ async def add_client_profile(callback: CallbackQuery, callback_data: ChooseCallb
         await state.clear()
         await bot.send_message(chat_id=callback.from_user.id, text='Клиенту отправлена заявка',
                                reply_markup=create_trainer_main_menu_keyboard())
-        await bot.send_message(chat_id=client_id, text='Тебе поступило новое предложение от тренера, посмотри его')
+        await bot.send_message(chat_id=client_id, text='Тебе поступило новое предложение от тренера, посмотри его',
+                               reply_markup=create_new_trainer_request_keyboard(str(trainer.id)))
         await callback.message.delete()
     elif callback_data.option == YesNoOptions.no:
         clients = get_all_not_assigned_clients_with_name()
