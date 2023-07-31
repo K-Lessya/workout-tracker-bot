@@ -9,19 +9,28 @@ def create_trainer(trainer: Trainer):
 def get_client_by_username(tg_username: str):
     return Client.objects(tg_username=tg_username).first()
 
+
+def get_client(obj_id: str):
+    return Client.objects(id=obj_id).first()
+
+
 def get_client_by_id(tg_id: int):
     return Client.objects(tg_id=tg_id).first()
+
 
 def update_client_trainer(client: Client, trainer: Trainer):
     client.trainer = trainer
     client.save()
     return True
 
+
 def get_trainer(tg_id: int):
     return Trainer.objects(tg_id=tg_id).first()
 
+
 def get_trainer_by_obj_id(obj_id: str):
     return Trainer.objects(id=obj_id).first()
+
 
 def get_trainer_by_username(tg_username: str):
     return Trainer.objects(tg_username=tg_username).first()
@@ -72,10 +81,14 @@ def get_client_requests_by_id(tg_id):
     return requests.trainers
 
 
-def get_trainer_clients(first: int, range: int, trainer_id):
+def get_trainer_clients_range(first: int, range: int, trainer_id):
     clients = Client.objects(name__exists=True, trainer=trainer_id)[first:range]
     return clients
 
+
+def get_trainer_clients(trainer: Trainer):
+    clients = Client.objects(name__exists=True, trainer=trainer)
+    return clients
 
 def create_training(tg_id: int, training: Training):
     client = Client.objects(tg_id=tg_id).first()

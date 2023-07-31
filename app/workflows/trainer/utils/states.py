@@ -28,7 +28,22 @@ class ExercisesDb(StatesGroup):
     list_exercises = ListExercisesStates
 
 
+class CreatePlan(StatesGroup):
+    process_num_days = State()
+    process_body_parts = State()
+    process_num_runs = State()
+    process_num_repeats = State()
+
+class MyClients(StatesGroup):
+    create_plan = CreatePlan()
+
+
 class TrainerStates(StatesGroup):
     add_client = AddClientStates()
     exercises_db = ExercisesDb()
+    my_clients = MyClients()
+
+
+
+
 

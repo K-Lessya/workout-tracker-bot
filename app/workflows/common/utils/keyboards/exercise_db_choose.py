@@ -7,7 +7,9 @@ from typing import Optional
 from app.entities.exercise.exercise import BodyPart, MuscleGroup, Exercise
 from app.entities.single_file.crud import get_client_by_id, get_trainer
 from app.workflows.common.utils.callback_properties.movetos import CommonGoBackMoveTo
-
+from aiogram.utils.keyboard import InlineKeyboardBuilder
+from app.entities.exercise.crud import *
+from app.workflows.trainer.utils.callback_properties.targets import TrainerMyClientsTargets
 
 add_exercise_button = InlineKeyboardButton(text=f'Добавить упражнение',
                                            callback_data=MoveToCallback(
@@ -58,3 +60,25 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
                                           target=None,
                                           option_attr=None,
                                           additional_buttons=[create_go_back_button(go_back_filter)])
+
+
+class ExerciseCommonListKeyboard(InlineKeyboardBuilder):
+    def __init__(self, items: list[BodyPart | MuscleGroup | Exercise]):
+        super().__init__()
+        if isinstance(items[0], BodyPart):
+                target = TrainerMyClientsTargets.choose_body_part
+        elif isinstance(items[0], MuscleGroup):
+                target = TrainerMyClientsTargets.choose_muscle_group
+        else:
+                target = TrainerMyClientsTargets.choose_exercise_for_plan
+
+        for item in items:
+            self.button(text=f'{item.name}',
+                        callback_data=ChooseCallback(
+                            target=target,
+                            option=str(item.id)))
+
+
+
+
+

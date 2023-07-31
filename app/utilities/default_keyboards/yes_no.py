@@ -12,3 +12,14 @@ def create_yes_no_keyboard(target):
         text="Нет", callback_data=ChooseCallback(target=target, option=YesNoOptions.no)
     )
     return builder.as_markup()
+
+
+class YesNoKeyboard(InlineKeyboardBuilder):
+    def __init__(self, target):
+        super().__init__()
+        self.button(
+            text="Да", callback_data=ChooseCallback(target=target, option=YesNoOptions.yes)
+        )
+        self.button(
+            text="Нет", callback_data=ChooseCallback(target=target, option=YesNoOptions.no)
+        )

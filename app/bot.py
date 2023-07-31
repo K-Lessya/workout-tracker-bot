@@ -11,7 +11,6 @@ from app.entities.single_file.crud import get_client_by_id, get_trainer
 from app.workflows.registration.utils.states import RegisterStates
 from app.utilities.default_keyboards.tester_keyboard import create_tester_keyboard
 from app.entities.single_file.crud import delete_client_or_trainer
-#from app.workflows.registration.handlers import registration_router
 from app.workflows.registration.utils.callback_properties import ChooseUsrTypeOptions
 from app.utilities.default_callbacks.default_callbacks import TestCallback, TestTasks
 bot = Bot(token=BOT_TOKEN)
@@ -67,3 +66,8 @@ async def cmd_tester(message: types.Message, state: FSMContext):
 async def delete_test_user(callback: CallbackQuery, callback_data: TestCallback, state: FSMContext):
     delete_client_or_trainer(int(callback_data.user))
     await callback.message.edit_text("You was deleted, use /start command again")
+
+
+@dp.callback_query(F == 'no')
+async def not_added_handler(callback: CallbackQuery, callback_data: str, state: FSMContext):
+    await callback.answer(text='Функционал еще не добавлен', show_alert=True)

@@ -1,15 +1,6 @@
 from mongoengine import *
 from ..exercise.exercise import ClientTrainingExercise, Exercise, PlanTrainingExercise
-
-
-class TrainingDay(EmbeddedDocument):
-    day_number = IntField(required=True)
-    training_exercises = EmbeddedDocumentListField(PlanTrainingExercise, required=True)
-
-
-class TrainingPlan(EmbeddedDocument):
-    days = EmbeddedDocumentListField(TrainingDay)
-
+from ..training_plan.training_plan import *
 
 class Training(EmbeddedDocument):
     date = DateField(required=True)
@@ -38,7 +29,7 @@ class Client(Document):
     weight = FloatField()
     height = IntField()
     trainer = ReferenceField(Trainer)
-    training_plan = EmbeddedDocumentField(TrainingPlan)
+    training_plan = EmbeddedDocumentField(DbTrainingPlan)
     trainings = EmbeddedDocumentListField(Training)
 
 

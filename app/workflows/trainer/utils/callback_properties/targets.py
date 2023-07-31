@@ -19,3 +19,14 @@ class CreateExerciseTargets:
     process_exercise_photo = 'process_exercise_photo'
     process_exercise_video = 'process_exercise_video'
     process_save_exercise = 'process_save_exercise'
+
+
+class TrainerMyClientsTargets:
+    show_client = 'show_my_client'
+    choose_day = 'choose_day'
+    choose_body_part = 'choose_body_part'
+    choose_muscle_group = 'choose_muscle_group'
+    choose_exercise_for_plan = 'choose_exercise_for_plan'
+    save_plan = 'save_plan'
+
+
