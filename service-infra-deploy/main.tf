@@ -10,7 +10,7 @@ resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode(
         [
             {
-                cpu               = 512
+                cpu               = 1024
                 environment       = [
                   {
                     name = "MONGO_CONNECTION_STRING"
@@ -54,8 +54,8 @@ resource "aws_ecs_task_definition" "this" {
                     }
                     secretOptions = []
                 }
-                memory            = 256
-                memoryReservation = 256
+                memory            = 512
+                memoryReservation = 512
                 mountPoints       = []
                 name              = "workout-bot"
                 portMappings      = []
@@ -64,10 +64,10 @@ resource "aws_ecs_task_definition" "this" {
             },
         ]
     )
-    cpu                      = "512"
+    cpu                      = "1024"
     execution_role_arn       = "arn:aws:iam::935625980877:role/ecsTaskExecutionRole"
     family                   = "workout-bot"
-    memory                   = "305"
+    memory                   = "600"
     network_mode             = "awsvpc"
     requires_compatibilities = [
         "EC2",
