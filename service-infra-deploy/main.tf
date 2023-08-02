@@ -31,7 +31,7 @@ resource "aws_ecs_task_definition" "this" {
                   {
                     name = "TEST_USERS_ID"
                     value = "2343545 546546457"
-                  }
+                  },
                   {
                     name = "AWS_ACCESS_KEY_ID"
                     value = var.AWS_ACCESS_KEY_ID
