@@ -68,7 +68,7 @@ resource "aws_ecs_task_definition" "this" {
     execution_role_arn       = "arn:aws:iam::935625980877:role/ecsTaskExecutionRole"
     family                   = "workout-bot"
     memory                   = "600"
-    network_mode             = "awsvpc"
+    network_mode             = "bridge"
     requires_compatibilities = [
         "EC2",
     ]
