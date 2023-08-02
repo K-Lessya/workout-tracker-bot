@@ -55,7 +55,7 @@ resource "aws_ecs_task_definition" "this" {
                     secretOptions = []
                 }
                 memory            = 256
-                memoryReservation = 300
+                memoryReservation = 256
                 mountPoints       = []
                 name              = "workout-bot"
                 portMappings      = []
