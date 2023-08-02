@@ -10,7 +10,7 @@ resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode(
         [
             {
-                cpu               = 1024
+                cpu               = 1400
                 environment       = [
                   {
                     name = "MONGO_CONNECTION_STRING"
@@ -64,7 +64,7 @@ resource "aws_ecs_task_definition" "this" {
             },
         ]
     )
-    cpu                      = "1024"
+    cpu                      = "1400"
     execution_role_arn       = "arn:aws:iam::935625980877:role/ecsTaskExecutionRole"
     family                   = "workout-bot"
     memory                   = "600"
