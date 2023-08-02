@@ -11,3 +11,6 @@ variable "AWS_SECRET_ACCESS_KEY" {
 variable "IMAGE_TAG" {
   type = string
 }
+variable "BOT_TOKEN" {
+  type = string
+}

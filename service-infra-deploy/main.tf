@@ -21,6 +21,18 @@ resource "aws_ecs_task_definition" "this" {
                     value = "workout-bot"
                   },
                   {
+                    name = "BOT_TOKEN",
+                    value = var.BOT_TOKEN
+                  },
+                  {
+                    name = "TESTER_ID"
+                    value = "1234567"
+                  },
+                  {
+                    name = "TEST_USERS_ID"
+                    value = "2343545 546546457"
+                  }
+                  {
                     name = "AWS_ACCESS_KEY_ID"
                     value = var.AWS_ACCESS_KEY_ID
                   },
