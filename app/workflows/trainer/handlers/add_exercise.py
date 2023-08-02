@@ -14,6 +14,7 @@ from app.workflows.common.utils.callback_properties.movetos import ExerciseDbMov
     CommonGoBackMoveTo
 from app.s3.uploader import upload_file
 from app.entities.exercise.crud import *
+from app.utilities.helpers_functions import check_link
 import os
 
 
@@ -88,7 +89,7 @@ async def ask_for_photo(callback: CallbackQuery, callback_data: ChooseCallback, 
         await callback.answer()
     elif callback_data.option == YesNoOptions.no:
         await state.update_data({'exercise_photo_link': 'defaults/panda_workout.jpeg'})
-        await state.set_state(TrainerStates.exercises_db.add_exercise.process_video)
+        await state.set_state(TrainerStates.exercises_db.add_exercise.ask_for_video)
         await callback.message.edit_text(f'Хочешь прислать мне ссылку на видео с техникой выполнения?',
                                          reply_markup=create_yes_no_keyboard(
                                              target=CreateExerciseTargets.process_exercise_video))
@@ -100,9 +101,20 @@ async def process_photo(message: Message, state: FSMContext):
     file_path = file.file_path
     destination = file_path.replace('/', '_')
     photo_link = f'exercises/{file_path}'
+    await state.set_state(TrainerStates.exercises_db.add_exercise.ask_for_video)
     await state.update_data({'local_path': f'tmp/{destination}', 'file_path': file_path, 'exercise_photo_link': photo_link})
-    await message.answer(f'Хочешь прислать мне ссылку на видео с техникой выполнения?',
+    last_bot_message = await message.answer(f'Хочешь прислать мне ссылку на видео с техникой выполнения?',
                          reply_markup=create_yes_no_keyboard(
+                             target=CreateExerciseTargets.process_exercise_video))
+    await state.update_data({"last_message": last_bot_message})
+
+
+@add_exercise_router.message(TrainerStates.exercises_db.add_exercise.ask_for_video)
+async def reply_from_question(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    last_bot_message = state_data['last_message']
+    await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=last_bot_message.message_id, reply_markup=None)
+    await bot.send_message(chat_id=message.from_user.id, text="На кнопку наэми дурак", reply_markup=create_yes_no_keyboard(
                              target=CreateExerciseTargets.process_exercise_video))
 
 
@@ -115,7 +127,7 @@ async def process_video(callback: CallbackQuery, callback_data: ChooseCallback, 
 
     elif callback_data.option == YesNoOptions.no:
         await state.update_data({'exercise_video_link': ''})
-        await state.set_state(TrainerStates.exercises_db.add_exercise.process_video)
+        await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
         state_data = await state.get_data()
         await callback.message.edit_text(f'Давай все проверим.\nЧасть тела: {state_data["body_part"]}\nГруппа мышц:'
                                          f' {state_data["muscle_group"]}\nНазвание: {state_data["exercise_name"]}\n'
@@ -126,10 +138,13 @@ async def process_video(callback: CallbackQuery, callback_data: ChooseCallback, 
 
 @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_video)
 async def process_video_link(message: Message, state: FSMContext):
+    check_link(link=message.text)
     await state.update_data({'exercise_video_link': message.text})
     state_data = await state.get_data()
+    await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
     await message.answer(f'Давай все проверим.\nЧасть тела: {state_data["body_part"]}\nГруппа мышц:'
                                      f' {state_data["muscle_group"]}\nНазвание: {state_data["exercise_name"]}\n'
+                                     f'Ссылка на видео: {state_data["exercise_video_link"]}'
                                      f'Сохранить?',
                                      reply_markup=create_yes_no_keyboard(
                                          target=CreateExerciseTargets.process_save_exercise))

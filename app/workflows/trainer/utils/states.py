@@ -12,6 +12,7 @@ class AddExercisesSates(StatesGroup):
     process_muscle_group_name = State()
     process_exercise_name = State()
     process_photo = State()
+    ask_for_video = State()
     process_video = State()
     process_save = State()
 

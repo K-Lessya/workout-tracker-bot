@@ -5,4 +5,10 @@ def process_tg_link(link: str):
     else:
         return link
 
+def check_link(link: str):
+    if "http://" or "https://" in link:
+        return True
+    else:
+        return False
+
 
