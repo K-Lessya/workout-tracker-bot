@@ -1,6 +1,8 @@
 name: deploy
 on: 
-  - push
+  - push:
+      tags:
+        - 'v*'
 
 jobs:
   build:
@@ -26,5 +28,5 @@ jobs:
           REPOSITORY: workout-bot
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          docker build -t $REGISTRY/$REPOSITORY:$GITHUB_REF_NAME .
+          docker push $REGISTRY/$REPOSITORY:$GITHUB_REF_NAME
