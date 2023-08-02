@@ -39,6 +39,7 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
                                           option_attr=None,
                                           additional_buttons=[create_go_back_button(go_back_filter)])
     elif get_trainer(user):
+        print("get_trainer")
         if options:
             if isinstance(options[0], BodyPart):
                 if target == CreateExerciseTargets.process_body_part_name:
@@ -59,7 +60,10 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
             return create_choose_keyboard(options=None,
                                           target=None,
                                           option_attr=None,
-                                          additional_buttons=[create_go_back_button(go_back_filter)])
+                                          additional_buttons=[add_exercise_button,
+                                                              create_go_back_button(go_back_filter)])
+
+
 
 
 class ExerciseCommonListKeyboard(InlineKeyboardBuilder):
@@ -73,10 +77,14 @@ class ExerciseCommonListKeyboard(InlineKeyboardBuilder):
                 target = TrainerMyClientsTargets.choose_exercise_for_plan
 
         for item in items:
-            self.button(text=f'{item.name}',
+            self.row(InlineKeyboardButton(text=f'{item.name}',
                         callback_data=ChooseCallback(
                             target=target,
-                            option=str(item.id)))
+                            option=str(item.id))))
+
+
+
+
 
 
 
