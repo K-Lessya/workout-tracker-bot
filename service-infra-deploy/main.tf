@@ -18,7 +18,7 @@ resource "aws_ecs_task_definition" "this" {
                   },
                   {
                     name = "PHOTO_BUCKET"
-                    value = "workout-bot"
+                    value = "rorychan-workout-bot"
                   },
                   {
                     name = "BOT_TOKEN",
