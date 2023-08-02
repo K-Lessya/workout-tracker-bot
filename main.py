@@ -19,8 +19,8 @@ dp.include_router(common_router)
 
 async def main():
     # connect("test", host="localhost", port=27017, username="myuser", password="mypassword")
-    connect(host=MONGO_CONNECTION_STRING)
     print(MONGO_CONNECTION_STRING)
+    connect(host=MONGO_CONNECTION_STRING)
     await bot.delete_webhook(drop_pending_updates=True)
 
     await dp.start_polling(bot)
