@@ -158,6 +158,8 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
 
         if state_data['exercise_photo_link'] != 'defaults/panda_workout.jpeg':
             await bot.download_file(file_path=state_data['file_path'], destination=state_data['local_path'])
+            print('file_downloaded')
+
             upload_file(file=state_data['local_path'], destination=state_data['exercise_photo_link'])
             os.remove(state_data['local_path'])
         if isinstance(state_data['body_part'], BodyPart):

@@ -21,6 +21,8 @@ async def main():
     # connect("test", host="localhost", port=27017, username="myuser", password="mypassword")
     print(MONGO_CONNECTION_STRING)
     connect(host=MONGO_CONNECTION_STRING)
+    if not os.path.exists("./tmp"):
+        os.mkdir("./tmp")
     await bot.delete_webhook(drop_pending_updates=True)
 
     await dp.start_polling(bot)
