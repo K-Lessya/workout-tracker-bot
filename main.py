@@ -3,15 +3,15 @@ import os
 from app.bot import dp, bot
 import logging
 from mongoengine import connect
-from app.workflows.registration.handlers import registration_router
 from app.workflows.client.router import client_router
 from app.workflows.trainer.router import trainer_router
 from app.workflows.common.router import common_router
+from app.handlers.main_router import main_router
 from app.config import MONGO_CONNECTION_STRING
 
 logging.basicConfig(level=logging.DEBUG)
 
-dp.include_router(registration_router)
+dp.include_router(main_router)
 dp.include_router(client_router)
 dp.include_router(trainer_router)
 dp.include_router(common_router)

@@ -4,6 +4,7 @@ from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram import F
 from .config import BOT_TOKEN, TESTER_ID, TEST_USERS_ID
+from app.keyboards.registration.keyboards import ChooseUsrTypeKeyboard
 from app.workflows.registration.keyboards.process_user_type import create_choose_user_type_keyboard
 from app.workflows.client.utils.keyboards.client_main_menu import create_client_main_menu_keyboard
 from app.workflows.trainer.utils.keyboards.trainer_main_menu import create_trainer_main_menu_keyboard
@@ -42,7 +43,8 @@ async def cmd_start(message: types.Message, state: FSMContext):
         await message.answer(f'Привет снова, {trainer.name}! Давай продолжим работу, выбери один из пунктов меню',
                              reply_markup=create_trainer_main_menu_keyboard())
     else:
-        await message.answer("Привет, регаемся как тренер или как клиент?", reply_markup=create_choose_user_type_keyboard())
+        await message.answer("Привет, регаемся как тренер или как клиент?",
+                             reply_markup=ChooseUsrTypeKeyboard().as_markup())
 
 
 

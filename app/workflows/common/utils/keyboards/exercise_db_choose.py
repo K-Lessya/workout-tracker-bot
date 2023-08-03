@@ -57,6 +57,7 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
                                                                       go_back_filter)],
                                               option_attr='id', target=target)
         else:
+            if source.
             return create_choose_keyboard(options=None,
                                           target=None,
                                           option_attr=None,
