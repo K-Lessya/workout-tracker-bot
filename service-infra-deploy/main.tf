@@ -4,13 +4,56 @@ locals {
 
 }
 
-
+resource "aws_iam_role" "task_role" {
+  assume_role_policy = jsonencode({
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": [
+                    "ecs-tasks.amazonaws.com"
+                ]
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+  })
+  name = "workout-bot-task-role"
+}
+resource "aws_iam_role_policy_attachment" "this" {
+  policy_arn = aws_iam_policy.this.arn
+  role       = aws_iam_role.task_role.name
+}
+resource "aws_iam_policy" "this" {
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "ssm:*"
+        Effect = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
+}
 
 resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode(
         [
             {
                 cpu               = 1400
+                secrets  = [
+                  {
+                    name = "TESTER_ID"
+                    valueFrom = aws_ssm_parameter.tester_id.arn
+                  },
+                  {
+                    name = "TEST_USERS_ID"
+                    valueFrom = aws_ssm_parameter.test_users_id.arn
+                  }
+                ]
                 environment       = [
                   {
                     name = "MONGO_CONNECTION_STRING"
@@ -23,14 +66,6 @@ resource "aws_ecs_task_definition" "this" {
                   {
                     name = "BOT_TOKEN",
                     value = var.BOT_TOKEN
-                  },
-                  {
-                    name = "TESTER_ID"
-                    value = "1234567"
-                  },
-                  {
-                    name = "TEST_USERS_ID"
-                    value = "2343545 546546457"
                   },
                   {
                     name = "AWS_ACCESS_KEY_ID"
@@ -74,9 +109,21 @@ resource "aws_ecs_task_definition" "this" {
     ]
     tags                     = {}
     tags_all                 = {}
-
+    task_role_arn = aws_iam_role.task_role.arn
     runtime_platform {
         cpu_architecture        = "X86_64"
         operating_system_family = "LINUX"
     }
+}
+
+resource "aws_ssm_parameter" "tester_id" {
+  name  = "TESTER_ID"
+  type  = "String"
+  value = "363439865"
+}
+
+resource "aws_ssm_parameter" "test_users_id" {
+  name = "TEST_USERS_ID"
+  type = "String"
+  value = "363439865 312380813"
 }
