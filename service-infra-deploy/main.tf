@@ -141,6 +141,7 @@ resource "aws_ecs_service" "this" {
   scheduling_strategy = "DAEMON"
   task_definition = aws_ecs_task_definition.this.arn
   wait_for_steady_state = false
+  force_new_deployment = true
   deployment_circuit_breaker {
     enable   = true
     rollback = true
