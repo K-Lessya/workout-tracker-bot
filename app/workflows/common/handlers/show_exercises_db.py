@@ -45,7 +45,7 @@ async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallb
 
 
 @show_exercises_db_router.callback_query(ChooseCallback.filter(F.target == ExerciseDbTargets.show_muscle_group))
-async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+async def show_exercises(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     muscle_group = get_muscle_group_by_id(callback_data.option)
     state_data = await state.get_data()
     go_back_ref = state_data['body_part']
@@ -82,12 +82,13 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
     state_data = await state.get_data()
     go_back_ref = state_data['muscle_group']
     await state.update_data({'has_photo': True})
+    print(state_data)
     await bot.send_photo(chat_id=callback.from_user.id, photo=photo_link,
                          caption=f"{exercise.name}",
                          reply_markup=create_exercise_db_choose_keyboard(
                              options=None,
                              source=callback,
-                             target=None,
+                             target="optional",
                              go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
                                                            option=go_back_ref)))
     await callback.message.delete()
