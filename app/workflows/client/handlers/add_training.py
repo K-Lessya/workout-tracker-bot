@@ -18,17 +18,21 @@ from app.workflows.client.utils.keyboards.create_trainings import create_add_exe
 from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
 from app.s3.uploader import upload_file
 from datetime import date
+from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo
 
 
 add_training_router = Router()
 
+
 # Create training flow
-@add_training_router.callback_query(ChooseCallback.filter(F.target == ClientMainMenuTargets.create_training),
-                              ChooseCallback.filter(F.option == ClientMainMenuOptions.new_training))
+@add_training_router.callback_query(ChooseCallback.filter(F.target == ClientMainMenuMoveTo.add_training))
 async def start_creating_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    await state.set_state(ClientStates.process_training_name)
-    await callback.message.edit_text(f'Введи название тренировки')
-    await callback.answer()
+    await state.set_state(ClientStates.process_training_type)
+
+    await callback.message.edit_text(f"Хочешь добавить собственную тренировку или из плана")
+
+
+
 
 @add_training_router.message(ClientStates.process_training_name)
 async def process_training_name(message: Message, state: FSMContext):
@@ -39,12 +43,12 @@ async def process_training_name(message: Message, state: FSMContext):
                                      reply_markup=create_add_exercise_keyboard())
 
 
-
 @add_training_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.create_training))
 async def process_exercise(callback: CallbackQuery, callback_data: CreateTrainingCallback, state: FSMContext):
     await state.set_state(ClientStates.process_exercise_name)
     await callback.message.edit_text(f'Введи название упражнения')
     await callback.answer()
+
 
 @add_training_router.message(ClientStates.process_exercise_name)
 async def process_exercise_name(message: Message, state: FSMContext):

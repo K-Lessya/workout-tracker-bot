@@ -24,6 +24,10 @@ def create_client_main_menu_keyboard(client: Client):
             "text": "Мой тренер",
             "target": ClientMainMenuMoveTo.add_training
         },
+        {
+            "text": "Мой план",
+            "target": ClientMainMenuMoveTo.my_plan
+        }
 
     ]
     for button in builder_buttons:
