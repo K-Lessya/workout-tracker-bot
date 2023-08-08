@@ -80,3 +80,8 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
                          caption=f'{selected_exercise.exercise.name}\n{selected_exercise.num_runs} подхода'
                                  f' по {selected_exercise.num_repeats} раз(а)',
                          reply_markup=PlanExerciseGoBackKeyboard(source_option=str(selected_day)).as_markup())
+
+
+@my_plan_router.message(ClientStates.show_client_plan.show_single_exercise)
+async def handle_message(message: Message, state: FSMContext):
+    await message.delete()
