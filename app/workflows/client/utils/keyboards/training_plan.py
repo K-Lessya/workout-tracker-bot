@@ -3,8 +3,7 @@ from app.utilities.default_callbacks.default_callbacks import ChooseCallback, Mo
 from app.workflows.common.utils.callback_properties.movetos import CommonGoBackMoveTo
 from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo
 from app.workflows.client.utils.callback_properties.targets import ClientMyPlanTargets
-from app.entities.single_file.models import Client
-from app.entities.training_plan.training_plan import DbTrainingDay
+
 
 
 class TrainingDaysKeyboard(InlineKeyboardBuilder):
