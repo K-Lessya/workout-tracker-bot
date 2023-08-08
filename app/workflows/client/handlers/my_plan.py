@@ -1,24 +1,11 @@
-import os
 from aiogram import Router
 from aiogram.types import CallbackQuery, Message
 from aiogram import F
 from aiogram.fsm.context import FSMContext
-
-from app.utilities.default_callbacks.default_callbacks import ChooseCallback, YesNoOptions, MoveToCallback
-from app.workflows.client.utils.callback_property import CreateTrainingCallback, CreateTrainingCallbackActions, ClientMainMenuTargets,\
-    ClientMainMenuOptions, ClientExerciseTargets
-
+from app.utilities.default_callbacks.default_callbacks import ChooseCallback, MoveToCallback
 from app.workflows.client.utils.states import ClientStates
 from app.bot import bot
-
-from app.entities.single_file.models import Training, ClientTrainingExercise
-from app.entities.single_file.crud import create_training, get_client_by_id
-from app.workflows.client.utils.keyboards.client_main_menu import create_client_main_menu_keyboard
-from app.workflows.client.utils.keyboards.create_trainings import create_add_exercise_keyboard
-from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
-from app.s3.uploader import upload_file
 from app.s3.downloader import create_presigned_url
-from datetime import date
 from app.config import PHOTO_BUCKET
 from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo
 from app.entities.training_plan.crud import get_training_days
