@@ -15,7 +15,7 @@ from app.entities.single_file.models import Training, ClientTrainingExercise
 from app.entities.single_file.crud import get_client_by_id
 from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo
 from app.workflows.client.utils.callback_properties.targets import ClientAddTrainingTargets
-from app.workflows.client.utils.keyboards.training_plan import TrainingDaysKeyboard, PlanExerciseGoBackKeyboard
+from app.workflows.client.utils.keyboards.training_plan import PlanExerciseGoBackKeyboard
 from app.workflows.client.utils.callback_properties.targets import ClientMyPlanTargets
 from app.workflows.client.utils.keyboards.training_plan import TrainingDayExercises
 from app.workflows.client.utils.keyboards.client_main_menu import create_client_main_menu_keyboard
@@ -166,7 +166,7 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
     state_data = await state.get_data()
     training = state_data['training']
     mongo_training = Training(date=training.date)
-    await callback.answer('Загружаем себе видео упражнений')
+
     for exercise in training.training_exercises:
         if exercise.video_link != '':
             s3_path = f'{callback.from_user.id}/trainings/{training.date}/{exercise.video_link.split("/")[1]}'
@@ -182,8 +182,7 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
     client = get_client_by_id(callback.from_user.id)
     client.trainings.append(mongo_training)
     client.save()
-
-    await callback.answer('Тренировка сохранена', show_alert=True)
+    await callback.answer('Тренировка сохранена', show_alert=True, cache_time=300)
 
     await callback.message.edit_text("Меню клиента", reply_markup=create_client_main_menu_keyboard(client=client))
 
