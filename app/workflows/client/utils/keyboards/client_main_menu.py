@@ -3,6 +3,7 @@ from ..callback_properties.movetos import ClientMainMenuMoveTo
 from app.entities.single_file.crud import client_get_num_trainier_requests
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from app.entities.single_file.models import Client
+from app.callbacks.callbacks import MoveCallback
 
 
 def create_client_main_menu_keyboard(client: Client):
@@ -32,7 +33,7 @@ def create_client_main_menu_keyboard(client: Client):
     ]
     for button in builder_buttons:
             builder.button(
-                text=button['text'], callback_data=MoveToCallback(move_to=button['target'])
+                text=button['text'], callback_data=MoveCallback(target=button['target'])
             )
     builder.adjust(2, 1)
     return builder.as_markup()

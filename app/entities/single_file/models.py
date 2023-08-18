@@ -4,8 +4,6 @@ from ..training_plan.training_plan import *
 
 class Training(EmbeddedDocument):
     date = DateField(required=True)
-    name = StringField()
-    day_number = IntField()
     training_exercises = EmbeddedDocumentListField(ClientTrainingExercise)
 
 

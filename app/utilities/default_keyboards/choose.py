@@ -4,6 +4,7 @@ from app.utilities.default_callbacks.default_callbacks import ChooseCallback
 from app.workflows.registration.utils.callback_properties import ChooseUsrTypeOptions, RegistrationCallbackTargets
 from app.entities.exercise.exercise import BodyPart, MuscleGroup, Exercise
 from typing import Optional
+from app.buttons.go_back import GoBackButton
 
 
 def create_choose_keyboard(target: Optional[str], options: Optional[list], option_attr: Optional[str],
@@ -19,16 +20,28 @@ def create_choose_keyboard(target: Optional[str], options: Optional[list], optio
             ))
     builder.row(*additional_buttons)
 
-
-
-#         InlineKeyboardButton(text=f'Добавить упражнение',
-#                                      callback_data=ChooseCallback(target=target,
-#                                                                  option=ListBodyPartsOptions.add_pure_exercise).pack()),
-#         InlineKeyboardButton(text=f"Назад", callback_data=ChooseCallback(target=TrainerMainMenuTargets.go_to_main_menu,
-#                                                                          option='').pack())
-# )
-
     return builder.as_markup()
+
+
+class ChooseKeyboard(InlineKeyboardBuilder):
+    def __init__(self, target, options, option_attr, go_back_target, additional_buttons: list):
+        super().__init__()
+        for option in options:
+            self.row(
+                InlineKeyboardButton(
+                    text=f'{option.name}', callback_data=ChooseCallback(
+                        target=target,
+                        option=f'{str(getattr(option, option_attr))}').pack()
+                    )
+                )
+            if additional_buttons:
+                for button in additional_buttons:
+                    self.row(button)
+            self.row(GoBackButton(text='Назад', target=go_back_target))
+
+
+
+
 
 
 

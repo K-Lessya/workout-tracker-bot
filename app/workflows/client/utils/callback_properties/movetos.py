@@ -6,5 +6,8 @@ class ClientMainMenuMoveTo:
     my_plan = 'my_plan'
     main_menu = 'main_menu'
 
+class ClientAddTrainingMoveTo:
+    to_plan_training = 'to_plan_training'
+    to_custom_training = 'to_custom_training'
 
 

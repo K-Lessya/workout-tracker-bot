@@ -15,13 +15,13 @@ from ..utils.keyboards.client_requests_list import create_client_income_requests
 from ..utils.keyboards.client_main_menu import create_client_main_menu_keyboard
 from ..utils.callback_properties.targets import ClientIncomeRequestTargets
 from app.workflows.common.utils.callback_properties.movetos import CommonGoBackMoveTo
-
+from app.callbacks.callbacks import MoveCallback
 
 
 client_main_menu_router = Router()
 
 
-@client_main_menu_router.callback_query(MoveToCallback.filter(F.move_to == CommonGoBackMoveTo.to_client_main_menu))
+@client_main_menu_router.callback_query(MoveCallback.filter(F.target == CommonGoBackMoveTo.to_client_main_menu))
 async def show_client_main_menu(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
     await state.clear()
     client = get_client_by_id(tg_id=callback.from_user.id)
