@@ -80,4 +80,4 @@ async def not_added_handler(callback: CallbackQuery, callback_data: str, state: 
 @dp.message(Command("version"))
 async def get_version(message: types.Message, state: FSMContext):
     version = os.environ.get("APP_VERSION")
-    await message.answer(f"Current version is\n*{version}*", parse_mode="MarkdownV2")
+    await message.answer(f"Current version is\n{version}")
