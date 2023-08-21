@@ -80,4 +80,5 @@ async def not_added_handler(callback: CallbackQuery, callback_data: str, state: 
 @dp.message(Command("version"))
 async def get_version(message: types.Message, state: FSMContext):
     version = os.environ.get("APP_VERSION")
-    await message.answer(f"Current version is\n{version}")
+    reply = await message.answer(f"Current version is\n{version}")
+    await bot.pin_chat_message(chat_id=message.from_user.id, message_id=reply.message_id, disable_notification=True)
