@@ -14,6 +14,7 @@ from app.utilities.default_keyboards.tester_keyboard import create_tester_keyboa
 from app.entities.single_file.crud import delete_client_or_trainer
 from app.workflows.registration.utils.callback_properties import ChooseUsrTypeOptions
 from app.utilities.default_callbacks.default_callbacks import TestCallback, TestTasks
+from app.states.registration.states import RegistrationStates
 bot = Bot(token=BOT_TOKEN)
 
 test_accounts = TEST_USERS_ID.split(' ')
@@ -33,7 +34,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
             await message.answer(f'Привет снова, выбирай, создать тренировку или просмотреть уже созданные',
                                  reply_markup=create_client_main_menu_keyboard(client=client))
         else:
-            await state.set_state(RegisterStates.process_name)
+            await state.set_state(RegistrationStates.process_user_name)
             await state.update_data({'usr_type': ChooseUsrTypeOptions.client})
             await message.answer(f'Привет ты был добавлен в систему тренером {client.trainer.name} '
                                  f'{client.trainer.surname}, давай заполним твой профиль, введи свое имя')

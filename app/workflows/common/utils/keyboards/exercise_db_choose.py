@@ -60,8 +60,7 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
             return create_choose_keyboard(options=None,
                                           target=None,
                                           option_attr=None,
-                                          additional_buttons=[add_exercise_button,
-                                                              create_go_back_button(go_back_filter)])
+                                          additional_buttons=[create_go_back_button(go_back_filter)])
 
 
 
