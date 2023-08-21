@@ -50,7 +50,7 @@ async def process_day(callback: CallbackQuery, callback_data: ChooseCallback, st
                                                                    f" {int(callback_data.option) + 1}, если не знаешь как"
                                                                    f" выполнять просто выбери упражнение из списка",
                                reply_markup=TrainingDayExercises(selected_day.training_exercises,
-                                                                 target=ClientMyPlanTargets.show_exercise,
+                                                                 target=ClientAddTrainingTargets.show_exercise,
                                                                  go_back_target=ClientMainMenuMoveTo.my_plan).as_markup())
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.show_day)
