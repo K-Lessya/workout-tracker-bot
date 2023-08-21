@@ -51,7 +51,7 @@ async def process_day(callback: CallbackQuery, callback_data: ChooseCallback, st
                                                                    f" выполнять просто выбери упражнение из списка",
                                reply_markup=TrainingDayExercises(selected_day.training_exercises,
                                                                  target=ClientAddTrainingTargets.show_exercise,
-                                                                 go_back_target=ClientMainMenuMoveTo.my_plan).as_markup())
+                                                                 go_back_target=ClientMainMenuMoveTo.add_training).as_markup())
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.show_day)
 async def handle_message(message: Message, state: FSMContext):
