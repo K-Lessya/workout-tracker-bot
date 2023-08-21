@@ -36,7 +36,7 @@ async def start_add_client(callback: CallbackQuery, callback_data: ChooseCallbac
 
 @add_client_router.message(TrainerStates.add_client.process_contact)
 async def process_client_contact(message: Message, state: FSMContext):
-    if get_client_by_id(message.contact.user_id):
+    if get_trainer(message.contact.user_id):
         await message.answer(f'Этот человек зарегистрирован как тренер, ты не можешь доавить его как клиента',
                              reply_markup=create_trainer_main_menu_keyboard())
         await state.clear()
