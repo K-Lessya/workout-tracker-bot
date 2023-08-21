@@ -74,6 +74,10 @@ resource "aws_ecs_task_definition" "this" {
                   {
                     name = "AWS_SECRET_ACCESS_KEY"
                     value = var.AWS_SECRET_ACCESS_KEY
+                  },
+                  {
+                    name = "APP_VERSION"
+                    value = var.IMAGE_TAG
                   }
                 ]
                 environmentFiles  = []

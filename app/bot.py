@@ -1,3 +1,4 @@
+import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 from aiogram.types import CallbackQuery
@@ -74,3 +75,9 @@ async def delete_test_user(callback: CallbackQuery, callback_data: TestCallback,
 @dp.callback_query(F == 'no')
 async def not_added_handler(callback: CallbackQuery, callback_data: str, state: FSMContext):
     await callback.answer(text='Функционал еще не добавлен', show_alert=True)
+
+
+@dp.message(Command("version"))
+async def get_version(message: types.Message, state: FSMContext):
+    version = os.environ.get("APP_VERSION")
+    await message.answer(f"Current version is\n*{version}*", parse_mode="MarkdownV2")
