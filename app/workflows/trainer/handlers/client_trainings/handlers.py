@@ -142,7 +142,7 @@ async def process_comment(message: Message, state: FSMContext):
     client = state_data['client']
     training_id = state_data['training_id']
     selected_exercise_id = state_data['selected_exercise_id']
-    client.trainings[training_id].training_exercises[selected_exercise_id].comment = message.text
+    client.trainings[int(training_id)].training_exercises[int(selected_exercise_id)].comment = message.text
     client.save()
     await state.set_state(TrainerStates.my_clients.client_training.working_with_menu)
     await message.answer(text='Комментарий сохранен', reply_markup=TrainingSingleExerciseKeyboard(has_video=has_video,
