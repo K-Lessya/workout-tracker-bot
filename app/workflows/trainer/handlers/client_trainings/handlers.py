@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery, FSInputFile
 from aiogram.utils.keyboard import InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from app.bot import bot
-from app.config import PHOTO_BUCKET
+from app.config import PHOTO_BUCKET, LOCALE
 from app.s3.downloader import create_presigned_url
 from app.callbacks.callbacks import MoveCallback
 from app.entities.single_file.crud import get_client_trainings, get_client_training
@@ -22,7 +22,7 @@ my_clients_trainings_router = Router()
                                                                 (F.target == MyCLientsMoveTo.show_prev_trainings) |
                                                                 (F.target == MyCLientsMoveTo.show_next_trainings)))
 async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
-    locale.setlocale(locale.LC_TIME, 'ru_ru')
+    locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%A, %d %B'
     state_data = await state.get_data()
     client = state_data['client']
@@ -60,7 +60,7 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
 
 @my_clients_trainings_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_training))
 async def show_client_single_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    locale.setlocale(locale.LC_TIME, 'ru_ru')
+    locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%A, %d %B'
     state_data = await state.get_data()
     client = state_data['client']

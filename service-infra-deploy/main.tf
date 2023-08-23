@@ -68,6 +68,10 @@ resource "aws_ecs_task_definition" "this" {
                     value = var.BOT_TOKEN
                   },
                   {
+                    name = "APP_LOCALE"
+                    value = 'ru_RU.utf-8'
+                  },
+                  {
                     name = "AWS_ACCESS_KEY_ID"
                     value = var.AWS_ACCESS_KEY_ID
                   },
@@ -145,11 +149,4 @@ resource "aws_ecs_service" "this" {
   scheduling_strategy = "DAEMON"
   task_definition = aws_ecs_task_definition.this.arn
   wait_for_steady_state = false
-  deployment_circuit_breaker {
-    enable   = true
-    rollback = true
-  }
-  deployment_controller {
-    type = "ECS"
-  }
-}
+ 

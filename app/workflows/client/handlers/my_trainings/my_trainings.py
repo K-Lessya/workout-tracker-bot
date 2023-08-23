@@ -4,7 +4,7 @@ from aiogram import Router
 from aiogram.types import CallbackQuery, Message, FSInputFile
 from aiogram import F
 from aiogram.fsm.context import FSMContext
-from app.config import PHOTO_BUCKET
+from app.config import PHOTO_BUCKET, LOCALE
 from app.bot import bot
 from app.s3.downloader import create_presigned_url
 from app.entities.single_file.crud import get_client_trainings, get_client_training
@@ -27,7 +27,7 @@ my_trainings_router = Router()
                                                         (F.target == MyTrainingsMoveTo.to_prev_trainings) |
                                                         (F.target == MyTrainingsMoveTo.to_next_trainings)))
 async def show_trainings(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
-    locale.setlocale(locale.LC_TIME, 'ru_ru')
+    locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%A, %d %B'
     if callback_data.target == ClientMainMenuMoveTo.my_trainings:
         trainings = get_client_trainings(tg_id=callback.from_user.id, start_pos=-4, range=4)[0]
@@ -67,7 +67,7 @@ async def show_trainings(callback: CallbackQuery, callback_data: MoveCallback, s
 
 @my_trainings_router.callback_query(ChooseCallback.filter(F.target == ClientMyTrainingsTarget.show_training))
 async def show_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    locale.setlocale(locale.LC_TIME, 'ru_ru')
+    locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%A, %d %B'
     training_id = int(callback_data.option)
     training = get_client_training(tg_id=callback.from_user.id, training_id=training_id)
