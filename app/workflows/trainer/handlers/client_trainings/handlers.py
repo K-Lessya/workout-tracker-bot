@@ -120,7 +120,7 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
     keyboard = TrainingVideoKeyboard(go_back_target=TrainerMyClientsTargets.show_training_exercise,
                                      source_option=selected_exercise_id)
     keyboard.row(InlineKeyboardButton(text='Оставить комментарий',
-                                      callback_data=MoveCallback(target=MyCLientsMoveTo.create_video_comment)))
+                                      callback_data=MoveCallback(target=MyCLientsMoveTo.create_video_comment).pack()))
 
 
     await bot.send_video(chat_id=callback.from_user.id, video=file,
