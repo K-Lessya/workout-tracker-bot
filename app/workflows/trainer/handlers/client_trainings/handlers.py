@@ -121,7 +121,7 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
 
     keyboard = TrainingVideoKeyboard(go_back_target=TrainerMyClientsTargets.show_training_exercise,
                                      source_option=selected_exercise_id)
-    keyboard.row(InlineKeyboardButton(text='Оставить комментарий',
+    keyboard.row(InlineKeyboardButton(text='Обновить комментарий' if exercise.comment else "Добавить комментарий",
                                       callback_data=MoveCallback(target=MyCLientsMoveTo.create_video_comment).pack()))
 
 
