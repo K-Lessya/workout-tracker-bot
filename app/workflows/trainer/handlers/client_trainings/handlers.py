@@ -45,20 +45,20 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
 
         trainings = get_client_trainings(tg_id=client.tg_id, start_pos=query.start_pos,
                                          range=query.end_pos+1 if query.end_pos < 4 else 4)[0]
-        options = []
-        for training in trainings['selected_trainings']:
-            options.append(MyTrainingsOption(text=str(training['value']['date'].strftime(formatted_date_string)),
-                                             target=TrainerMyClientsTargets.show_training,
-                                             option=str(training['index'])))
+    options = []
+    for training in trainings['selected_trainings']:
+        options.append(MyTrainingsOption(text=str(training['value']['date'].strftime(formatted_date_string)),
+                                         target=TrainerMyClientsTargets.show_training,
+                                         option=str(training['index'])))
 
-        keyboard = PaginationKeyboard(options=options, list_length=query.length,
-                                      last_index=query.end_pos,
-                                      first_index=query.start_pos,
-                                      prev_target=MyCLientsMoveTo.show_prev_trainings,
-                                      next_target=MyCLientsMoveTo.show_next_trainings,
-                                      go_back_target=CommonGoBackMoveTo.to_trainer_main_menu)
+    keyboard = PaginationKeyboard(options=options, list_length=query.length,
+                                  last_index=query.end_pos,
+                                  first_index=query.start_pos,
+                                  prev_target=MyCLientsMoveTo.show_prev_trainings,
+                                  next_target=MyCLientsMoveTo.show_next_trainings,
+                                  go_back_target=CommonGoBackMoveTo.to_trainer_main_menu)
 
-        await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
+    await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
 
 @my_clients_trainings_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_training))
 async def show_client_single_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
