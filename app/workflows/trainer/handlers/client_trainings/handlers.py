@@ -57,8 +57,12 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
                                   prev_target=MyCLientsMoveTo.show_prev_trainings,
                                   next_target=MyCLientsMoveTo.show_next_trainings,
                                   go_back_target=CommonGoBackMoveTo.to_trainer_main_menu)
-
-    await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
+    if callback.message.photo:
+        await callback.message.delete()
+        await bot.send_message(chat_id=callback.from_user.id, text='Выбирай день тренировки',
+                               reply_markup=keyboard.as_markup())
+    else:
+        await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
 
 @my_clients_trainings_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_training))
 async def show_client_single_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
