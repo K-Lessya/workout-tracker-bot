@@ -138,15 +138,16 @@ resource "aws_ssm_parameter" "test_users_id" {
 
 
 resource "aws_ecs_service" "this" {
-  name = "workout-bot"
-  cluster = "arn:aws:ecs:us-east-1:935625980877:cluster/test"
-  deployment_maximum_percent = 100
+  name                               = "workout-bot"
+  cluster                            = "arn:aws:ecs:us-east-1:935625980877:cluster/test"
+  deployment_maximum_percent         = 100
   deployment_minimum_healthy_percent = 0
-  desired_count = 1
-  enable_ecs_managed_tags = true
-  health_check_grace_period_seconds = 0
-  launch_type = "EC2"
-  scheduling_strategy = "DAEMON"
-  task_definition = aws_ecs_task_definition.this.arn
-  wait_for_steady_state = false
+  desired_count                      = 1
+  enable_ecs_managed_tags            = true
+  health_check_grace_period_seconds  = 0
+  launch_type                        = "EC2"
+  scheduling_strategy                = "DAEMON"
+  task_definition                    = aws_ecs_task_definition.this.arn
+  wait_for_steady_state              = false
+}
  
