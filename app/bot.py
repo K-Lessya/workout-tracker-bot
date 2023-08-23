@@ -77,7 +77,7 @@ async def broadcast():
     for trainer in trainers:
         all_users.append(trainer.tg_id)
     for user in all_users:
-        await bot.send_message("Бот перезапущен после обновления пожалуйста используй комманду start")
+        await bot.send_message(chat_id=user, text="Бот перезапущен после обновления пожалуйста используй комманду start")
 
 @dp.callback_query(TestCallback.filter(F.test_task == TestTasks.delete_me))
 async def delete_test_user(callback: CallbackQuery, callback_data: TestCallback, state: FSMContext):
