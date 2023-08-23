@@ -126,7 +126,7 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
 
 
     await bot.send_video(chat_id=callback.from_user.id, video=file,
-                         caption=f'{f"Комментарий: {exercise.commnet}" if exercise.comment else "Комментарий отсутствует"}',
+                         caption=f'{f"Комментарий: {exercise.comment}" if exercise.comment else "Комментарий отсутствует"}',
                          reply_markup=keyboard.as_markup())
 
 @my_clients_trainings_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.create_video_comment))
@@ -143,6 +143,7 @@ async def process_comment(message: Message, state: FSMContext):
     training_id = state_data['training_id']
     selected_exercise_id = state_data['selected_exercise_id']
     client.trainings[int(training_id)].training_exercises[int(selected_exercise_id)].comment = message.text
+    await state.update_data({'selected_exercise': client.trainings[int(training_id)].training_exercises[int(selected_exercise_id)]})
     client.save()
     await state.set_state(TrainerStates.my_clients.client_training.working_with_menu)
     await message.answer(text='Комментарий сохранен', reply_markup=TrainingSingleExerciseKeyboard(has_video=has_video,
