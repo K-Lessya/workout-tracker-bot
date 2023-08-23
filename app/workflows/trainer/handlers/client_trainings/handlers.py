@@ -71,7 +71,7 @@ async def show_client_single_training(callback: CallbackQuery, callback_data: Ch
     state_data = await state.get_data()
     client = state_data['client']
     training_id = int(callback_data.option)
-    training = get_client_training(tg_id=callback.from_user.id, training_id=training_id)
+    training = get_client_training(tg_id=client.tg_id, training_id=training_id)
     exercises = training['training_exercises']
     await state.update_data({'training-exercises': exercises, 'training_id': training_id})
     await callback.message.edit_text(
