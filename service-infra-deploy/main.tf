@@ -69,7 +69,7 @@ resource "aws_ecs_task_definition" "this" {
                   },
                   {
                     name = "APP_LOCALE"
-                    value = 'ru_RU.utf-8'
+                    value = "ru_RU.utf-8"
                   },
                   {
                     name = "AWS_ACCESS_KEY_ID"
