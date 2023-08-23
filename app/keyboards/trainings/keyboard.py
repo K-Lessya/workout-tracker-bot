@@ -2,6 +2,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 from app.callbacks.callbacks import MoveCallback
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback
+from typing import Optional
 from app.keyboards.menus.classes import MenuOption
 from app.buttons.go_back import GoBackButton
 from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo, MyTrainingsMoveTo
@@ -10,7 +11,7 @@ from app.workflows.client.utils.callback_properties.targets import ClientMyTrain
 
 class PaginationKeyboard(InlineKeyboardBuilder):
     def __init__(self, options: list, list_length: int, first_index: int, last_index: int, prev_target: str,
-                 next_target: str, go_back_target: str):
+                 next_target: str, go_back_target: str, go_back_to_choose=False, choose_option=''):
         super().__init__()
         for option in options:
             self.row(InlineKeyboardButton(text=option.text, callback_data=ChooseCallback(target=option.target,
@@ -18,7 +19,12 @@ class PaginationKeyboard(InlineKeyboardBuilder):
         buttons = []
         if first_index > 0 and list_length > 4:
             buttons.append(InlineKeyboardButton(text='<<', callback_data=MoveCallback(target=prev_target).pack()))
-        buttons.append(InlineKeyboardButton(text="Назад", callback_data=MoveCallback(target=go_back_target).pack()))
+        if go_back_to_choose:
+            buttons.append(InlineKeyboardButton(text="Назад",
+                                                callback_data=ChooseCallback(target=go_back_target,
+                                                                             option=choose_option).pack()))
+        else:
+            buttons.append(InlineKeyboardButton(text="Назад", callback_data=MoveCallback(target=go_back_target).pack()))
         if last_index < list_length-1 and list_length > 4:
             buttons.append(InlineKeyboardButton(text='>>', callback_data=MoveCallback(target=next_target).pack()))
         self.row(*buttons)

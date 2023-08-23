@@ -56,7 +56,9 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
                                   first_index=query.start_pos,
                                   prev_target=MyCLientsMoveTo.show_prev_trainings,
                                   next_target=MyCLientsMoveTo.show_next_trainings,
-                                  go_back_target=CommonGoBackMoveTo.to_trainer_main_menu)
+                                  go_back_to_choose=True,
+                                  choose_option=str(client.id),
+                                  go_back_target=TrainerMyClientsTargets.show_client)
     if callback.message.photo:
         await callback.message.delete()
         await bot.send_message(chat_id=callback.from_user.id, text='Выбирай день тренировки',
@@ -139,7 +141,7 @@ async def process_comment(message: Message, state: FSMContext):
     has_video = True
     client = state_data['client']
     training_id = state_data['training_id']
-    selected_exercise_id = state['selected_exercise_id']
+    selected_exercise_id = state_data['selected_exercise_id']
     client.trainings[training_id].training_exercises[selected_exercise_id].comment = message.text
     client.save()
     await state.set_state(TrainerStates.my_clients.client_training.working_with_menu)
