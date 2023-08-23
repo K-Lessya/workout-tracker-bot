@@ -18,9 +18,11 @@ from ..utils.classes.training_plan import TrainingDay, TrainingPlan, PlanExercis
 import logging
 from app.utilities.default_keyboards.yes_no import YesNoKeyboard
 from app.entities.training_plan.training_plan import *
+from app.workflows.trainer.handlers.client_trainings.handlers import my_clients_trainings_router
 from app.entities.exercise.exercise import PlanTrainingExercise
 
 my_clients_router = Router()
+my_clients_router.include_router(my_clients_trainings_router)
 
 
 @my_clients_router.callback_query(MoveToCallback.filter(F.move_to == TrainerMainMenuMoveTo.my_clients))
@@ -29,10 +31,16 @@ async def show_my_clients_menu(callback: CallbackQuery, callback_data: MoveToCal
     trainer = get_trainer(callback.from_user.id)
     clients = get_trainer_clients(trainer=trainer)
     if clients:
-        await callback.message.edit_text("Мои клиенты. Выбирай нужного",
-                                        reply_markup=MyClientsKeyboard(clients=clients).as_markup())
+        if callback.message.photo:
+            await callback.message.delete()
+            await bot.send_message(chat_id=callback.from_user.id, text="Мои клиенты. Выбирай нужного",
+                                   reply_markup=MyClientsKeyboard(clients=clients).as_markup())
+        else:
+            await callback.message.edit_text("Мои клиенты. Выбирай нужного",
+                                             reply_markup=MyClientsKeyboard(clients=clients).as_markup())
     else:
         await callback.answer("Клиентов пока нет", show_alert=True)
+
 
 
 @my_clients_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_client))
