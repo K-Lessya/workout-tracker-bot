@@ -29,6 +29,11 @@ class ExercisesDb(StatesGroup):
     list_exercises = ListExercisesStates
 
 
+class ClientTraining(StatesGroup):
+    process_comment = State()
+    working_with_menu = State()
+
+
 class CreatePlan(StatesGroup):
     process_num_days = State()
     process_body_parts = State()
@@ -37,6 +42,7 @@ class CreatePlan(StatesGroup):
 
 class MyClients(StatesGroup):
     create_plan = CreatePlan()
+    client_training = ClientTraining()
 
 
 class TrainerStates(StatesGroup):

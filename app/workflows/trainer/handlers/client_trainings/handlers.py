@@ -1,6 +1,6 @@
 import locale, requests
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery, FSInputFile, Message
 from aiogram.utils.keyboard import InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 from app.bot import bot
@@ -15,6 +15,7 @@ from app.workflows.common.utils.callback_properties.movetos import CommonGoBackM
 from app.workflows.trainer.utils.callback_properties.movetos import MyCLientsMoveTo
 from app.workflows.trainer.utils.callback_properties.targets import TrainerMyClientsTargets
 from app.workflows.client.classes.my_trainings import MyTrainings, MyTrainingsOption
+from app.workflows.trainer.utils.states import TrainerStates
 my_clients_trainings_router = Router()
 
 
@@ -25,6 +26,7 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
     locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%A, %d %B'
     state_data = await state.get_data()
+    await state.set_state(TrainerStates.my_clients.client_training.working_with_menu)
     client = state_data['client']
     if callback_data.target == MyCLientsMoveTo.show_trainings:
         trainings = get_client_trainings(tg_id=client.tg_id, start_pos=-4, range=4)[0]
@@ -120,6 +122,27 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
     await bot.send_video(chat_id=callback.from_user.id, video=file,
                          caption=f'{f"Комментарий: {exercise.commnet}" if exercise.comment else "Комментарий отсутствует"}',
                          reply_markup=keyboard.as_markup())
+
+@my_clients_trainings_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.create_video_comment))
+async def create_comment(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
+    await state.set_state(TrainerStates.my_clients.client_training.process_comment)
+    await callback.message.edit_caption(caption="Напиши свой комментарий к видео", reply_markup=None)
+
+
+@my_clients_trainings_router.message(TrainerStates.my_clients.client_training.process_comment)
+async def process_comment(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    has_video = True
+    client = state_data['client']
+    training_id = state_data['training_id']
+    selected_exercise_id = state['selected_exercise_id']
+    client.trainings[training_id].training_exercises[selected_exercise_id].comment = message.text
+    client.save()
+    await state.set_state(TrainerStates.my_clients.client_training.working_with_menu)
+    await message.answer(text='Комментарий сохранен', reply_markup=TrainingSingleExerciseKeyboard(has_video=has_video,
+                                                  target=MyCLientsMoveTo.show_exercise_video,
+                                                  go_back_target=TrainerMyClientsTargets.show_training,
+                                                  source_option=str(training_id)).as_markup())
 
 
 
