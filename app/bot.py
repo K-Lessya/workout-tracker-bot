@@ -16,6 +16,7 @@ from app.entities.single_file.crud import delete_client_or_trainer
 from app.workflows.registration.utils.callback_properties import ChooseUsrTypeOptions
 from app.utilities.default_callbacks.default_callbacks import TestCallback, TestTasks
 from app.states.registration.states import RegistrationStates
+from app.entities.single_file.crud import get_all_clients, get_all_trainers
 bot = Bot(token=BOT_TOKEN)
 
 test_accounts = TEST_USERS_ID.split(' ')
@@ -65,6 +66,18 @@ async def cmd_tester(message: types.Message, state: FSMContext):
     else:
         await message.answer('You are not a test user')
 
+
+@dp.startup()
+async def broadcast():
+    clients = get_all_clients()
+    trainers = get_all_trainers()
+    all_users = []
+    for client in clients:
+        all_users.append(client.tg_id)
+    for trainer in trainers:
+        all_users.append(trainer.tg_id)
+    for user in all_users:
+        await bot.send_message("Бот перезапущен после обновления пожалуйста используй комманду start")
 
 @dp.callback_query(TestCallback.filter(F.test_task == TestTasks.delete_me))
 async def delete_test_user(callback: CallbackQuery, callback_data: TestCallback, state: FSMContext):

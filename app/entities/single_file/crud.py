@@ -13,6 +13,11 @@ def get_client_by_username(tg_username: str):
 def get_client(obj_id: str):
     return Client.objects(id=obj_id).first()
 
+def get_all_clients():
+    return Client.objects()
+
+def get_all_trainers():
+    return Trainer.objects()
 
 def get_client_by_id(tg_id: int):
     return Client.objects(tg_id=tg_id).first()
