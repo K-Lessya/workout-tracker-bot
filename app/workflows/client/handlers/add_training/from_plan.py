@@ -19,7 +19,7 @@ from app.workflows.client.utils.keyboards.training_plan import PlanExerciseGoBac
 from app.workflows.client.utils.callback_properties.targets import ClientMyPlanTargets
 from app.workflows.client.utils.keyboards.training_plan import TrainingDayExercises
 from app.workflows.client.utils.keyboards.client_main_menu import create_client_main_menu_keyboard
-
+# from moviepy.editor import VideoFileClip
 from app.s3.downloader import create_presigned_url
 from app.s3.uploader import upload_file
 from app.config import PHOTO_BUCKET
@@ -141,7 +141,10 @@ async def process_exercise_video(message: Message, state: FSMContext):
         state_data = await state.get_data()
         training_exercise = state_data['training_exercise']
         path = f'tmp/{video_path.split("/")[1]}'
+        filename = path.split('.')[0]
         await bot.download_file(file_path=video_path, destination=path)
+        # video_clip = VideoFileClip(path)
+        # output_file = video_clip.write_videofile(f'{path}.mp4', codec='libx264')
         training_exercise.add_video_link(path)
         training_days = state_data['training_days']
         selected_day_idx = state_data['selected_day']

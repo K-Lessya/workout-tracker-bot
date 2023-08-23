@@ -14,3 +14,8 @@ class ClientAddTrainingTargets:
     show_exercise = 'add_training_show_exercise'
     process_video_link = 'client_add_training_process_video_link'
     save_training = "client_add_training_save_training"
+
+class ClientMyTrainingsTarget:
+    show_training = 'client_my_trainings_show_training'
+    show_exercise = 'client_my_trainings_show_exercise'
+

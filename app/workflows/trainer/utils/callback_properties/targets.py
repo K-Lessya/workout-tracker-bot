@@ -28,5 +28,8 @@ class TrainerMyClientsTargets:
     choose_muscle_group = 'choose_muscle_group'
     choose_exercise_for_plan = 'choose_exercise_for_plan'
     save_plan = 'save_plan'
+    show_training = 'my_clients_show_single_training'
+    show_training_exercise = 'my_clients_show_training_exercise'
+
 
 

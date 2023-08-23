@@ -107,19 +107,31 @@ def delete_client_or_trainer(tg_id: int):
         if trainer:
             trainer.delete()
     return True
-# @mongo_connection
-# def check_user(telegram_id):
-#     return mongo.db.users.find_one({'_id': telegram_id})
-#
-#
-#
-#
-# @mongo_connection
-# def create_first_wallet(telegram_id, name):
-#     return mongo.db.wallets.insert_one(
-#         {
-#             'owner_id': telegram_id,
-#             'balance': 0,
-#             'name': name
-#         }
-#     )
+
+
+def get_client_trainings(tg_id: int, start_pos, range):
+    pipeline = [
+        {'$match': {'tg_id': tg_id}},
+        {'$project': {
+            '_id': 0,
+            'selected_trainings': {
+                '$map': {
+                    'input': {'$slice': ['$trainings', start_pos, range]},
+                    'as': 'item',
+                    'in': {
+                        'index': {'$indexOfArray': ['$trainings', '$$item']},
+                        'value': '$$item'
+                    }
+                }
+            },
+            'length': {'$size': '$trainings'}}
+         }
+    ]
+    client_trainings = list(Client.objects.aggregate(*pipeline))
+    print(client_trainings)
+    return client_trainings
+
+
+def get_client_training(tg_id, training_id):
+    client = Client.objects(tg_id=tg_id).first()
+    return client.trainings[training_id]

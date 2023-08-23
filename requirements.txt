@@ -1,3 +1,5 @@
 aiogram == 3.0.0b8
 boto3
 mongoengine
+babel
+moviepy

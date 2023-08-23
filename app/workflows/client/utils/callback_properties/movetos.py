@@ -10,4 +10,9 @@ class ClientAddTrainingMoveTo:
     to_plan_training = 'to_plan_training'
     to_custom_training = 'to_custom_training'
 
+class MyTrainingsMoveTo:
+    to_prev_trainings = 'client_my_trainings_to_prev'
+    to_next_trainings = 'client_my_trainings_to_next'
+    show_exercise_video = 'client_my_trainings_show_video'
+
 

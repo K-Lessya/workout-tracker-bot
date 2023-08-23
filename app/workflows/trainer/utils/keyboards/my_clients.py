@@ -5,6 +5,7 @@ from ..callback_properties.targets import TrainerMyClientsTargets
 from ..callback_properties.movetos import TrainerMainMenuMoveTo
 from app.entities.single_file.models import Client
 from ..callback_properties.movetos import MyCLientsMoveTo
+from app.callbacks.callbacks import MoveCallback
 
 
 class MyClientsKeyboard(InlineKeyboardBuilder):
@@ -26,7 +27,7 @@ class SingleClientKeyboard(InlineKeyboardBuilder):
             text="Анкета(Не работает)", callback_data="no"
         )
         self.button(
-            text="Тренировки(Не работает)", callback_data="no"
+            text="Тренировки", callback_data=MoveCallback(target=MyCLientsMoveTo.show_trainings)
         )
         if not client.training_plan:
             self.button(

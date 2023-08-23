@@ -30,6 +30,11 @@ class MyCLientsMoveTo:
     save_client_plan = 'save_client_plan'
     save_client_day = 'save_client_day'
     edit_client_plan = 'edit_client_plan'
+    show_trainings = 'my_clients_show_client_training'
+    show_prev_trainings = 'my_clients_show_prev_trainings'
+    show_next_trainings = 'my_clients_show_next_trainings'
+    show_exercise_video = 'my_clients_show_exercise_video'
+    create_video_comment = 'my_clients_create_video_comment'
 
 
 
