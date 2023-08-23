@@ -67,17 +67,17 @@ async def cmd_tester(message: types.Message, state: FSMContext):
         await message.answer('You are not a test user')
 
 
-@dp.startup()
-async def broadcast():
-    clients = get_all_clients()
-    trainers = get_all_trainers()
-    all_users = []
-    for client in clients:
-        all_users.append(client.tg_id)
-    for trainer in trainers:
-        all_users.append(trainer.tg_id)
-    for user in all_users:
-        await bot.send_message(chat_id=user, text="Бот перезапущен после обновления пожалуйста используй комманду start")
+# @dp.startup()
+# async def broadcast():
+#     clients = get_all_clients()
+#     trainers = get_all_trainers()
+#     all_users = []
+#     for client in clients:
+#         all_users.append(client.tg_id)
+#     for trainer in trainers:
+#         all_users.append(trainer.tg_id)
+#     for user in all_users:
+#         await bot.send_message(chat_id=user, text="Бот перезапущен после обновления пожалуйста используй комманду start")
 
 @dp.callback_query(TestCallback.filter(F.test_task == TestTasks.delete_me))
 async def delete_test_user(callback: CallbackQuery, callback_data: TestCallback, state: FSMContext):
