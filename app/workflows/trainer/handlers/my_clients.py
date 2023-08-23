@@ -49,6 +49,7 @@ async def show_trainer_client(callback: CallbackQuery, callback_data: ChooseCall
     client = get_client(obj_id=callback_data.option)
     photo_link = create_presigned_url(bucket_name=PHOTO_BUCKET, object_name=client.photo_link)
     await state.update_data({'client': client})
+    await callback.message.delete()
     await bot.send_photo(chat_id=callback.from_user.id, photo=photo_link,
                          caption=f"Клиент:\nИмя: {client.name}\nФамилия: {client.surname}",
                          reply_markup=SingleClientKeyboard(client=client).as_markup())
