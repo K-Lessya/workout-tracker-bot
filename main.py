@@ -24,7 +24,7 @@ async def main():
     if not os.path.exists("./tmp"):
         os.mkdir("./tmp")
     await bot.delete_webhook(drop_pending_updates=True)
-
+    await bot.send
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
