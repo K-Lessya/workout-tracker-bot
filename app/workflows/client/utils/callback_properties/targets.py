@@ -13,6 +13,7 @@ class ClientAddTrainingTargets:
     show_day = 'add_training_show_day'
     show_exercise = 'add_training_show_exercise'
     process_video_link = 'client_add_training_process_video_link'
+    process_client_note = 'client_add_training_process_client_note'
     save_training = "client_add_training_save_training"
 
 class ClientMyTrainingsTarget:

@@ -24,7 +24,7 @@ class SingleClientKeyboard(InlineKeyboardBuilder):
     def __init__(self, client: Client):
         super().__init__()
         self.button(
-            text="Анкета(Не работает)", callback_data="no"
+            text="Анкета", callback_data=MoveCallback(target="to_no_content")
         )
         self.button(
             text="Тренировки", callback_data=MoveCallback(target=MyCLientsMoveTo.show_trainings)
@@ -35,12 +35,12 @@ class SingleClientKeyboard(InlineKeyboardBuilder):
             )
         else:
             self.button(
-                text="Тренировочный план(не работает)", callback_data=MoveToCallback(move_to=MyCLientsMoveTo.edit_client_plan)
+                text="Тренировочный план", callback_data=MoveCallback(target="to_no_content")
             )
         self.button(
             text="Назад", callback_data=MoveToCallback(move_to=TrainerMainMenuMoveTo.my_clients)
         )
-        self.adjust(2,2)
+        self.adjust(2,1,1)
 
 
 # class PlanDaysKeyboard(InlineKeyboardBuilder):

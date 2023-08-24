@@ -74,8 +74,19 @@ async def process_num_days(message: Message, state: FSMContext):
         state_data = await state.get_data()
         plan = state_data['plan']
         plan.add_day(day=TrainingDay())
+        await state.update_data({'plan': plan, 'num_days': int(message.text)})
+        await state.set_state(TrainerStates.my_clients.create_plan.process_day_name)
+        await message.answer(f'В плане {message.text} дней, введи название дня {len(plan.days)}')
+    else:
+        await message.answer('Я ожидаю число')
+
+@my_clients_router.message(TrainerStates.my_clients.create_plan.process_day_name)
+async def process_plan_day_name(message: Message, state: FSMContext):
+        state_data = await state.get_data()
+        plan = state_data['plan']
         current_day = plan.days[-1]
-        await state.update_data({'plan': plan,'num_days': int(message.text)})
+        current_day.add_name(message.text)
+        await state.update_data({'plan': plan})
         body_parts = get_all_body_parts()
         if body_parts:
             await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
@@ -86,8 +97,8 @@ async def process_num_days(message: Message, state: FSMContext):
         else:
             await state.clear()
             await message.answer(f'В базе еще нет ни одного упражнения, добавь их через меню', reply_markup=create_trainer_main_menu_keyboard())
-    else:
-        await message.answer("Количество это цифра, причем целая, будь повнимательнее и вводи цифру")
+
+
 
 
 @my_clients_router.callback_query(ChooseCallback.filter((F.target == TrainerMyClientsTargets.choose_body_part) | (F.target == TrainerMyClientsTargets.choose_muscle_group) | (F.target == TrainerMyClientsTargets.choose_exercise_for_plan)))
@@ -161,11 +172,13 @@ async def save_client_day(callback: CallbackQuery, callback_data: MoveToCallback
                                          reply_markup=YesNoKeyboard(target=TrainerMyClientsTargets.save_plan).as_markup())
     else:
         plan.add_day(TrainingDay())
-        body_parts = get_all_body_parts()
-        await callback.message.edit_text(text=f'Давай выберем упражнения для дня {len(plan.days)}',
-                             reply_markup=ExercisePlanListKeyboard(items=body_parts,
-                                                                   day_num=len(plan.days),
-                                                                   exercises_length=len(plan.days[-1].exercises)).as_markup())
+        # body_parts = get_all_body_parts()
+        # await callback.message.edit_text(text=f'Давай выберем упражнения для дня {len(plan.days)}',
+        #                      reply_markup=ExercisePlanListKeyboard(items=body_parts,
+        #                                                            day_num=len(plan.days),
+        #                                                            exercises_length=len(plan.days[-1].exercises)).as_markup())
+        await state.set_state(TrainerStates.my_clients.create_plan.process_day_name)
+        await callback.message.edit_text(f'В плане {state_data["num_days"]} дней. Введи название дня {len(plan.days)} ')
 
 
 @my_clients_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.save_plan))
@@ -198,7 +211,7 @@ async def save_plan(callback: CallbackQuery, callback_data: ChooseCallback, stat
 def save_training_plan(plan: TrainingPlan, client: Client):
     training_plan = DbTrainingPlan()
     for idx, day in enumerate(plan.days):
-        training_plan.days.append(DbTrainingDay())
+        training_plan.days.append(DbTrainingDay(name=day.day_name))
         for exercise in day.exercises:
             training_exercise = PlanTrainingExercise(exercise=exercise.exercise, num_runs=exercise.num_runs,
                                                      num_repeats=exercise.num_repeats)

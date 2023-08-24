@@ -30,4 +30,5 @@ class ClientTrainingExercise(PlanTrainingExercise):
     weight = FloatField()
     video_link = StringField()
     comment = StringField()
+    client_note = StringField()
 

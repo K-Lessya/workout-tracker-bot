@@ -35,6 +35,7 @@ class ClientTraining(StatesGroup):
 
 
 class CreatePlan(StatesGroup):
+    process_day_name = State()
     process_num_days = State()
     process_body_parts = State()
     process_num_runs = State()

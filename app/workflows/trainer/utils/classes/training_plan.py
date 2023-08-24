@@ -17,11 +17,16 @@ class PlanExercise:
 
 
 class TrainingDay:
+    day_name: str
     day_number: int
     exercises: list[PlanExercise]
 
     def __init__(self):
         self.exercises = []
+
+    def add_name(self, text):
+        self.day_name = text
+
     def add_exercise(self, exercise: PlanExercise):
         self.exercises.append(exercise)
 

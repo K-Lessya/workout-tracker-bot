@@ -3,6 +3,7 @@ from ..exercise.exercise import ClientTrainingExercise, Exercise, PlanTrainingEx
 from ..training_plan.training_plan import *
 
 class Training(EmbeddedDocument):
+    name = StringField()
     date = DateField(required=True)
     training_exercises = EmbeddedDocumentListField(ClientTrainingExercise)
 

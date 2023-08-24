@@ -11,3 +11,9 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: mypassword
     ports:
       - "27017:27017"
+  nginx:
+    image: nginx:latest
+    restart: always
+    volumes:
+      - ./app/webapps/trainer-form:/usr/share/nginx/html
+    ports: ["8086:80"]

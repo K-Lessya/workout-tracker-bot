@@ -10,7 +10,7 @@ class TrainingDaysKeyboard(InlineKeyboardBuilder):
     def __init__(self, days: list, target: str, go_back_target: str):
         super().__init__()
         for idx, day in enumerate(days):
-            self.row(InlineKeyboardButton(text=f"День {idx+1} ({len(day.training_exercises)})",
+            self.row(InlineKeyboardButton(text=f"День {idx+1} ({day.name})",
                                           callback_data=ChooseCallback(
                                               target=target,
                                               option=str(idx)).pack()))

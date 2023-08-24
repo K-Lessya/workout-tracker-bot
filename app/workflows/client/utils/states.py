@@ -13,6 +13,8 @@ class AddTrainingFromPlan(StatesGroup):
     show_exercise = State()
     process_exercise_weight = State()
     process_exercise_video = State()
+    ask_for_client_note = State()
+    process_client_note = State()
 
 
 class AddCustomTraining(StatesGroup):

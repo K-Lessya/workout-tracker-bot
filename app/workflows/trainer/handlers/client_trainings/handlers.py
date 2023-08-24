@@ -49,7 +49,8 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
     print(trainings['selected_trainings'])
     if trainings['selected_trainings']:
         for training in trainings['selected_trainings']:
-            options.append(MyTrainingsOption(text=str(training['value']['date'].strftime(formatted_date_string)),
+            options.append(MyTrainingsOption(text=f'{training["value"]["name"]} '
+                                                  f'({str(training["value"]["date"].strftime(formatted_date_string))})',
                                              target=TrainerMyClientsTargets.show_training,
                                              option=str(training['index'])))
 
@@ -130,7 +131,7 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
 
 
     await bot.send_video(chat_id=callback.from_user.id, video=file,
-                         caption=f'{f"Комментарий: {exercise.comment}" if exercise.comment else "Комментарий отсутствует"}',
+                         caption=f'Пометка клиента: {exercise.client_note}\n{f"Комментарий: {exercise.comment}" if exercise.comment else "Комментарий отсутствует"}',
                          reply_markup=keyboard.as_markup())
 
 @my_clients_trainings_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.create_video_comment))
