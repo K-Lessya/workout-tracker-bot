@@ -12,7 +12,8 @@ class MuscleGroup(Document):
 
 class Exercise(Document):
     name = StringField()
-    video_link = StringField()
+    media_link = StringField()
+    media_type = StringField()
     photo_link = StringField()
     muscle_groups = ListField(ReferenceField(MuscleGroup))
 

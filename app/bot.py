@@ -16,6 +16,7 @@ from app.entities.single_file.crud import delete_client_or_trainer
 from app.workflows.registration.utils.callback_properties import ChooseUsrTypeOptions
 from app.utilities.default_callbacks.default_callbacks import TestCallback, TestTasks
 from app.states.registration.states import RegistrationStates
+from app.callbacks.callbacks import MoveCallback
 from app.entities.single_file.crud import get_all_clients, get_all_trainers
 bot = Bot(token=BOT_TOKEN)
 
@@ -66,6 +67,34 @@ async def cmd_tester(message: types.Message, state: FSMContext):
     else:
         await message.answer('You are not a test user')
 
+@dp.message(Command("switch_role"))
+async def switch_role(message: types.Message, state: FSMContext):
+    await state.clear()
+    if message.from_user.id == int(TESTER_ID):
+        client = get_client_by_id(tg_id=int(TESTER_ID))
+
+        if client:
+            print(client)
+            client.tg_id=23432565
+            client.save()
+            trainer = get_trainer(tg_id=23432565)
+            trainer.tg_id=int(TESTER_ID)
+            trainer.save()
+        else:
+            trainer = get_trainer(tg_id=int(TESTER_ID))
+
+            if trainer:
+                print(trainer)
+                trainer.tg_id=23432565
+                trainer.save()
+                client = get_client_by_id(tg_id=23432565)
+                client.tg_id=int(TESTER_ID)
+                client.save()
+
+        await message.answer("Роль сменена. Жми start")
+    else:
+        await message.answer("Эта функция только для тестировщиков. Используйте команду start")
+
 
 # @dp.startup()
 # async def broadcast():
@@ -85,7 +114,7 @@ async def delete_test_user(callback: CallbackQuery, callback_data: TestCallback,
     await callback.message.edit_text("You was deleted, use /start command again")
 
 
-@dp.callback_query(F == 'no')
+@dp.callback_query(MoveCallback.filter(F.target == "to_no_content"))
 async def not_added_handler(callback: CallbackQuery, callback_data: str, state: FSMContext):
     await callback.answer(text='Функционал еще не добавлен', show_alert=True)
 

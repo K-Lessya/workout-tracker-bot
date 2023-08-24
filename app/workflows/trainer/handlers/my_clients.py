@@ -39,8 +39,11 @@ async def show_my_clients_menu(callback: CallbackQuery, callback_data: MoveToCal
             await callback.message.edit_text("Мои клиенты. Выбирай нужного",
                                              reply_markup=MyClientsKeyboard(clients=clients).as_markup())
     else:
-        await callback.answer("Клиентов пока нет", show_alert=True)
-
+        clients = get_trainer_clients_witout_name(trainer=trainer)
+        if clients:
+            await callback.answer("Ни один из клиентов пока не зарегистрировался или не принял заявку", show_alert=True)
+        else:
+            await callback.answer("Клиентов пока нет", show_alert=True)
 
 
 @my_clients_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_client))
@@ -74,11 +77,15 @@ async def process_num_days(message: Message, state: FSMContext):
         current_day = plan.days[-1]
         await state.update_data({'plan': plan,'num_days': int(message.text)})
         body_parts = get_all_body_parts()
-        await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
-        await message.answer(f'Давай выберем упражнения для дня {len(plan.days)}',
-                             reply_markup=ExercisePlanListKeyboard(items=body_parts,
-                                                                   day_num=len(plan.days),
-                                                                   exercises_length=len(current_day.exercises)).as_markup())
+        if body_parts:
+            await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
+            await message.answer(f'Давай выберем упражнения для дня {len(plan.days)}',
+                                 reply_markup=ExercisePlanListKeyboard(items=body_parts,
+                                                                       day_num=len(plan.days),
+                                                                       exercises_length=len(current_day.exercises)).as_markup())
+        else:
+            await state.clear()
+            await message.answer(f'В базе еще нет ни одного упражнения, добавь их через меню', reply_markup=create_trainer_main_menu_keyboard())
     else:
         await message.answer("Количество это цифра, причем целая, будь повнимательнее и вводи цифру")
 

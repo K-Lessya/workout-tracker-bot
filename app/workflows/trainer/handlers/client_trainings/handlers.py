@@ -46,25 +46,29 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
         trainings = get_client_trainings(tg_id=client.tg_id, start_pos=query.start_pos,
                                          range=query.end_pos+1 if query.end_pos < 4 else 4)[0]
     options = []
-    for training in trainings['selected_trainings']:
-        options.append(MyTrainingsOption(text=str(training['value']['date'].strftime(formatted_date_string)),
-                                         target=TrainerMyClientsTargets.show_training,
-                                         option=str(training['index'])))
+    print(trainings['selected_trainings'])
+    if trainings['selected_trainings']:
+        for training in trainings['selected_trainings']:
+            options.append(MyTrainingsOption(text=str(training['value']['date'].strftime(formatted_date_string)),
+                                             target=TrainerMyClientsTargets.show_training,
+                                             option=str(training['index'])))
 
-    keyboard = PaginationKeyboard(options=options, list_length=query.length,
-                                  last_index=query.end_pos,
-                                  first_index=query.start_pos,
-                                  prev_target=MyCLientsMoveTo.show_prev_trainings,
-                                  next_target=MyCLientsMoveTo.show_next_trainings,
-                                  go_back_to_choose=True,
-                                  choose_option=str(client.id),
-                                  go_back_target=TrainerMyClientsTargets.show_client)
-    if callback.message.photo:
-        await callback.message.delete()
-        await bot.send_message(chat_id=callback.from_user.id, text='Выбирай день тренировки',
-                               reply_markup=keyboard.as_markup())
+        keyboard = PaginationKeyboard(options=options, list_length=query.length,
+                                      last_index=query.end_pos,
+                                      first_index=query.start_pos,
+                                      prev_target=MyCLientsMoveTo.show_prev_trainings,
+                                      next_target=MyCLientsMoveTo.show_next_trainings,
+                                      go_back_to_choose=True,
+                                      choose_option=str(client.id),
+                                      go_back_target=TrainerMyClientsTargets.show_client)
+        if callback.message.photo:
+            await callback.message.delete()
+            await bot.send_message(chat_id=callback.from_user.id, text='Выбирай день тренировки',
+                                   reply_markup=keyboard.as_markup())
+        else:
+            await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
     else:
-        await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
+        await callback.answer("Клиент еще не добавил тренировку", show_alert=True)
 
 @my_clients_trainings_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_training))
 async def show_client_single_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):

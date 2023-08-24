@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from app.config import PHOTO_BUCKET, LOCALE
 from app.bot import bot
 from app.s3.downloader import create_presigned_url
-from app.entities.single_file.crud import get_client_trainings, get_client_training
+from app.entities.single_file.crud import get_client_trainings, get_client_training, get_client_by_id
 from app.callbacks.callbacks import MoveCallback
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback
 from app.workflows.common.utils.callback_properties.movetos import CommonGoBackMoveTo
@@ -106,8 +106,11 @@ async def show_training_exercise(callback: CallbackQuery, callback_data: ChooseC
 @my_trainings_router.callback_query(MoveCallback.filter(F.target == MyTrainingsMoveTo.show_exercise_video))
 async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await  state.get_data()
-    exercise = state_data['selected_exercise']
     selected_exercise_id = state_data['selected_exercise_id']
+    training_id = state_data['training_id']
+    client = get_client_by_id(tg_id=callback.from_user.id)
+    exercise = client.trainings[int(training_id)].training_exercises[int(selected_exercise_id)]
+    await state.update_data({'selected_exercise': exercise})
     await callback.answer(text='Загружаю видео')
     exercise_link = create_presigned_url(PHOTO_BUCKET, exercise.video_link)
     r = requests.get(exercise_link)

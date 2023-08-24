@@ -7,9 +7,6 @@ from app.workflows.common.utils.callback_properties.movetos import AddClientMove
 def create_add_client_options_keyboard():
     builder = InlineKeyboardBuilder()
     builder.button(
-        text="По ссылке", callback_data=MoveToCallback(move_to=AddClientMoveTo.by_username)
-    )
-    builder.button(
         text="Поделившись контактом", callback_data=MoveToCallback(move_to=AddClientMoveTo.by_contact)
     )
     builder.button(

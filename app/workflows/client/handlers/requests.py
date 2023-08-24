@@ -28,7 +28,7 @@ async def show_requests(callback: CallbackQuery, callback_data: MoveToCallback, 
     await callback.message.edit_text('Входящие заявки от тренеров',
                                      reply_markup=create_client_income_requests_keyboard(options=client_requests,
                                          target=ClientIncomeRequestTargets.show_income_request,
-                                         go_back_filter=MoveToCallback(move_to=CommonGoBackMoveTo.to_client_main_menu)))
+                                         go_back_filter=MoveCallback(target=CommonGoBackMoveTo.to_client_main_menu)))
 
 @client_request_router.callback_query(ChooseCallback.filter(F.target == ClientIncomeRequestTargets.show_income_request))
 async def show_income_request(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):

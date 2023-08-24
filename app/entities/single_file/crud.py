@@ -72,6 +72,7 @@ def client_delete_trainer_request(client: Client, trainer: Trainer):
 
 def client_get_num_trainier_requests(client: Client) -> int:
     request = ClientRequests.objects(client=client).first()
+
     return len(request.trainers)
 
 
@@ -93,6 +94,10 @@ def get_trainer_clients_range(first: int, range: int, trainer_id):
 
 def get_trainer_clients(trainer: Trainer):
     clients = Client.objects(name__exists=True, trainer=trainer)
+    return clients
+
+def get_trainer_clients_witout_name(trainer: Trainer):
+    clients = Client.objects(name__exists=False, trainer=trainer)
     return clients
 
 def create_training(tg_id: int, training: Training):

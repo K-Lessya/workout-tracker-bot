@@ -13,6 +13,7 @@ from app.workflows.common.utils.callback_properties.movetos import AddClientMove
 from ..utils.callback_properties.movetos import TrainerMainMenuMoveTo
 from ..utils.callback_properties.targets import TrainerAddClientTargets
 from app.config import PHOTO_BUCKET
+from app.utilities.helpers_functions import check_link
 from app.entities.single_file.crud import *
 from app.s3.downloader import create_presigned_url
 from app.workflows.client.utils.keyboards.notifications import create_new_trainer_request_keyboard
@@ -66,26 +67,29 @@ async def start_add_client(callback: CallbackQuery, callback_data: ChooseCallbac
 
 @add_client_router.message(TrainerStates.add_client.process_username)
 async def process_client_contact(message: Message, state: FSMContext):
-    tg_username = message.text.replace('https://t.me/', '')
-    if get_trainer_by_username(tg_username=tg_username):
-        await message.answer(f'Этот человек зарегистрирован как тренер, ты не можешь доавить его как клиента',
-                             reply_markup=create_trainer_main_menu_keyboard())
-        await state.clear()
-    else:
-        if get_client_by_username(tg_username=tg_username):
-            client = get_client_by_username(tg_username=tg_username)
-            if client.trainer:
-                if client.trainer.tg_id == message.from_user.id:
-                    await message.answer(f'У тебя уже есть такой клиент', reply_markup=create_trainer_main_menu_keyboard())
-                else:
-                    await message.answer(f'Этот клиент уже занят', reply_markup=create_trainer_main_menu_keyboard())
-            else:
-                trainer = get_trainer(tg_id=message.from_user.id)
-                update_client_trainer(client=client, trainer=trainer)
-        else:
-            create_client(Client(tg_username=tg_username))
+    if check_link(message.text):
+        tg_username = message.text.replace('https://t.me/', '')
+        if get_trainer_by_username(tg_username=tg_username):
+            await message.answer(f'Этот человек зарегистрирован как тренер, ты не можешь доавить его как клиента',
+                                 reply_markup=create_trainer_main_menu_keyboard())
             await state.clear()
-            await message.answer(f'Клиент добавлен', reply_markup=create_trainer_main_menu_keyboard())
+        else:
+            if get_client_by_username(tg_username=tg_username):
+                client = get_client_by_username(tg_username=tg_username)
+                if client.trainer:
+                    if client.trainer.tg_id == message.from_user.id:
+                        await message.answer(f'У тебя уже есть такой клиент', reply_markup=create_trainer_main_menu_keyboard())
+                    else:
+                        await message.answer(f'Этот клиент уже занят', reply_markup=create_trainer_main_menu_keyboard())
+                else:
+                    trainer = get_trainer(tg_id=message.from_user.id)
+                    update_client_trainer(client=client, trainer=trainer)
+            else:
+                create_client(Client(tg_username=tg_username))
+                await state.clear()
+                await message.answer(f'Клиент добавлен', reply_markup=create_trainer_main_menu_keyboard())
+    else:
+        await message.answer("Это неверная ссылка")
 
 
 @add_client_router.callback_query(MoveToCallback.filter(F.move_to == AddClientMoveTo.by_existing))

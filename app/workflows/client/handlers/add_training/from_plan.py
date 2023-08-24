@@ -140,7 +140,7 @@ async def process_exercise_video(message: Message, state: FSMContext):
         print(video_path)
         state_data = await state.get_data()
         training_exercise = state_data['training_exercise']
-        path = f'tmp/{video_path.split("/")[1]}'
+        path = f'tmp/{message.from_user.id}-{video_path.split("/")[1]}'
         filename = path.split('.')[0]
         await bot.download_file(file_path=video_path, destination=path)
         # video_clip = VideoFileClip(path)
@@ -162,6 +162,8 @@ async def process_exercise_video(message: Message, state: FSMContext):
                                               + reply_str
                                               + "Выбирай упражнение",
                                          reply_markup=keyboard.as_markup())
+    else:
+        await message.answer('Необходимо прислать видео')
 
 
 @training_from_plan_router.callback_query(MoveCallback.filter(F.target == ClientAddTrainingTargets.save_training))

@@ -1,5 +1,5 @@
 from app.bot import bot
-
+import re
 
 def is_float(string):
     try:
@@ -17,7 +17,7 @@ def process_tg_link(link: str):
 
 
 def check_link(link: str):
-    if "http://" or "https://" in link:
+    if re.match("https://t.me", link) or re.match("http://t.me", link):
         return True
     else:
         return False

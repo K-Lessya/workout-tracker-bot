@@ -12,9 +12,9 @@ from app.workflows.client.utils.callback_properties.options import ClientAddTrai
 class TrainingTypeKeyboard(InlineKeyboardBuilder):
     def __init__(self):
         super().__init__()
-        self.button(text="Свободная тренировка",
-                    callback_data=ChooseCallback(target=ClientAddTrainingTargets.choose_training_type,
-                                                 option=ClientAddTrainingOptions.custom))
+        self.button(text="Свободная тренировка", callback_data=MoveCallback(target='to_no_content'))
+                    # callback_data=ChooseCallback(target=ClientAddTrainingTargets.choose_training_type,
+                    #                              option=ClientAddTrainingOptions.custom))
         self.button(text="Тренировка по плану",
                     callback_data=ChooseCallback(target=ClientAddTrainingTargets.choose_training_type,
                                                  option=ClientAddTrainingOptions.from_plan))

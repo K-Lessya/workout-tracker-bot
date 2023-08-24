@@ -1,8 +1,9 @@
+import requests
 from aiogram import Router
 from aiogram import F
 from app.bot import bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, FSInputFile
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, MoveToCallback
 from app.workflows.common.utils.callback_properties.movetos import UpstreamMenuMoveTo, CommonGoBackMoveTo
 from app.workflows.common.utils.callback_properties.targets import ExerciseDbTargets
@@ -11,6 +12,7 @@ from ..utils.callback_properties.targets import ExerciseDbTargets
 from app.entities.exercise.crud import *
 from app.s3.downloader import create_presigned_url
 from app.config import PHOTO_BUCKET
+
 
 
 show_exercises_db_router = Router()
@@ -53,7 +55,7 @@ async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallb
     exercises = get_exercises_by_muscle_group(muscle_group=muscle_group)
     await state.update_data({'muscle_group': str(muscle_group.id)})
     print(exercises)
-    if 'has_photo' in state_data.keys():
+    if 'has_media' in state_data.keys():
         await bot.send_message(chat_id=callback.from_user.id,
                                text=f'Давай выберем упражнение',
                                reply_markup=create_exercise_db_choose_keyboard(
@@ -78,19 +80,39 @@ async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallb
 @show_exercises_db_router.callback_query(ChooseCallback.filter(F.target == ExerciseDbTargets.show_exercise))
 async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     exercise = get_exercise_by_id(callback_data.option)
-    photo_link = create_presigned_url(PHOTO_BUCKET, exercise.photo_link)
+    print(exercise.media_link)
+    media_link = create_presigned_url(PHOTO_BUCKET, exercise.media_link)
+    print(media_link)
     state_data = await state.get_data()
     go_back_ref = state_data['muscle_group']
-    await state.update_data({'has_photo': True})
-    await bot.send_photo(chat_id=callback.from_user.id, photo=photo_link,
-                         caption=f"{exercise.name}",
-                         reply_markup=create_exercise_db_choose_keyboard(
-                             options=None,
-                             source=callback,
-                             target=None,
-                             go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
-                                                           option=go_back_ref)))
-    await callback.message.delete()
+    if exercise.media_type == 'photo':
+        await state.update_data({'has_media': True})
+        await bot.send_photo(chat_id=callback.from_user.id, photo=media_link,
+                             caption=f"{exercise.name}",
+                             reply_markup=create_exercise_db_choose_keyboard(
+                                 options=None,
+                                 source=callback,
+                                 target=None,
+                                 go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
+                                                               option=go_back_ref)))
+    elif exercise.media_type == 'video':
+        await state.update_data({'has_media': True})
+
+        r = requests.get(media_link)
+
+        filename = exercise.media_link.split('/')[-1].split('.')[0]
+        open(f'tmp/{callback.from_user.id}-{filename}.mp4', 'wb').write(r.content)
+        file = FSInputFile(f'tmp/{callback.from_user.id}-{filename}.mp4')
+        await bot.send_video(chat_id=callback.from_user.id, video=file,
+                             caption=f'{exercise.name}',
+                             reply_markup=create_exercise_db_choose_keyboard(
+                                 options=None,
+                                 source=callback,
+                                 target=None,
+                                 go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
+                                                               option=go_back_ref)))
+        await callback.message.delete()
+
 
 
 

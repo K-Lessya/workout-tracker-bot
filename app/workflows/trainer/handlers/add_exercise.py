@@ -76,59 +76,21 @@ async def process_muscle_group_name_callback(callback: CallbackQuery, callback_d
 async def process_muscle_group_name(message: Message, state: FSMContext):
     await state.update_data({'exercise_name': message.text})
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_photo)
-    await message.answer(f'Желаешь загрузить фотографию упражнения?',
+    await message.answer(f'Хочешь загрузить фотографию или видео с техникой упражнения?',
                          reply_markup=create_yes_no_keyboard(target=CreateExerciseTargets.ask_for_exercise_photo))
 
 
 @add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.ask_for_exercise_photo))
 async def ask_for_photo(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    if callback_data.option == YesNoOptions.yes:
-        await callback.message.edit_text(f'Тогда присылай фото техники выполнения.\n'
-                                         f'Желательно чтобы на фото были два крайних положения'
-                                         f' при выполнении упражнения')
-        await callback.answer()
-    elif callback_data.option == YesNoOptions.no:
-        await state.update_data({'exercise_photo_link': 'defaults/panda_workout.jpeg'})
-        await state.set_state(TrainerStates.exercises_db.add_exercise.ask_for_video)
-        await callback.message.edit_text(f'Хочешь прислать мне ссылку на видео с техникой выполнения?',
-                                         reply_markup=create_yes_no_keyboard(
-                                             target=CreateExerciseTargets.process_exercise_video))
-
-
-@add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_photo, F.photo)
-async def process_photo(message: Message, state: FSMContext):
-    file = await bot.get_file(message.photo[-1].file_id)
-    file_path = file.file_path
-    destination = file_path.replace('/', '_')
-    photo_link = f'exercises/{file_path}'
-    await state.set_state(TrainerStates.exercises_db.add_exercise.ask_for_video)
-    await state.update_data({'local_path': f'tmp/{destination}', 'file_path': file_path, 'exercise_photo_link': photo_link})
-    last_bot_message = await message.answer(f'Хочешь прислать мне ссылку на видео с техникой выполнения?',
-                         reply_markup=create_yes_no_keyboard(
-                             target=CreateExerciseTargets.process_exercise_video))
-    await state.update_data({"last_message": last_bot_message})
-
-
-@add_exercise_router.message(TrainerStates.exercises_db.add_exercise.ask_for_video)
-async def reply_from_question(message: Message, state: FSMContext):
     state_data = await state.get_data()
-    last_bot_message = state_data['last_message']
-    await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=last_bot_message.message_id, reply_markup=None)
-    await bot.send_message(chat_id=message.from_user.id, text="На кнопку наэми дурак", reply_markup=create_yes_no_keyboard(
-                             target=CreateExerciseTargets.process_exercise_video))
-
-
-@add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_exercise_video))
-async def process_video(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     if callback_data.option == YesNoOptions.yes:
-        await state.set_state(TrainerStates.exercises_db.add_exercise.process_video)
-        await callback.message.edit_text(f'Жду ссылку')
+        await callback.message.edit_text(f'Тогда присылай фото или видео техники выполнения.\n'
+                                         f'Желательно чтобы на фото были два крайних положения'
+                                         f' при выполнении упражнения.')
         await callback.answer()
-
     elif callback_data.option == YesNoOptions.no:
-        await state.update_data({'exercise_video_link': ''})
+        await state.update_data({'exercise_media_link': 'defaults/panda_workout.jpeg', 'exercise_media_type': 'photo'})
         await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
-        state_data = await state.get_data()
         await callback.message.edit_text(f'Давай все проверим.\nЧасть тела: {state_data["body_part"]}\nГруппа мышц:'
                                          f' {state_data["muscle_group"]}\nНазвание: {state_data["exercise_name"]}\n'
                                          f'Сохранить?',
@@ -136,18 +98,63 @@ async def process_video(callback: CallbackQuery, callback_data: ChooseCallback, 
                                              target=CreateExerciseTargets.process_save_exercise))
 
 
-@add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_video)
-async def process_video_link(message: Message, state: FSMContext):
-    check_link(link=message.text)
-    await state.update_data({'exercise_video_link': message.text})
-    state_data = await state.get_data()
+@add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_photo)
+async def process_media(message: Message, state: FSMContext):
+    if message.photo:
+        await state.update_data({'exercise_media_type': 'photo'})
+        file = await bot.get_file(message.photo[-1].file_id)
+    elif message.video:
+        await state.update_data({'exercise_media_type': 'video'})
+        file = await bot.get_file(message.video.file_id)
+
+    file_path = file.file_path
+    destination = file_path.replace('/', '_')
+    media_link = f'exercises/{file_path}'
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
+    await state.update_data({'local_path': f'tmp/{destination}', 'file_path': file_path, 'exercise_media_link': media_link})
+    state_data = await state.get_data()
     await message.answer(f'Давай все проверим.\nЧасть тела: {state_data["body_part"]}\nГруппа мышц:'
-                                     f' {state_data["muscle_group"]}\nНазвание: {state_data["exercise_name"]}\n'
-                                     f'Ссылка на видео: {state_data["exercise_video_link"]}'
-                                     f'Сохранить?',
-                                     reply_markup=create_yes_no_keyboard(
-                                         target=CreateExerciseTargets.process_save_exercise))
+                         f' {state_data["muscle_group"]}\nНазвание: {state_data["exercise_name"]}\n'
+                         f'Сохранить?',
+                         reply_markup=create_yes_no_keyboard(target=CreateExerciseTargets.process_save_exercise))
+
+
+
+# @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.ask_for_video)
+# async def reply_from_question(message: Message, state: FSMContext):
+#     state_data = await state.get_data()
+#     last_bot_message = state_data['last_message']
+#     await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=last_bot_message.message_id, reply_markup=None)
+#     await bot.send_message(chat_id=message.from_user.id, text="Пожалуйста воспольщуйся кнопками", reply_markup=create_yes_no_keyboard(
+#                              target=CreateExerciseTargets.process_exercise_video))
+
+
+# @add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_exercise_video))
+# async def process_video(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+#     if callback_data.option == YesNoOptions.yes:
+#         await state.set_state(TrainerStates.exercises_db.add_exercise.process_video)
+#         await callback.message.edit_text(f'Жду ссылку')
+#         await callback.answer()
+#
+#     elif callback_data.option == YesNoOptions.no:
+#         await state.update_data({'exercise_video_link': ''})
+#
+#         state_data = await state.get_data()
+#
+
+
+# @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_video)
+# async def process_video_link(message: Message, state: FSMContext):
+#     check_link(link=message.text)
+#     await state.update_data({'exercise_video_link': message.text})
+#     state_data = await state.get_data()
+#     await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
+#     await message.answer(f'Давай все проверим.\nЧасть тела: {state_data["body_part"]}\nГруппа мышц:'
+#                                      f' {state_data["muscle_group"]}\nНазвание: {state_data["exercise_name"]}\n'
+#                                      f'Ссылка на видео: {state_data["exercise_video_link"]}'
+#                                      f'Сохранить?',
+#                                      reply_markup=create_yes_no_keyboard(
+#                                          target=CreateExerciseTargets.process_save_exercise))
 
 
 @add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_save_exercise))
@@ -156,11 +163,11 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
         state_data = await state.get_data()
         await state.clear()
 
-        if state_data['exercise_photo_link'] != 'defaults/panda_workout.jpeg':
+        if state_data['exercise_media_link'] != 'defaults/panda_workout.jpeg':
             await bot.download_file(file_path=state_data['file_path'], destination=state_data['local_path'])
             print('file_downloaded')
 
-            upload_file(file=state_data['local_path'], destination=state_data['exercise_photo_link'])
+            upload_file(file=state_data['local_path'], destination=state_data['exercise_media_link'])
             os.remove(state_data['local_path'])
         if isinstance(state_data['body_part'], BodyPart):
             body_part = state_data['body_part']
@@ -173,13 +180,14 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
             muscle_group = MuscleGroup(name=state_data['muscle_group'], body_part=body_part)
             create_muscle_group(muscle_group)
         exercise = Exercise(name=state_data['exercise_name'],
-                            photo_link=state_data['exercise_photo_link'],
-                            video_link=state_data['exercise_video_link'])
+                            media_link=state_data['exercise_media_link'],
+                            media_type=state_data['exercise_media_type'])
 
         exercise.muscle_groups.append(muscle_group)
         create_exercise(exercise)
         body_parts = get_all_body_parts()
-        await callback.message.edit_text(f'Упражнение сохранено, теперь давай выберем упражнения',
+        await callback.answer("Упражнение сохранено", show_alert=True)
+        await callback.message.edit_text(f'Давай выберем упражнения',
                                          reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
                                                                                          source=callback,
                                                                                          target=ExerciseDbTargets.show_body_part,

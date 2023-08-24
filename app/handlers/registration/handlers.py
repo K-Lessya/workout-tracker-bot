@@ -66,6 +66,7 @@ async def process_name(message: Message, state: FSMContext):
 async def process_surname(message: Message, state: FSMContext):
     await state.update_data({'surname': message.text})
     state_data = await state.get_data()
+    print(state_data)
     user_name = state_data['name']
     await state.set_state(RegistrationStates.ask_for_user_photo)
     await message.answer(f'Отлично {user_name}, а хочешь загрузить фото?',
