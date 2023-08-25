@@ -120,26 +120,31 @@ def delete_client_or_trainer(tg_id: int):
 
 
 def get_client_trainings(tg_id: int, start_pos, range):
-    pipeline = [
-        {'$match': {'tg_id': tg_id}},
-        {'$project': {
-            '_id': 0,
-            'selected_trainings': {
-                '$map': {
-                    'input': {'$slice': ['$trainings', start_pos, range]},
-                    'as': 'item',
-                    'in': {
-                        'index': {'$indexOfArray': ['$trainings', '$$item']},
-                        'value': '$$item'
+    client = Client.objects(tg_id=tg_id).first()
+    trainings = client.trainings
+    if trainings:
+        pipeline = [
+            {'$match': {'tg_id': tg_id}},
+            {'$project': {
+                '_id': 0,
+                'selected_trainings': {
+                    '$map': {
+                        'input': {'$slice': ['$trainings', start_pos, range]},
+                        'as': 'item',
+                        'in': {
+                            'index': {'$indexOfArray': ['$trainings', '$$item']},
+                            'value': '$$item'
+                        }
                     }
-                }
-            },
-            'length': {'$size': '$trainings'}}
-         }
-    ]
-    client_trainings = list(Client.objects.aggregate(*pipeline))
-    print(client_trainings)
-    return client_trainings
+                },
+                'length': {'$size': '$trainings'}}
+             }
+        ]
+        client_trainings = list(Client.objects.aggregate(*pipeline))
+        print(client_trainings)
+        return client_trainings
+    else:
+        return [[]]
 
 
 def get_client_training(tg_id, training_id):

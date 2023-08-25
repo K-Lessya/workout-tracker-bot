@@ -30,10 +30,13 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
     client = state_data['client']
     if callback_data.target == MyCLientsMoveTo.show_trainings:
         trainings = get_client_trainings(tg_id=client.tg_id, start_pos=-4, range=4)[0]
-        query = MyTrainings(start_pos=trainings['length']-4,
-                            end_pos=trainings['length']-1,
-                            length=trainings['length'])
-        await state.update_data({'query': query})
+        if trainings:
+            query = MyTrainings(start_pos=trainings['length']-4,
+                                end_pos=trainings['length']-1,
+                                length=trainings['length'])
+            await state.update_data({'query': query})
+        else:
+            await callback.answer("Клиент еще не добавил тренировку", show_alert=True)
     else:
         query = state_data['query']
         if callback_data.target == MyCLientsMoveTo.show_prev_trainings:
