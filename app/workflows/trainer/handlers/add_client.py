@@ -17,7 +17,7 @@ from app.utilities.helpers_functions import check_link
 from app.entities.single_file.crud import *
 from app.s3.downloader import create_presigned_url
 from app.workflows.client.utils.keyboards.notifications import create_new_trainer_request_keyboard
-
+from aiogram.types.menu_button_commands import MenuButtonCommands
 
 add_client_router = Router()
 
@@ -140,6 +140,7 @@ async def add_client_profile(callback: CallbackQuery, callback_data: ChooseCallb
 
 @add_client_router.callback_query(MoveToCallback.filter(F.move_to == CommonGoBackMoveTo.to_trainer_main_menu))
 async def go_to_main_menu(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    await callback.message.edit_text('Создание отменено, мы снова в главном меню',
+    await callback.message.edit_text('Мы снова в главном меню',
                                      reply_markup=create_trainer_main_menu_keyboard())
+    await bot.set_chat_menu_button(chat_id=callback.from_user.id, menu_button=MenuButtonCommands(type='commands'))
     await callback.answer()
