@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from app.bot import bot
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, MoveToCallback, YesNoOptions
-from ..utils.keyboards.my_clients import MyClientsKeyboard, SingleClientKeyboard
+from ..utils.keyboards.my_clients import MyClientsKeyboard, SingleClientKeyboard, ClientQuizKeyboard
 from ..utils.callback_properties.movetos import TrainerMainMenuMoveTo, MyCLientsMoveTo
 from ..utils.states import TrainerStates
 from ..utils.callback_properties.targets import TrainerMyClientsTargets
@@ -20,6 +20,10 @@ from app.utilities.default_keyboards.yes_no import YesNoKeyboard
 from app.entities.training_plan.training_plan import *
 from app.workflows.trainer.handlers.client_trainings.handlers import my_clients_trainings_router
 from app.entities.exercise.exercise import PlanTrainingExercise
+from app.callbacks.callbacks import MoveCallback
+from aiogram.types.menu_button_web_app import MenuButtonWebApp
+from aiogram.types.menu_button_commands import MenuButtonCommands
+from aiogram.types import WebAppInfo
 
 my_clients_router = Router()
 my_clients_router.include_router(my_clients_trainings_router)
@@ -49,6 +53,7 @@ async def show_my_clients_menu(callback: CallbackQuery, callback_data: MoveToCal
 @my_clients_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_client))
 async def show_trainer_client(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.clear()
+    await bot.set_chat_menu_button(chat_id=callback.from_user.id, menu_button=MenuButtonCommands(type='commands'))
     client = get_client(obj_id=callback_data.option)
     photo_link = create_presigned_url(bucket_name=PHOTO_BUCKET, object_name=client.photo_link)
     await state.update_data({'client': client})
@@ -222,6 +227,12 @@ def save_training_plan(plan: TrainingPlan, client: Client):
 
 
 
-
+@my_clients_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.client_quiz))
+async def show_client_quiz(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
+    state_data = await state.get_data()
+    client = state_data['client']
+    await bot.set_chat_menu_button(chat_id=callback.from_user.id,menu_button=MenuButtonWebApp(type='web_app', text="Показать анкету", web_app=WebAppInfo(url="https://aryzhykau.github.io/workout-tracker-bot/app/webapps/trainer-form/not_added.html")))
+    await callback.message.delete()
+    await bot.send_message(chat_id=callback.from_user.id, text="Нажми на кнопку показать анкету", reply_markup=ClientQuizKeyboard(option=str(client.id)).as_markup())
 
 

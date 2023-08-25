@@ -26,6 +26,7 @@ class ListBodyPartsMoveTo:
 
 
 class MyCLientsMoveTo:
+    client_quiz = 'my_client_client_quiz'
     single_client = 'single_client'
     create_client_plan = "create_client_plan"
     save_client_plan = 'save_client_plan'

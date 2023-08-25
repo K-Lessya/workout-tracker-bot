@@ -6,6 +6,7 @@ from ..callback_properties.movetos import TrainerMainMenuMoveTo
 from app.entities.single_file.models import Client
 from ..callback_properties.movetos import MyCLientsMoveTo
 from app.callbacks.callbacks import MoveCallback
+from aiogram.types import InlineKeyboardButton
 
 
 class MyClientsKeyboard(InlineKeyboardBuilder):
@@ -24,7 +25,7 @@ class SingleClientKeyboard(InlineKeyboardBuilder):
     def __init__(self, client: Client):
         super().__init__()
         self.button(
-            text="Анкета", callback_data=MoveCallback(target="to_no_content")
+            text="Анкета", callback_data=MoveCallback(target=MyCLientsMoveTo.client_quiz)
         )
         self.button(
             text="Тренировки", callback_data=MoveCallback(target=MyCLientsMoveTo.show_trainings)
@@ -49,3 +50,8 @@ class SingleClientKeyboard(InlineKeyboardBuilder):
 #             self.button(
 #                 text=f'День {i}', callback_data=ChooseCallback(target=TrainerMyClientsTargets.choose_day, option=str(i))
 #             )
+
+class ClientQuizKeyboard(InlineKeyboardBuilder):
+    def __init__(self, option):
+        super().__init__()
+        self.row(InlineKeyboardButton(text="Назад", callback_data=ChooseCallback(target=TrainerMyClientsTargets.show_client, option=option).pack()))
