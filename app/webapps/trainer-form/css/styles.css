@@ -14,7 +14,7 @@ h1 h4 {
 
 .questions.button {
     background-color: var(--tg-theme-button-color);
-    color: var(--tg-theme-text-color);
+    color: var(--tg-theme-button-text-color);
     width: 120px;
     height: 50px;
 }
