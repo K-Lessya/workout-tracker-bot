@@ -17,4 +17,6 @@ h1 h4 {
     color: var(--tg-theme-button-text-color);
     width: 120px;
     height: 50px;
+    font-size: 24px;
+    left: 50%;
 }
