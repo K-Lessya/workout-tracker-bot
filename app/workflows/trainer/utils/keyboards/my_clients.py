@@ -32,14 +32,14 @@ class SingleClientKeyboard(InlineKeyboardBuilder):
         )
         if not client.training_plan:
             self.button(
-                text="Составить план", callback_data=MoveToCallback(move_to=MyCLientsMoveTo.create_client_plan)
+                text="Составить план", callback_data=MoveToCallback(move_to=MyCLientsMoveTo.create_client_plan).pack()
             )
         else:
             self.button(
-                text="Тренировочный план", callback_data=MoveCallback(target="to_no_content")
+                text="Тренировочный план", callback_data=MoveCallback(target=MyCLientsMoveTo.show_client_plan_menu).pack()
             )
         self.button(
-            text="Назад", callback_data=MoveToCallback(move_to=TrainerMainMenuMoveTo.my_clients)
+            text="Назад", callback_data=MoveToCallback(move_to=TrainerMainMenuMoveTo.my_clients).pack()
         )
         self.adjust(2,1,1)
 

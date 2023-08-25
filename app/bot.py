@@ -75,20 +75,20 @@ async def switch_role(message: types.Message, state: FSMContext):
 
         if client:
             print(client)
-            client.tg_id=23432565
+            client.update(tg_id=23432565)
             client.save()
             trainer = get_trainer(tg_id=23432565)
-            trainer.tg_id=int(TESTER_ID)
+            trainer.update(tg_id=int(TESTER_ID))
             trainer.save()
         else:
             trainer = get_trainer(tg_id=int(TESTER_ID))
 
             if trainer:
                 print(trainer)
-                trainer.tg_id=23432565
+                trainer.update(tg_id=23432565)
                 trainer.save()
                 client = get_client_by_id(tg_id=23432565)
-                client.tg_id=int(TESTER_ID)
+                client.update(tg_id=int(TESTER_ID))
                 client.save()
 
         await message.answer("Роль сменена. Жми start")

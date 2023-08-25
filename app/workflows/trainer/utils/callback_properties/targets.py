@@ -30,6 +30,8 @@ class TrainerMyClientsTargets:
     save_plan = 'save_plan'
     show_training = 'my_clients_show_single_training'
     show_training_exercise = 'my_clients_show_training_exercise'
+    show_client_plan_day = 'my_clients_plan_show_client_plan_day'
+    show_client_plan_exercise = 'my_clients_plan_show_client_plan_day_exercise'
 
 
 

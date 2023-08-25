@@ -69,7 +69,11 @@ async def create_plan_start(callback: CallbackQuery, callback_data: MoveToCallba
     client = state_data['client']
     await state.set_state(TrainerStates.my_clients.create_plan.process_num_days)
     await state.update_data({'plan': TrainingPlan()})
-    await callback.message.edit_caption(caption=f"Составляем план для клиента {client.name} {client.surname}.\n"
+    if callback.message.photo:
+        await callback.message.edit_caption(caption=f"Составляем план для клиента {client.name} {client.surname}.\n"
+                                     f"Введи количество дней в плане")
+    elif callback.message.text:
+        await callback.message.edit_text(text=f"Составляем план для клиента {client.name} {client.surname}.\n"
                                      f"Введи количество дней в плане")
 
 

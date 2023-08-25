@@ -31,9 +31,20 @@ def create_client_main_menu_keyboard(client: Client):
         }
 
     ]
+
     for button in builder_buttons:
+        if not client.trainings and button['text'] == "Мои тренировки":
+            pass
+        elif not client.training_plan and button['text'] == "Мой план":
+            pass
+        else:
             builder.button(
                 text=button['text'], callback_data=MoveCallback(target=button['target'])
             )
-    builder.adjust(2, 1)
+    if len(builder_buttons) == 5:
+        builder.adjust(2, 2, 1)
+    elif len(builder_buttons) == 4:
+        builder.adjust(2, 2)
+    elif len(builder_buttons) == 3:
+        builder.adjust(2, 1)
     return builder.as_markup()

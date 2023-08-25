@@ -37,6 +37,8 @@ class MyCLientsMoveTo:
     show_next_trainings = 'my_clients_show_next_trainings'
     show_exercise_video = 'my_clients_show_exercise_video'
     create_video_comment = 'my_clients_create_video_comment'
+    show_client_plan_menu = 'my_clients_plan_show_client_plan_menu'
+    show_client_plan_days = 'my_clients_plan_show_client_plan_days'
 
 
 
