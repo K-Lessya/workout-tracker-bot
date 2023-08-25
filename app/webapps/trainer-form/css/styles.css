@@ -8,11 +8,13 @@ body {
     background-color: var(--tg-theme-bg-color);
 }
 
-h1 {
+h1 h4 {
     color: var(--tg-theme-text-color);
 }
 
 .questions.button {
     background-color: var(--tg-theme-button-color);
     color: var(--tg-theme-text-color);
+    width: 120px;
+    height: 50px;
 }
