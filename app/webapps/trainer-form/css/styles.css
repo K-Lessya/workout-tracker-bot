@@ -4,10 +4,10 @@
     box-sizing: border-box;
 }
 body {
-    color: var(--tg-theme-text-color)
-    background-color: var(--tg-theme-bg-color)
+    color: var(--tg-theme-text-color);
+    background-color: var(--tg-theme-bg-color);
 }
 
 h1 {
-    color: var(--tg-theme-text-color)
+    color: var(--tg-theme-text-color);
 }
