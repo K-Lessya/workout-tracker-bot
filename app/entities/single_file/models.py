@@ -8,6 +8,16 @@ class Training(EmbeddedDocument):
     training_exercises = EmbeddedDocumentListField(ClientTrainingExercise)
 
 
+class Question(EmbeddedDocument):
+    text = StringField()
+    type = IntField(min_value=0, max_value=2)
+    answers = ListField(StringField)
+
+
+class Questionnaire(EmbeddedDocument):
+    questions = EmbeddedDocumentListField(Question)
+
+
 class Trainer(Document):
     tg_id = IntField(unique=True)
     tg_username = StringField()
@@ -15,6 +25,7 @@ class Trainer(Document):
     surname = StringField()
     visibility = BooleanField()
     photo_link = StringField()
+    questionnaire = EmbeddedDocumentField(Questionnaire)
 
 
 class Client(Document):

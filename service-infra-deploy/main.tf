@@ -97,8 +97,8 @@ resource "aws_ecs_task_definition" "this" {
                     }
                     secretOptions = []
                 }
-                memory            = 512
-                memoryReservation = 512
+                memory            = 500
+                memoryReservation = 500
                 mountPoints       = []
                 name              = "workout-bot"
                 portMappings      = []
@@ -107,10 +107,10 @@ resource "aws_ecs_task_definition" "this" {
             },
         ]
     )
-    cpu                      = "1400"
+    cpu                      = "800"
     execution_role_arn       = "arn:aws:iam::935625980877:role/ecsTaskExecutionRole"
     family                   = "workout-bot"
-    memory                   = "600"
+    memory                   = "512"
     network_mode             = "bridge"
     requires_compatibilities = [
         "EC2",

@@ -1,6 +1,6 @@
 import os
 from aiogram import Router
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, MenuButtonCommands
 from aiogram import F
 from app.bot import bot
 from app.s3.downloader import create_presigned_url
@@ -23,9 +23,12 @@ client_main_menu_router = Router()
 @client_main_menu_router.callback_query(MoveCallback.filter(F.target == CommonGoBackMoveTo.to_client_main_menu))
 @callback_error_handler
 async def show_client_main_menu(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
+    await callback.message.delete()
     await state.clear()
+    await bot.set_chat_menu_button(chat_id=callback.from_user.id,
+                                   menu_button=MenuButtonCommands(type="commands"))
     client = get_client_by_id(tg_id=callback.from_user.id)
     await bot.send_message(chat_id=callback.from_user.id, text='Меню клиента',
                            reply_markup=create_client_main_menu_keyboard(client=client))
-    await callback.message.delete()
+
     await callback.answer()

@@ -23,7 +23,7 @@ def create_client_main_menu_keyboard(client: Client):
         },
         {
             "text": "Мой тренер",
-            "target": "to_no_content"
+            "target": ClientMainMenuMoveTo.my_trainer
         },
         {
             "text": "Мой план",
