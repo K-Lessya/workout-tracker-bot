@@ -16,12 +16,14 @@ from app.workflows.trainer.utils.callback_properties.movetos import MyCLientsMov
 from app.workflows.trainer.utils.callback_properties.targets import TrainerMyClientsTargets
 from app.workflows.client.classes.my_trainings import MyTrainings, MyTrainingsOption
 from app.workflows.trainer.utils.states import TrainerStates
+from app.utilities.helpers_functions import callback_error_handler
 my_clients_trainings_router = Router()
 
 
 @my_clients_trainings_router.callback_query(MoveCallback.filter((F.target == MyCLientsMoveTo.show_trainings) |
                                                                 (F.target == MyCLientsMoveTo.show_prev_trainings) |
                                                                 (F.target == MyCLientsMoveTo.show_next_trainings)))
+@callback_error_handler
 async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%A, %d %B'
@@ -30,14 +32,16 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
     client = state_data['client']
     if callback_data.target == MyCLientsMoveTo.show_trainings:
         trainings = get_client_trainings(tg_id=client.tg_id, start_pos=-4, range=4)[0]
-        if trainings:
+        if trainings != []:
             query = MyTrainings(start_pos=trainings['length']-4,
                                 end_pos=trainings['length']-1,
                                 length=trainings['length'])
             await state.update_data({'query': query})
         else:
             await callback.answer("Клиент еще не добавил тренировку", show_alert=True)
+            pass
     else:
+
         query = state_data['query']
         if callback_data.target == MyCLientsMoveTo.show_prev_trainings:
             query.update(start_pos=query.start_pos-4 if query.start_pos-4 >= 0 else 0,
@@ -49,32 +53,33 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
         trainings = get_client_trainings(tg_id=client.tg_id, start_pos=query.start_pos,
                                          range=query.end_pos+1 if query.end_pos < 4 else 4)[0]
     options = []
-    print(trainings['selected_trainings'])
-    if trainings['selected_trainings']:
-        for training in trainings['selected_trainings']:
-            options.append(MyTrainingsOption(text=f'{training["value"]["name"]} '
-                                                  f'({str(training["value"]["date"].strftime(formatted_date_string))})',
-                                             target=TrainerMyClientsTargets.show_training,
-                                             option=str(training['index'])))
+    if trainings:
+        print(trainings['selected_trainings'])
+        if trainings['selected_trainings']:
+            for training in trainings['selected_trainings']:
+                options.append(MyTrainingsOption(text=f'{training["value"]["name"]} '
+                                                      f'({str(training["value"]["date"].strftime(formatted_date_string))})',
+                                                 target=TrainerMyClientsTargets.show_training,
+                                                 option=str(training['index'])))
 
-        keyboard = PaginationKeyboard(options=options, list_length=query.length,
-                                      last_index=query.end_pos,
-                                      first_index=query.start_pos,
-                                      prev_target=MyCLientsMoveTo.show_prev_trainings,
-                                      next_target=MyCLientsMoveTo.show_next_trainings,
-                                      go_back_to_choose=True,
-                                      choose_option=str(client.id),
-                                      go_back_target=TrainerMyClientsTargets.show_client)
-        if callback.message.photo:
-            await callback.message.delete()
-            await bot.send_message(chat_id=callback.from_user.id, text='Выбирай день тренировки',
-                                   reply_markup=keyboard.as_markup())
-        else:
-            await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
-    else:
-        await callback.answer("Клиент еще не добавил тренировку", show_alert=True)
+            keyboard = PaginationKeyboard(options=options, list_length=query.length,
+                                          last_index=query.end_pos,
+                                          first_index=query.start_pos,
+                                          prev_target=MyCLientsMoveTo.show_prev_trainings,
+                                          next_target=MyCLientsMoveTo.show_next_trainings,
+                                          go_back_to_choose=True,
+                                          choose_option=str(client.id),
+                                          go_back_target=TrainerMyClientsTargets.show_client)
+            if callback.message.photo:
+                await callback.message.delete()
+                await bot.send_message(chat_id=callback.from_user.id, text='Выбирай день тренировки',
+                                       reply_markup=keyboard.as_markup())
+            else:
+                await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
+
 
 @my_clients_trainings_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_training))
+@callback_error_handler
 async def show_client_single_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%A, %d %B'
@@ -91,6 +96,7 @@ async def show_client_single_training(callback: CallbackQuery, callback_data: Ch
                                                exercises=exercises).as_markup())
 
 @my_clients_trainings_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_training_exercise))
+@callback_error_handler
 async def show_client_training_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     exercise = state_data['training_exercises'][int(callback_data.option)]
@@ -116,6 +122,7 @@ async def show_client_training_exercise(callback: CallbackQuery, callback_data: 
 
 
 @my_clients_trainings_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.show_exercise_video))
+@callback_error_handler
 async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await state.get_data()
     exercise = state_data['selected_exercise']
@@ -138,6 +145,7 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
                          reply_markup=keyboard.as_markup())
 
 @my_clients_trainings_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.create_video_comment))
+@callback_error_handler
 async def create_comment(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     await state.set_state(TrainerStates.my_clients.client_training.process_comment)
     await callback.message.edit_caption(caption="Напиши свой комментарий к видео", reply_markup=None)

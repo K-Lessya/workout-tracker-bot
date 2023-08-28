@@ -76,24 +76,26 @@ async def switch_role(message: types.Message, state: FSMContext):
         if client:
             print(client)
             client.update(tg_id=23432565)
-            client.save()
             trainer = get_trainer(tg_id=23432565)
             trainer.update(tg_id=int(TESTER_ID))
-            trainer.save()
         else:
             trainer = get_trainer(tg_id=int(TESTER_ID))
 
             if trainer:
                 print(trainer)
                 trainer.update(tg_id=23432565)
-                trainer.save()
                 client = get_client_by_id(tg_id=23432565)
                 client.update(tg_id=int(TESTER_ID))
-                client.save()
 
         await message.answer("Роль сменена. Жми start")
     else:
         await message.answer("Эта функция только для тестировщиков. Используйте команду start")
+
+@dp.startup()
+async def send_restart_message():
+    recievers = TEST_USERS_ID.split(' ')
+    for reciever in recievers:
+        await bot.send_message(chat_id=int(reciever), text="Я был перезапущен")
 
 
 # @dp.startup()

@@ -11,11 +11,11 @@ from app.workflows.trainer.utils.keyboards.clients_plan import ClientPlanMenuKey
     ClientPlanExercisesKeyboard, ClientPlanExerciseKeyboard
 from app.s3.downloader import create_presigned_url
 from app.config import PHOTO_BUCKET
-
+from app.utilities.helpers_functions import callback_error_handler, double_button_click_handler
 client_plan_router = Router()
 
-
 @client_plan_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.show_client_plan_menu))
+@callback_error_handler
 async def show_plan_menu(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await state.get_data()
     client = state_data['client']
@@ -28,18 +28,19 @@ async def show_plan_menu(callback: CallbackQuery, callback_data: MoveCallback, s
         await callback.message.delete()
     elif callback.message.text:
         await callback.message.edit_text(**kwargs)
-        await callback.answer()
-
+    await callback.answer("Загрузка завершена")
 @client_plan_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.show_client_plan_days))
+@callback_error_handler
 async def show_client_plan_days(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await state.get_data()
     client = state_data['client']
     await callback.message.edit_text("Выбери день из плана",
                                      reply_markup=ClientPlanDaysKeyboard(client.training_plan.days).as_markup())
-    await callback.answer()
+    await callback.answer("Загрузка завершена")
 
 
 @client_plan_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_client_plan_day))
+@callback_error_handler
 async def show_client_plan_day(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     selected_day = int(callback_data.option)
     await state.update_data({'selected_day': selected_day})
@@ -55,10 +56,13 @@ async def show_client_plan_day(callback: CallbackQuery, callback_data: ChooseCal
     elif callback.message.video or callback.message.photo:
         await callback.message.answer(**kwargs)
         await callback.message.delete()
-    await callback.answer()
+    await callback.answer("Загрузка завершена")
 
 @client_plan_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_client_plan_exercise))
+@callback_error_handler
 async def show_client_plan_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    await callback.message.delete()
+    notification = await bot.send_message(chat_id=callback.from_user.id, text="Заргружаю данные")
     state_data = await state.get_data()
     client = state_data['client']
     selected_day = state_data['selected_day']
@@ -71,18 +75,23 @@ async def show_client_plan_exercise(callback: CallbackQuery, callback_data: Choo
         'caption': f"{exercise.exercise.name}\n{exercise.num_runs}x{exercise.num_repeats}",
         'reply_markup': ClientPlanExerciseKeyboard(day=selected_day).as_markup()
     }
+
     if exercise_media_type == 'photo':
+        await notification.edit_text(text="Отправляю фото")
         await state.update_data({'has_media': True})
         await bot.send_photo(photo=exercise_media_link, **kwargs)
+        await notification.delete()
     elif exercise_media_type == 'video':
-
+        await notification.edit_text(text='Получаю видео')
         r = requests.get(exercise_media_link)
-
         filename = exercise_media_link.split('/')[-1].split('.')[0]
         open(f'tmp/{callback.from_user.id}-{filename}.mp4', 'wb').write(r.content)
         file = FSInputFile(f'tmp/{callback.from_user.id}-{filename}.mp4')
+        await notification.edit_text(text="Отправляю видео")
         await bot.send_video(video=file, **kwargs)
+        await notification.delete()
 
         os.remove(f'tmp/{callback.from_user.id}-{filename}.mp4')
+    await callback.answer("Загрузка завершена")
 
-    await callback.message.delete()
+

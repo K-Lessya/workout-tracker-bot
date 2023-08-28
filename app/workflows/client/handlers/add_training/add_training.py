@@ -26,19 +26,19 @@ from app.workflows.client.utils.keyboards.training_plan import TrainingDaysKeybo
 from app.workflows.client.handlers.add_training.from_plan import training_from_plan_router
 from app.callbacks.callbacks import MoveCallback
 from app.workflows.common.utils.callback_properties.movetos import CommonGoBackMoveTo
-
+from app.utilities.helpers_functions import callback_error_handler
 add_training_router = Router()
 add_training_router.include_routers(training_from_plan_router)
 
-# Create training flow
 @add_training_router.callback_query(MoveCallback.filter(F.target == ClientMainMenuMoveTo.add_training))
+@callback_error_handler# Create training flow
 async def start_creating_training(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
     await state.set_state(ClientStates.add_training.process_training_type)
 
     await callback.message.edit_text(f"Хочешь добавить собственную тренировку или из плана",
                                      reply_markup=TrainingTypeKeyboard().as_markup())
-
 @add_training_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.choose_training_type))
+@callback_error_handler
 async def process_training_type(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     training = Training(date=date.today())
     await state.update_data({'training': training})
@@ -48,12 +48,15 @@ async def process_training_type(callback: CallbackQuery, callback_data: ChooseCa
                                      reply_markup=create_add_exercise_keyboard())
     elif callback_data.option == ClientAddTrainingOptions.from_plan:
         training_days = get_training_days(client_id=callback.from_user.id)
-        await state.update_data({"training_days": training_days})
-        await state.set_state(ClientStates.add_training.add_from_plan.show_plan)
-        await callback.message.edit_text(f'Выбери день из плана',
-                                         reply_markup=TrainingDaysKeyboard(training_days,
-                                                                           target=ClientAddTrainingTargets.show_day,
-                                                                           go_back_target=CommonGoBackMoveTo.to_client_main_menu).as_markup())
+        if training_days:
+            await state.update_data({"training_days": training_days})
+            await state.set_state(ClientStates.add_training.add_from_plan.show_plan)
+            await callback.message.edit_text(f'Выбери день из плана',
+                                             reply_markup=TrainingDaysKeyboard(training_days,
+                                                                               target=ClientAddTrainingTargets.show_day,
+                                                                               go_back_target=CommonGoBackMoveTo.to_client_main_menu).as_markup())
+        else:
+            await callback.answer("Тренер еще не составил для тебя план", show_alert=True)
 
 
 
@@ -72,8 +75,8 @@ async def process_training_type(callback: CallbackQuery, callback_data: ChooseCa
 #     await message.answer(f'Начнем с добавления твоего первого упражнения.\nЖми кнопку, не стесняйся',
 #                                      reply_markup=create_add_exercise_keyboard())
 #
-#
 # @add_training_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.create_training))
+#@callback_error_handler
 # async def process_exercise(callback: CallbackQuery, callback_data: CreateTrainingCallback, state: FSMContext):
 #     await state.set_state(ClientStates.process_exercise_name)
 #     await callback.message.edit_text(f'Введи название упражнения')
@@ -113,15 +116,15 @@ async def process_training_type(callback: CallbackQuery, callback_data: ChooseCa
 #     await message.answer(f'Супер, желаешь прикрепить видео выполнения?',
 #                          reply_markup=create_yes_no_keyboard(target=ClientExerciseTargets.attach_video))
 #
-#
 # @add_training_router.callback_query(ChooseCallback.filter(F.target == ClientExerciseTargets.attach_video),
+#@callback_error_handler
 #                               ChooseCallback.filter(F.option == YesNoOptions.yes))
 # async def send_video_message(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
 #     await callback.message.edit_text(f'Пришли мне видео выполнения упражнения')
 #     await callback.answer()
 #
-#
 # @add_training_router.callback_query(ChooseCallback.filter(F.target == ClientExerciseTargets.attach_video),
+#@callback_error_handler
 #                               ChooseCallback.filter(F.option == YesNoOptions.no))
 # async def no_process_video(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
 #     state_data = await state.get_data()
@@ -167,8 +170,8 @@ async def process_training_type(callback: CallbackQuery, callback_data: ChooseCa
 #                          reply_markup=create_add_exercise_keyboard())
 #
 #
-#
 # @add_training_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.save))
+#@callback_error_handler
 # async def save_training(callback: CallbackQuery, callback_data: CreateTrainingCallback, state: FSMContext):
 #     state_data = await state.get_data()
 #     training = state_data['training']
@@ -182,8 +185,8 @@ async def process_training_type(callback: CallbackQuery, callback_data: ChooseCa
 #     await callback.message.edit_text(f'Тренировка создана, мы вернулись в главное меню',
 #                                      reply_markup=create_client_main_menu_keyboard())
 #     await callback.answer()
-#
 # @add_training_router.callback_query(CreateTrainingCallback.filter(F.action == CreateTrainingCallbackActions.decline))
+#@callback_error_handler
 # async def decline_creation(callback: CallbackQuery, callback_data: CreateTrainingCallback, state: FSMContext):
 #     await state.clear()
 #     await callback.message.edit_text('Создание тренировки отклонено, мы снова в главном меню',

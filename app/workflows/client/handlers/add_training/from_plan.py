@@ -1,7 +1,7 @@
-import logging
-import os
+import logging, os, requests
+
 from aiogram import Router
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, FSInputFile
 from aiogram import F
 from aiogram.fsm.context import FSMContext
 from app.workflows.client.classes.training import ClientTrainingSchema, ClientTrainingExerciseSchema
@@ -24,12 +24,12 @@ from app.s3.downloader import create_presigned_url
 from app.s3.uploader import upload_file
 from app.config import PHOTO_BUCKET
 from app.keyboards.yes_no import YesNoKeyboard
-
+from app.utilities.helpers_functions import callback_error_handler
 
 training_from_plan_router = Router()
 
-
 @training_from_plan_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.show_day))
+@callback_error_handler
 async def process_day(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.set_state(ClientStates.add_training.add_from_plan.show_day)
     state_data = await state.get_data()
@@ -45,7 +45,7 @@ async def process_day(callback: CallbackQuery, callback_data: ChooseCallback, st
             reply_markup=TrainingDayExercises(selected_day.training_exercises,
                                               target=ClientAddTrainingTargets.show_exercise,
                                               go_back_target=ClientMainMenuMoveTo.add_training).as_markup())
-    elif callback.message.photo:
+    elif callback.message.photo or callback.message.video:
         await callback.message.delete()
         await bot.send_message(chat_id=callback.from_user.id, text=f"Вот твои упражнения, для дня"
                                                                    f" {int(callback_data.option) + 1}, если не знаешь как"
@@ -53,13 +53,14 @@ async def process_day(callback: CallbackQuery, callback_data: ChooseCallback, st
                                reply_markup=TrainingDayExercises(selected_day.training_exercises,
                                                                  target=ClientAddTrainingTargets.show_exercise,
                                                                  go_back_target=ClientMainMenuMoveTo.add_training).as_markup())
+    await callback.answer("Загрезка завершена")
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.show_day)
 async def handle_message(message: Message, state: FSMContext):
     await message.delete()
 
-
 @training_from_plan_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.show_exercise))
+@callback_error_handler
 async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.set_state(ClientStates.add_training.add_from_plan.show_exercise)
     state_data = await state.get_data()
@@ -72,16 +73,35 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
     training_exercise.add_repeats(selected_exercise.num_repeats)
     selected_exercise_index = int(callback_data.option)
     await state.update_data({'selected_exercise_index': selected_exercise_index, 'training_exercise': training_exercise})
-    photo_link = create_presigned_url(bucket_name=PHOTO_BUCKET, object_name=selected_exercise.exercise.photo_link)
     await callback.message.delete()
-    await callback.answer()
     await state.set_state(ClientStates.add_training.add_from_plan.process_exercise_weight)
-    sent_message = await bot.send_photo(chat_id=callback.from_user.id, photo=photo_link,
-                         caption=f'{selected_exercise.exercise.name}\n{selected_exercise.num_runs} подхода'
+
+    exercise = selected_exercise
+    exercise_media_type = exercise.exercise.media_type
+    exercise_media_link = create_presigned_url(PHOTO_BUCKET, exercise.exercise.media_link)
+    print(exercise_media_link)
+    kwargs = {
+        'chat_id': callback.from_user.id,
+        'caption': f'{selected_exercise.exercise.name}\n{selected_exercise.num_runs} подхода'
                                  f' по {selected_exercise.num_repeats} раз(а)\nВведи вес с которым работал',
-                         reply_markup=PlanExerciseGoBackKeyboard(source_option=str(selected_day),
-                                                                 go_back_target=ClientAddTrainingTargets.show_day).as_markup())
+        'reply_markup': PlanExerciseGoBackKeyboard(source_option=str(selected_day),
+                                                   go_back_target=ClientAddTrainingTargets.show_day).as_markup()
+    }
+    if exercise_media_type == 'photo':
+        await state.update_data({'has_media': True})
+        sent_message = await bot.send_photo(photo=exercise_media_link, **kwargs)
+    elif exercise_media_type == 'video':
+        r = requests.get(exercise_media_link)
+
+        filename = exercise_media_link.split('/')[-1].split('.')[0]
+        open(f'tmp/{callback.from_user.id}-{filename}.mp4', 'wb').write(r.content)
+        file = FSInputFile(f'tmp/{callback.from_user.id}-{filename}.mp4')
+        sent_message = await bot.send_video(video=file, **kwargs)
+
+        os.remove(f'tmp/{callback.from_user.id}-{filename}.mp4')
+
     await state.update_data({'message_id_with_photo': sent_message.message_id})
+    await callback.answer('Загрузка завершена')
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.process_exercise_weight)
 async def process_exercise_wight(message: Message, state: FSMContext):
@@ -102,8 +122,8 @@ async def process_exercise_wight(message: Message, state: FSMContext):
     else:
         await message.answer("Нужно ввести число")
 
-
 @training_from_plan_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.process_video_link))
+@callback_error_handler
 async def process_exercise_video_link(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     if callback_data.option == YesNoOptions.yes:
         await state.set_state(ClientStates.add_training.add_from_plan.process_exercise_video)
@@ -157,8 +177,8 @@ async def process_exercise_video(message: Message, state: FSMContext):
     else:
         await message.answer('Необходимо прислать видео')
 
-
 @training_from_plan_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.process_client_note))
+@callback_error_handler
 async def process_client_note_callback(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     training = state_data['training']
@@ -208,8 +228,8 @@ async def process_note(message: Message, state: FSMContext):
                                      reply_markup=keyboard.as_markup())
 
 
-
 @training_from_plan_router.callback_query(MoveCallback.filter(F.target == ClientAddTrainingTargets.save_training))
+@callback_error_handler
 async def process_save_training(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await state.get_data()
     training = state_data['training']

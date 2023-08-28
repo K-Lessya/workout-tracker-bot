@@ -16,12 +16,13 @@ from app.s3.uploader import upload_file
 from app.entities.exercise.crud import *
 from app.utilities.helpers_functions import check_link
 import os
+from app.utilities.helpers_functions import callback_error_handler
 
 
 add_exercise_router = Router()
 
-
 @add_exercise_router.callback_query(MoveToCallback.filter(F.move_to == ExerciseDbMoveTo.create_exercise))
+@callback_error_handler
 async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.clear()
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_body_part_name)
@@ -33,6 +34,7 @@ async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, s
                                          target=CreateExerciseTargets.process_body_part_name,
                                          go_back_filter=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu)
                                      ))
+    await callback.answer("Загрузка завершена")
 
 
 @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_body_part_name)
@@ -40,8 +42,8 @@ async def process_body_part_name_message(message: Message, state: FSMContext):
     await state.update_data({'body_part': message.text})
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
     await message.answer(f'Теперь введи группу мыщц для которой предназначено это упражнение')
-
 @add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_body_part_name))
+@callback_error_handler
 async def process_body_part_name_callback(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     body_part = get_body_part_by_id(callback_data.option)
     muscle_groups = get_muscle_groups_by_body_part(body_part)
@@ -54,6 +56,7 @@ async def process_body_part_name_callback(callback: CallbackQuery, callback_data
                                          target=CreateExerciseTargets.process_muscle_group_name,
                                          go_back_filter=MoveToCallback(
                                              move_to=CommonGoBackMoveTo.to_trainer_main_menu)))
+    await callback.answer("Загрузка завершена")
 
 
 @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
@@ -61,13 +64,14 @@ async def process_muscle_group_name_message(message: Message, state: FSMContext)
     await state.update_data({'muscle_group': message.text})
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_exercise_name)
     await message.answer(f'А теперь введи название упражнения')
-
 @add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_muscle_group_name))
+@callback_error_handler
 async def process_muscle_group_name_callback(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     muscle_group = get_muscle_group_by_id(callback_data.option)
     await state.update_data({'muscle_group': muscle_group})
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_exercise_name)
     await callback.message.edit_text(f'А теперь введи название упражнения')
+    await callback.answer("Загрузка завершена")
 
 
 
@@ -79,15 +83,14 @@ async def process_muscle_group_name(message: Message, state: FSMContext):
     await message.answer(f'Хочешь загрузить фотографию или видео с техникой упражнения?',
                          reply_markup=create_yes_no_keyboard(target=CreateExerciseTargets.ask_for_exercise_photo))
 
-
 @add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.ask_for_exercise_photo))
+@callback_error_handler
 async def ask_for_photo(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     if callback_data.option == YesNoOptions.yes:
         await callback.message.edit_text(f'Тогда присылай фото или видео техники выполнения.\n'
                                          f'Желательно чтобы на фото были два крайних положения'
                                          f' при выполнении упражнения.')
-        await callback.answer()
     elif callback_data.option == YesNoOptions.no:
         await state.update_data({'exercise_media_link': 'defaults/panda_workout.jpeg', 'exercise_media_type': 'photo'})
         await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
@@ -96,6 +99,7 @@ async def ask_for_photo(callback: CallbackQuery, callback_data: ChooseCallback, 
                                          f'Сохранить?',
                                          reply_markup=create_yes_no_keyboard(
                                              target=CreateExerciseTargets.process_save_exercise))
+    await callback.answer("Загрузка завершена")
 
 
 @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_photo)
@@ -128,8 +132,8 @@ async def process_media(message: Message, state: FSMContext):
 #     await bot.send_message(chat_id=message.from_user.id, text="Пожалуйста воспольщуйся кнопками", reply_markup=create_yes_no_keyboard(
 #                              target=CreateExerciseTargets.process_exercise_video))
 
-
 # @add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_exercise_video))
+@callback_error_handler
 # async def process_video(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
 #     if callback_data.option == YesNoOptions.yes:
 #         await state.set_state(TrainerStates.exercises_db.add_exercise.process_video)
@@ -156,8 +160,8 @@ async def process_media(message: Message, state: FSMContext):
 #                                      reply_markup=create_yes_no_keyboard(
 #                                          target=CreateExerciseTargets.process_save_exercise))
 
-
 @add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_save_exercise))
+@callback_error_handler
 async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     if callback_data.option == YesNoOptions.yes:
         state_data = await state.get_data()
@@ -193,7 +197,6 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
                                                                                          target=ExerciseDbTargets.show_body_part,
                                                                                          go_back_filter=MoveToCallback(
                                                                                              move_to=UpstreamMenuMoveTo.show_exercise_db)))
-        await callback.answer()
 
     elif callback_data.option == YesNoOptions.no:
         await state.clear()
@@ -205,4 +208,4 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
                                                                                          go_back_filter=MoveToCallback(
                                                                                              move_to=UpstreamMenuMoveTo.show_exercise_db)
                                                                                          ))
-        await callback.answer()
+        await callback.answer("Загрузка завершена")

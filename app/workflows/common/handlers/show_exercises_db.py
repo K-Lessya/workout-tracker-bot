@@ -12,13 +12,14 @@ from ..utils.callback_properties.targets import ExerciseDbTargets
 from app.entities.exercise.crud import *
 from app.s3.downloader import create_presigned_url
 from app.config import PHOTO_BUCKET
+from app.utilities.helpers_functions import callback_error_handler
 
 
 
 show_exercises_db_router = Router()
 
-
 @show_exercises_db_router.callback_query(MoveToCallback.filter(F.move_to == UpstreamMenuMoveTo.show_exercise_db))
+@callback_error_handler
 async def list_body_parts(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     body_parts = get_all_body_parts()
     await callback.message.edit_text(f'Давай выберем на какую часть тела хочешь просмотреть упражнения,'
@@ -28,10 +29,10 @@ async def list_body_parts(callback: CallbackQuery, callback_data: ChooseCallback
                                          source=callback,
                                          target=ExerciseDbTargets.show_body_part,
                                          go_back_filter=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu)))
-    await callback.answer()
-
+    await callback.answer("Загрузка завершена")
 
 @show_exercises_db_router.callback_query(ChooseCallback.filter(F.target == ExerciseDbTargets.show_body_part))
+@callback_error_handler
 async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     body_part = get_body_part_by_id(callback_data.option)
     await state.update_data({'body_part': str(body_part.id)})
@@ -43,10 +44,10 @@ async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallb
                                          target=ExerciseDbTargets.show_muscle_group,
                                          go_back_filter=MoveToCallback(move_to=UpstreamMenuMoveTo.show_exercise_db)
                                      ))
-    await callback.answer()
-
+    await callback.answer("Загрузка завершена")
 
 @show_exercises_db_router.callback_query(ChooseCallback.filter(F.target == ExerciseDbTargets.show_muscle_group))
+@callback_error_handler
 async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     muscle_group = get_muscle_group_by_id(callback_data.option)
     state_data = await state.get_data()
@@ -73,13 +74,14 @@ async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallb
                                              target=ExerciseDbTargets.show_exercise,
                                              go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_body_part,
                                                                            option=go_back_ref)))
-        await callback.answer()
-
+    await callback.answer("Загрузка завершена")
 
 
 @show_exercises_db_router.callback_query(ChooseCallback.filter(F.target == ExerciseDbTargets.show_exercise))
+@callback_error_handler
 async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     exercise = get_exercise_by_id(callback_data.option)
+    await callback.message.delete()
     print(exercise.media_link)
     media_link = create_presigned_url(PHOTO_BUCKET, exercise.media_link)
     print(media_link)
@@ -111,7 +113,8 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
                                  target=None,
                                  go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
                                                                option=go_back_ref)))
-        await callback.message.delete()
+
+    await callback.answer("Загрузка завершена")
 
 
 

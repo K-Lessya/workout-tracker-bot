@@ -24,46 +24,28 @@ from app.callbacks.callbacks import MoveCallback
 from aiogram.types.menu_button_web_app import MenuButtonWebApp
 from aiogram.types.menu_button_commands import MenuButtonCommands
 from aiogram.types import WebAppInfo
-
+from app.utilities.helpers_functions import callback_error_handler
 my_clients_router = Router()
 my_clients_router.include_router(my_clients_trainings_router)
 
-
-@my_clients_router.callback_query(MoveToCallback.filter(F.move_to == TrainerMainMenuMoveTo.my_clients))
-async def show_my_clients_menu(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
-    await state.clear()
-    trainer = get_trainer(callback.from_user.id)
-    clients = get_trainer_clients(trainer=trainer)
-    if clients:
-        if callback.message.photo:
-            await callback.message.delete()
-            await bot.send_message(chat_id=callback.from_user.id, text="Мои клиенты. Выбирай нужного",
-                                   reply_markup=MyClientsKeyboard(clients=clients).as_markup())
-        else:
-            await callback.message.edit_text("Мои клиенты. Выбирай нужного",
-                                             reply_markup=MyClientsKeyboard(clients=clients).as_markup())
-    else:
-        clients = get_trainer_clients_witout_name(trainer=trainer)
-        if clients:
-            await callback.answer("Ни один из клиентов пока не зарегистрировался или не принял заявку", show_alert=True)
-        else:
-            await callback.answer("Клиентов пока нет", show_alert=True)
-
-
 @my_clients_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_client))
+@callback_error_handler
 async def show_trainer_client(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    await callback.message.delete()
     await state.clear()
     await bot.set_chat_menu_button(chat_id=callback.from_user.id, menu_button=MenuButtonCommands(type='commands'))
     client = get_client(obj_id=callback_data.option)
     photo_link = create_presigned_url(bucket_name=PHOTO_BUCKET, object_name=client.photo_link)
     await state.update_data({'client': client})
-    await callback.message.delete()
+
     await bot.send_photo(chat_id=callback.from_user.id, photo=photo_link,
                          caption=f"Клиент:\nИмя: {client.name}\nФамилия: {client.surname}",
                          reply_markup=SingleClientKeyboard(client=client).as_markup())
+    await callback.answer("Загрузка завершена")
 
 
 @my_clients_router.callback_query(MoveToCallback.filter(F.move_to == MyCLientsMoveTo.create_client_plan))
+@callback_error_handler
 async def create_plan_start(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
     state_data = await state.get_data()
     client = state_data['client']
@@ -75,7 +57,7 @@ async def create_plan_start(callback: CallbackQuery, callback_data: MoveToCallba
     elif callback.message.text:
         await callback.message.edit_text(text=f"Составляем план для клиента {client.name} {client.surname}.\n"
                                      f"Введи количество дней в плане")
-
+    await callback.answer("Загрузка завершена")
 
 @my_clients_router.message(TrainerStates.my_clients.create_plan.process_num_days)
 async def process_num_days(message: Message, state: FSMContext):
@@ -88,6 +70,7 @@ async def process_num_days(message: Message, state: FSMContext):
         await message.answer(f'В плане {message.text} дней, введи название дня {len(plan.days)}')
     else:
         await message.answer('Я ожидаю число')
+
 
 @my_clients_router.message(TrainerStates.my_clients.create_plan.process_day_name)
 async def process_plan_day_name(message: Message, state: FSMContext):
@@ -107,10 +90,42 @@ async def process_plan_day_name(message: Message, state: FSMContext):
             await state.clear()
             await message.answer(f'В базе еще нет ни одного упражнения, добавь их через меню', reply_markup=create_trainer_main_menu_keyboard())
 
+@my_clients_router.callback_query(MoveToCallback.filter(F.move_to == TrainerMainMenuMoveTo.my_clients))
+@callback_error_handler
+async def show_my_clients_menu(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
+    await state.clear()
+    trainer = get_trainer(callback.from_user.id)
+    clients = get_trainer_clients(trainer=trainer)
+    if clients:
+        if callback.message.photo:
+            await callback.message.delete()
+            await bot.send_message(chat_id=callback.from_user.id, text="Мои клиенты. Выбирай нужного",
+                                   reply_markup=MyClientsKeyboard(clients=clients).as_markup())
+        else:
+            await callback.message.edit_text("Мои клиенты. Выбирай нужного",
+                                             reply_markup=MyClientsKeyboard(clients=clients).as_markup())
+        await callback.answer("Загрузка завершена")
+    else:
+        clients = get_trainer_clients_witout_name(trainer=trainer)
+        if clients:
+            await callback.answer("Ни один из клиентов пока не зарегистрировался или не принял заявку", show_alert=True)
+        else:
+            await callback.answer("Клиентов пока нет", show_alert=True)
 
+
+
+@my_clients_router.message(TrainerStates.my_clients.create_plan.process_num_runs)
+async def process_num_runs(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    plan = state_data['plan']
+    plan.days[-1].exercises[-1].add_runs(num_runs=int(message.text))
+    await state.update_data({'plan': plan})
+    await state.set_state(TrainerStates.my_clients.create_plan.process_num_repeats)
+    await message.answer('А теперь количество повторений за подход')
 
 
 @my_clients_router.callback_query(ChooseCallback.filter((F.target == TrainerMyClientsTargets.choose_body_part) | (F.target == TrainerMyClientsTargets.choose_muscle_group) | (F.target == TrainerMyClientsTargets.choose_exercise_for_plan)))
+@callback_error_handler
 async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     plan = state_data['plan']
@@ -134,16 +149,7 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
             reply_markup=ExercisePlanListKeyboard(items=items,
                                                   exercises_length=len(plan.days[-1].exercises),
                                                   day_num=len(plan.days)).as_markup())
-
-
-@my_clients_router.message(TrainerStates.my_clients.create_plan.process_num_runs)
-async def process_num_runs(message: Message, state: FSMContext):
-    state_data = await state.get_data()
-    plan = state_data['plan']
-    plan.days[-1].exercises[-1].add_runs(num_runs=int(message.text))
-    await state.update_data({'plan': plan})
-    await state.set_state(TrainerStates.my_clients.create_plan.process_num_repeats)
-    await message.answer('А теперь количество повторений за подход')
+    await callback.answer("Загрузка завершена")
 
 
 @my_clients_router.message(TrainerStates.my_clients.create_plan.process_num_repeats)
@@ -166,31 +172,8 @@ async def process_num_repeats(message: Message, state: FSMContext):
                                                                day_num=len(plan.days),
                                                                exercises_length=len(plan.days[-1].exercises)).as_markup())
 
-
-@my_clients_router.callback_query(MoveToCallback.filter(F.move_to == MyCLientsMoveTo.save_client_day))
-async def save_client_day(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
-    state_data = await state.get_data()
-    plan = state_data['plan']
-    if len(plan.days) == state_data['num_days']:
-        msg = ""
-        for idx, day in enumerate(plan.days):
-            msg += f"День {idx+1}\n"
-            for ind, exercise in enumerate(day.exercises):
-                msg += f"{ind+1}: {exercise.exercise.name}, {exercise.num_runs}X{exercise.num_repeats}\n"
-        await callback.message.edit_text(text='Сохраняем план?',
-                                         reply_markup=YesNoKeyboard(target=TrainerMyClientsTargets.save_plan).as_markup())
-    else:
-        plan.add_day(TrainingDay())
-        # body_parts = get_all_body_parts()
-        # await callback.message.edit_text(text=f'Давай выберем упражнения для дня {len(plan.days)}',
-        #                      reply_markup=ExercisePlanListKeyboard(items=body_parts,
-        #                                                            day_num=len(plan.days),
-        #                                                            exercises_length=len(plan.days[-1].exercises)).as_markup())
-        await state.set_state(TrainerStates.my_clients.create_plan.process_day_name)
-        await callback.message.edit_text(f'В плане {state_data["num_days"]} дней. Введи название дня {len(plan.days)} ')
-
-
 @my_clients_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.save_plan))
+@callback_error_handler
 async def save_plan(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     client = state_data['client']
@@ -215,8 +198,6 @@ async def save_plan(callback: CallbackQuery, callback_data: ChooseCallback, stat
                              caption=f"Клиент:\nИмя: {client.name}\nФамилия: {client.surname}",
                              reply_markup=SingleClientKeyboard(client=client).as_markup())
 
-
-
 def save_training_plan(plan: TrainingPlan, client: Client):
     training_plan = DbTrainingPlan()
     for idx, day in enumerate(plan.days):
@@ -230,13 +211,40 @@ def save_training_plan(plan: TrainingPlan, client: Client):
 
 
 
+@my_clients_router.callback_query(MoveToCallback.filter(F.move_to == MyCLientsMoveTo.save_client_day))
+@callback_error_handler
+async def save_client_day(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
+    state_data = await state.get_data()
+    plan = state_data['plan']
+    if len(plan.days) == state_data['num_days']:
+        msg = ""
+        for idx, day in enumerate(plan.days):
+            msg += f"День {idx+1}\n"
+            for ind, exercise in enumerate(day.exercises):
+                msg += f"{ind+1}: {exercise.exercise.name}, {exercise.num_runs}X{exercise.num_repeats}\n"
+        await callback.message.edit_text(text='Сохраняем план?',
+                                         reply_markup=YesNoKeyboard(target=TrainerMyClientsTargets.save_plan).as_markup())
+    else:
+        plan.add_day(TrainingDay())
+        # body_parts = get_all_body_parts()
+        # await callback.message.edit_text(text=f'Давай выберем упражнения для дня {len(plan.days)}',
+        #                      reply_markup=ExercisePlanListKeyboard(items=body_parts,
+        #                                                            day_num=len(plan.days),
+        #                                                            exercises_length=len(plan.days[-1].exercises)).as_markup())
+        await state.set_state(TrainerStates.my_clients.create_plan.process_day_name)
+        await callback.message.edit_text(f'В плане {state_data["num_days"]} дней. Введи название дня {len(plan.days)} ')
+    await callback.answer("Загрузка завершена")
+
+
+
 
 @my_clients_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.client_quiz))
+@callback_error_handler
 async def show_client_quiz(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await state.get_data()
     client = state_data['client']
-    await bot.set_chat_menu_button(chat_id=callback.from_user.id,menu_button=MenuButtonWebApp(type='web_app', text="Показать анкету", web_app=WebAppInfo(url="https://aryzhykau.github.io/workout-tracker-bot/app/webapps/trainer-form/not_added.html")))
+    await bot.set_chat_menu_button(chat_id=callback.from_user.id,menu_button=MenuButtonWebApp(type='web_app', text="Показать анкету", web_app=WebAppInfo(url="https://aryzhykau.github.io/workout-bot-webapp/")))
     await callback.message.delete()
     await bot.send_message(chat_id=callback.from_user.id, text="Нажми на кнопку показать анкету", reply_markup=ClientQuizKeyboard(option=str(client.id)).as_markup())
-
+    await callback.answer("Загрузка завершена")
 

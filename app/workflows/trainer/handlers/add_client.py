@@ -18,21 +18,24 @@ from app.entities.single_file.crud import *
 from app.s3.downloader import create_presigned_url
 from app.workflows.client.utils.keyboards.notifications import create_new_trainer_request_keyboard
 from aiogram.types.menu_button_commands import MenuButtonCommands
+from app.utilities.helpers_functions import callback_error_handler
 
 add_client_router = Router()
 
-
 @add_client_router.callback_query(MoveToCallback.filter(F.move_to == TrainerMainMenuMoveTo.add_client))
+@callback_error_handler
 async def choose_add_flow(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await callback.message.edit_text(f'Выбери как ты хочешь добавить клиента из списка',
                                      reply_markup=create_add_client_options_keyboard())
-    await callback.answer()
+    await callback.answer("Загрузка завершена")
 
 
 @add_client_router.callback_query(MoveToCallback.filter(F.move_to == AddClientMoveTo.by_contact))
+@callback_error_handler
 async def start_add_client(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.set_state(TrainerStates.add_client.process_contact)
     await callback.message.edit_text(f'Для того чтобы добавить клиента, поделись его контактом со мной')
+    await callback.answer("Загрузка завершена")
 
 
 @add_client_router.message(TrainerStates.add_client.process_contact)
@@ -58,11 +61,12 @@ async def process_client_contact(message: Message, state: FSMContext):
             await state.clear()
             await message.answer(f'Клиент добавлен', reply_markup=create_trainer_main_menu_keyboard())
 
-
 @add_client_router.callback_query(MoveToCallback.filter(F.move_to == AddClientMoveTo.by_username))
+@callback_error_handler
 async def start_add_client(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.set_state(TrainerStates.add_client.process_username)
     await callback.message.edit_text(f'Для того чтобы добавить клиента, пришли мне ссылку на него')
+    await callback.answer("Загрузка завершена")
 
 
 @add_client_router.message(TrainerStates.add_client.process_username)
@@ -91,8 +95,8 @@ async def process_client_contact(message: Message, state: FSMContext):
     else:
         await message.answer("Это неверная ссылка")
 
-
 @add_client_router.callback_query(MoveToCallback.filter(F.move_to == AddClientMoveTo.by_existing))
+@callback_error_handler
 async def add_client_by_existing(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     clients = get_all_not_assigned_clients_with_name()
     print(clients)
@@ -100,12 +104,13 @@ async def add_client_by_existing(callback: CallbackQuery, callback_data: ChooseC
         await callback.message.edit_text(f'Выбери клиента из списка',
                                          reply_markup=create_choose_existing_clients_keyboard(clients=clients))
     else:
-        await callback.message.edit_text(f'Все доступные клиенты уже заняты',
-                                         reply_markup=create_add_client_options_keyboard())
-    await callback.answer()
+        await callback.answer(f'Все доступные клиенты уже заняты', show_alert=True)
+
+    await callback.answer("Загрузка завершена")
 
 
 @add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerAddClientTargets.show_clients))
+@callback_error_handler
 async def show_user_profile(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     client = get_client_by_id(int(callback_data.option))
     photo_link = create_presigned_url(bucket_name=PHOTO_BUCKET, object_name=client.photo_link)
@@ -113,10 +118,11 @@ async def show_user_profile(callback: CallbackQuery, callback_data: ChooseCallba
     await bot.send_photo(chat_id=callback.from_user.id, photo=photo_link, caption=f'Имя: {client.name}\nФамилия: {client.surname}\nДобавить этого клиента?',
                          reply_markup=create_yes_no_keyboard(target=TrainerAddClientTargets.add_existing_client))
     await callback.message.delete()
-    await callback.answer()
+    await callback.answer("Загрузка завершена")
 
 
 @add_client_router.callback_query(ChooseCallback.filter(F.target == TrainerAddClientTargets.add_existing_client))
+@callback_error_handler
 async def add_client_profile(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     if callback_data.option == YesNoOptions.yes:
         state_data = await state.get_data()
@@ -136,11 +142,13 @@ async def add_client_profile(callback: CallbackQuery, callback_data: ChooseCallb
         await bot.send_message(chat_id=callback.from_user.id, text=f'Хорошо, посмотрим других',
                                reply_markup=create_choose_existing_clients_keyboard(clients))
         await callback.message.delete()
-
+    await callback.answer("Загрузка завершена")
 
 @add_client_router.callback_query(MoveToCallback.filter(F.move_to == CommonGoBackMoveTo.to_trainer_main_menu))
+@callback_error_handler
 async def go_to_main_menu(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await callback.message.edit_text('Мы снова в главном меню',
                                      reply_markup=create_trainer_main_menu_keyboard())
     await bot.set_chat_menu_button(chat_id=callback.from_user.id, menu_button=MenuButtonCommands(type='commands'))
-    await callback.answer()
+    await callback.answer("Загрузка завершена")
+

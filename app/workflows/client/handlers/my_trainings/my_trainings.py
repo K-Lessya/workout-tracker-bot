@@ -6,6 +6,7 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 from app.config import PHOTO_BUCKET, LOCALE
 from app.bot import bot
+from app.utilities.helpers_functions import callback_error_handler
 from app.s3.downloader import create_presigned_url
 from app.entities.single_file.crud import get_client_trainings, get_client_training, get_client_by_id
 from app.callbacks.callbacks import MoveCallback
@@ -22,10 +23,10 @@ my_trainings_router = Router()
 
 
 
-
 @my_trainings_router.callback_query(MoveCallback.filter((F.target == ClientMainMenuMoveTo.my_trainings) |
                                                         (F.target == MyTrainingsMoveTo.to_prev_trainings) |
                                                         (F.target == MyTrainingsMoveTo.to_next_trainings)))
+@callback_error_handler
 async def show_trainings(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%A, %d %B'
@@ -64,8 +65,8 @@ async def show_trainings(callback: CallbackQuery, callback_data: MoveCallback, s
                                   go_back_target=CommonGoBackMoveTo.to_client_main_menu)
     await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
 
-
 @my_trainings_router.callback_query(ChooseCallback.filter(F.target == ClientMyTrainingsTarget.show_training))
+@callback_error_handler
 async def show_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%A, %d %B'
@@ -79,8 +80,8 @@ async def show_training(callback: CallbackQuery, callback_data: ChooseCallback, 
                                                                             go_back_target=ClientMainMenuMoveTo.my_trainings,
                                                                             exercises=exercises).as_markup())
 
-
 @my_trainings_router.callback_query(ChooseCallback.filter(F.target == ClientMyTrainingsTarget.show_exercise))
+@callback_error_handler
 async def show_training_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     exercise = state_data['training_exercises'][int(callback_data.option)]
@@ -104,6 +105,7 @@ async def show_training_exercise(callback: CallbackQuery, callback_data: ChooseC
         await callback.message.edit_text(text=msg_text, reply_markup=reply_markup)
 
 @my_trainings_router.callback_query(MoveCallback.filter(F.target == MyTrainingsMoveTo.show_exercise_video))
+@callback_error_handler
 async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await  state.get_data()
     selected_exercise_id = state_data['selected_exercise_id']
