@@ -17,7 +17,6 @@ class Question(EmbeddedDocument):
 class Questionnaire(EmbeddedDocument):
     questions = EmbeddedDocumentListField(Question)
 
-
 class Trainer(Document):
     tg_id = IntField(unique=True)
     tg_username = StringField()

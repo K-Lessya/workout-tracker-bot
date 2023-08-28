@@ -43,7 +43,7 @@ resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode(
         [
             {
-                cpu               = 1400
+                cpu               = 800
                 secrets  = [
                   {
                     name = "TESTER_ID"
