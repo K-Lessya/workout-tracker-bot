@@ -10,6 +10,8 @@ from app.callbacks.callbacks import MoveCallback
 from app.utilities.helpers_functions import is_float
 from app.workflows.client.utils.states import ClientStates
 from app.bot import bot
+import asyncio
+from app.s3.uploader import upload_to_s3_and_update_progress
 from app.keyboards.yes_no import YesNoKeyboard
 from app.entities.single_file.models import Training, ClientTrainingExercise
 from app.entities.single_file.crud import get_client_by_id
@@ -101,7 +103,7 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
         os.remove(f'tmp/{callback.from_user.id}-{filename}.mp4')
 
     await state.update_data({'message_id_with_photo': sent_message.message_id})
-    await callback.answer('Загрузка завершена')
+    # await callback.answer('Загрузка завершена')
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.process_exercise_weight)
 async def process_exercise_wight(message: Message, state: FSMContext):
@@ -239,7 +241,10 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
         if exercise.video_link != '':
             s3_path = f'{callback.from_user.id}/trainings/{training.date}/{exercise.video_link.split("/")[1]}'
             logging.log(level=logging.INFO,msg=f'Processing video {s3_path}')
-            upload_file(exercise.video_link, s3_path)
+            loop = asyncio.get_event_loop()
+            await callback.message.edit_text("Сохраняю видео")
+            await upload_to_s3_and_update_progress(loop, exercise.video_link,s3_path,callback)
+            # upload_file(exercise.video_link, s3_path)
             os.remove(exercise.video_link)
             exercise.video_link = s3_path
 
@@ -252,7 +257,7 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
     client = get_client_by_id(callback.from_user.id)
     client.trainings.append(mongo_training)
     client.save()
-    await callback.answer('Тренировка сохранена', show_alert=True, cache_time=300)
+    await callback.answer('Тренировка сохранена', show_alert=True)
 
     await callback.message.edit_text("Меню клиента", reply_markup=create_client_main_menu_keyboard(client=client))
 

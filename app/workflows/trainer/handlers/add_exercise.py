@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 from app.bot import bot
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback,MoveToCallback, YesNoOptions
 from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
-
+from app.s3.uploader import upload_to_s3_and_update_progress
 from ..utils.states import TrainerStates
 from ..utils.callback_properties.targets import CreateExerciseTargets
 from app.workflows.common.utils.keyboards.exercise_db_choose import create_exercise_db_choose_keyboard
@@ -17,7 +17,7 @@ from app.entities.exercise.crud import *
 from app.utilities.helpers_functions import check_link
 import os
 from app.utilities.helpers_functions import callback_error_handler
-
+import asyncio
 
 add_exercise_router = Router()
 
@@ -94,8 +94,16 @@ async def ask_for_photo(callback: CallbackQuery, callback_data: ChooseCallback, 
     elif callback_data.option == YesNoOptions.no:
         await state.update_data({'exercise_media_link': 'defaults/panda_workout.jpeg', 'exercise_media_type': 'photo'})
         await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
-        await callback.message.edit_text(f'Давай все проверим.\nЧасть тела: {state_data["body_part"]}\nГруппа мышц:'
-                                         f' {state_data["muscle_group"]}\nНазвание: {state_data["exercise_name"]}\n'
+        if isinstance(state_data["body_part"], BodyPart):
+            body_part_name = state_data['body_part'].name
+        else:
+            body_part_name = state_data['body_part']
+        if isinstance(state_data['muscle_group'], MuscleGroup):
+            muscle_group_name = state_data["muscle_group"].name
+        else:
+            muscle_group_name = state_data['muscle_group']
+        await callback.message.edit_text(f'Давай все проверим.\nЧасть тела: {body_part_name}\nГруппа мышц:'
+                                         f' {muscle_group_name}\nНазвание: {state_data["exercise_name"]}\n'
                                          f'Сохранить?',
                                          reply_markup=create_yes_no_keyboard(
                                              target=CreateExerciseTargets.process_save_exercise))
@@ -117,10 +125,19 @@ async def process_media(message: Message, state: FSMContext):
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
     await state.update_data({'local_path': f'tmp/{destination}', 'file_path': file_path, 'exercise_media_link': media_link})
     state_data = await state.get_data()
-    await message.answer(f'Давай все проверим.\nЧасть тела: {state_data["body_part"]}\nГруппа мышц:'
-                         f' {state_data["muscle_group"]}\nНазвание: {state_data["exercise_name"]}\n'
-                         f'Сохранить?',
-                         reply_markup=create_yes_no_keyboard(target=CreateExerciseTargets.process_save_exercise))
+    if isinstance(state_data["body_part"], BodyPart):
+        body_part_name = state_data['body_part'].name
+    else:
+        body_part_name = state_data['body_part']
+    if isinstance(state_data['muscle_group'], MuscleGroup):
+        muscle_group_name = state_data["muscle_group"].name
+    else:
+        muscle_group_name = state_data['muscle_group']
+    await message.answer(f'Давай все проверим.\nЧасть тела: {body_part_name}\nГруппа мышц:'
+                                     f' {muscle_group_name}\nНазвание: {state_data["exercise_name"]}\n'
+                                     f'Сохранить?',
+                                     reply_markup=create_yes_no_keyboard(
+                                         target=CreateExerciseTargets.process_save_exercise))
 
 
 
@@ -164,15 +181,31 @@ async def process_media(message: Message, state: FSMContext):
 @callback_error_handler
 async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     if callback_data.option == YesNoOptions.yes:
+        await callback.message.edit_text("Сохраняю упражнение...")
         state_data = await state.get_data()
         await state.clear()
 
         if state_data['exercise_media_link'] != 'defaults/panda_workout.jpeg':
-            await bot.download_file(file_path=state_data['file_path'], destination=state_data['local_path'])
+            await callback.message.edit_text("Обрабатываю файл...")
+            file_size = await bot.download_file(file_path=state_data['file_path'], destination=state_data['local_path'])
+
+
+
+            progress_message = await callback.message.edit_text("Загрузка файла: 0%")
+
             print('file_downloaded')
 
-            upload_file(file=state_data['local_path'], destination=state_data['exercise_media_link'])
+            # upload_file(file=state_data['local_path'],
+            #             destination=state_data['exercise_media_link'],
+            #             callback_method=callback,
+            #             )
+            loop = asyncio.get_event_loop()
+            await upload_to_s3_and_update_progress(file_path=state_data["local_path"],
+                                             s3_file_key=state_data['exercise_media_link'],
+                                             callback=callback,
+                                                   loop=loop)
             os.remove(state_data['local_path'])
+            await callback.message.edit_text("Обрабатываю части тела и группы мышц")
         if isinstance(state_data['body_part'], BodyPart):
             body_part = state_data['body_part']
         else:
@@ -183,6 +216,7 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
         else:
             muscle_group = MuscleGroup(name=state_data['muscle_group'], body_part=body_part)
             create_muscle_group(muscle_group)
+        await callback.message.edit_text("Cохраняю упражнение")
         exercise = Exercise(name=state_data['exercise_name'],
                             media_link=state_data['exercise_media_link'],
                             media_type=state_data['exercise_media_type'])

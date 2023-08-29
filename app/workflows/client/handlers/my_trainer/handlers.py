@@ -31,7 +31,7 @@ async def show_my_trainer(callback: CallbackQuery, callback_data: MoveCallback, 
                                  caption=msg_str,
                                  reply_markup=MyTrainerKeyboard().as_markup())
     else:
-        callback.answer(text="У тебя еще нет тренера", show_alert=True)
+        await callback.answer(text="У тебя еще нет тренера", show_alert=True)
 
 @client_my_trainer_router.callback_query(MoveCallback.filter(F.target == ClientMyTrainerMoveTo.fill_questionaire))
 async def fill_questionare(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
