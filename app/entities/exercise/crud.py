@@ -42,3 +42,6 @@ def update_exercise_muscle_groups(exercise: Exercise, muscle_group: MuscleGroup)
     exercise.muscle_groups.append(muscle_group)
     exercise.save()
 
+def get_all_exercises():
+    exercises = Exercise.objects()
+    return exercises

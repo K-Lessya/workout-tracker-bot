@@ -3,7 +3,7 @@ from aiogram import Router
 from aiogram.types import CallbackQuery, Message
 from aiogram import F
 from aiogram.fsm.context import FSMContext
-
+from app.entities.exercise.crud import get_all_exercises
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, YesNoOptions, MoveToCallback
 from app.workflows.client.utils.callback_property import CreateTrainingCallback, CreateTrainingCallbackActions, ClientMainMenuTargets,\
     ClientMainMenuOptions, ClientExerciseTargets
@@ -40,23 +40,28 @@ async def start_creating_training(callback: CallbackQuery, callback_data: MoveTo
 @add_training_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.choose_training_type))
 @callback_error_handler
 async def process_training_type(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    training = Training(date=date.today())
-    await state.update_data({'training': training})
-    if callback_data.option == ClientAddTrainingOptions.custom:
-        await state.set_state(ClientStates.add_training.add_custom.process_exercise_name)
-        await callback.message.edit_text(f'Начнем с добавления твоего первого упражнения.\nВыбирай из категорий',
-                                     reply_markup=create_add_exercise_keyboard())
-    elif callback_data.option == ClientAddTrainingOptions.from_plan:
-        training_days = get_training_days(client_id=callback.from_user.id)
-        if training_days:
-            await state.update_data({"training_days": training_days})
-            await state.set_state(ClientStates.add_training.add_from_plan.show_plan)
-            await callback.message.edit_text(f'Выбери день из плана',
-                                             reply_markup=TrainingDaysKeyboard(training_days,
-                                                                               target=ClientAddTrainingTargets.show_day,
-                                                                               go_back_target=CommonGoBackMoveTo.to_client_main_menu).as_markup())
-        else:
-            await callback.answer("Тренер еще не составил для тебя план", show_alert=True)
+    if get_all_exercises():
+        training = Training(date=date.today())
+        await state.update_data({'training': training})
+        if callback_data.option == ClientAddTrainingOptions.custom:
+            await callback.answer("Функционал еще не добавлен, ждите обновлений", show_alert=True)
+            # await state.set_state(ClientStates.add_training.add_custom.process_exercise_name)
+
+            # await callback.message.edit_text(f'Начнем с добавления твоего первого упражнения.\nВыбирай из категорий',
+            #                              reply_markup=create_add_exercise_keyboard())
+        elif callback_data.option == ClientAddTrainingOptions.from_plan:
+            training_days = get_training_days(client_id=callback.from_user.id)
+            if training_days:
+                await state.update_data({"training_days": training_days})
+                await state.set_state(ClientStates.add_training.add_from_plan.show_plan)
+                await callback.message.edit_text(f'Выбери день из плана',
+                                                 reply_markup=TrainingDaysKeyboard(training_days,
+                                                                                   target=ClientAddTrainingTargets.show_day,
+                                                                                   go_back_target=CommonGoBackMoveTo.to_client_main_menu).as_markup())
+            else:
+                await callback.answer("Тренер еще не составил для тебя план", show_alert=True)
+    else:
+        await callback.answer("В базе еще нет упражнений, подожди пока тренера их добавят", show_alert=True)
 
 
 
