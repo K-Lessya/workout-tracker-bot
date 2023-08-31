@@ -58,10 +58,19 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
                                                                       go_back_filter)],
                                               option_attr='id', target=target)
         else:
-            return create_choose_keyboard(options=None,
-                                          target=None,
-                                          option_attr=None,
-                                          additional_buttons=[create_go_back_button(go_back_filter)])
+            if target == None:
+                return create_choose_keyboard(options=None,
+                                              target=None,
+                                              option_attr=None,
+                                              additional_buttons=[add_exercise_button,
+                                                                  create_go_back_button(go_back_filter)])
+            elif target == "":
+                return create_choose_keyboard(options=None,
+                                              target=None,
+                                              option_attr=None,
+                                              additional_buttons=[create_go_back_button(go_back_filter)]
+
+                )
 
 
 

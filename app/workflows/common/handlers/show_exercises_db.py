@@ -94,7 +94,7 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
                              reply_markup=create_exercise_db_choose_keyboard(
                                  options=None,
                                  source=callback,
-                                 target=None,
+                                 target="",
                                  go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
                                                                option=go_back_ref)))
     elif exercise.media_type == 'video':
@@ -106,7 +106,7 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
                              reply_markup=create_exercise_db_choose_keyboard(
                                  options=None,
                                  source=callback,
-                                 target=None,
+                                 target="",
                                  go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
                                                                option=go_back_ref)))
 
