@@ -3,6 +3,7 @@ from app.utilities.default_keyboards.choose import create_choose_keyboard
 from app.utilities.default_callbacks.default_callbacks import MoveToCallback, ChooseCallback
 from app.workflows.common.utils.callback_properties.movetos import ExerciseDbMoveTo
 from app.workflows.trainer.utils.callback_properties.targets import CreateExerciseTargets
+from app.workflows.common.utils.callback_properties.targets import ExerciseDbTargets
 from typing import Optional
 from app.entities.exercise.exercise import BodyPart, MuscleGroup, Exercise
 from app.entities.single_file.crud import get_client_by_id, get_trainer
@@ -58,13 +59,13 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
                                                                       go_back_filter)],
                                               option_attr='id', target=target)
         else:
-            if target == None:
+            if target == ExerciseDbTargets.show_body_part:
                 return create_choose_keyboard(options=None,
                                               target=None,
                                               option_attr=None,
                                               additional_buttons=[add_exercise_button,
                                                                   create_go_back_button(go_back_filter)])
-            elif target == "":
+            elif target == None:
                 return create_choose_keyboard(options=None,
                                               target=None,
                                               option_attr=None,

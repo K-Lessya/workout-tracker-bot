@@ -100,7 +100,7 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
     elif exercise.media_type == 'video':
         await state.update_data({'has_media': True})
 
-        file = URLInputFile(url=exercise.media_link, bot=bot)
+        file = URLInputFile(url=media_link, bot=bot)
         await bot.send_video(chat_id=callback.from_user.id, video=file,
                              caption=f'{exercise.name}',
                              reply_markup=create_exercise_db_choose_keyboard(
