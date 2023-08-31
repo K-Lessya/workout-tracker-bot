@@ -1,7 +1,7 @@
 import requests
 import os
 from aiogram import Router, F
-from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery, FSInputFile, URLInputFile
 from aiogram.fsm.context import FSMContext
 from app.bot import bot
 from app.callbacks.callbacks import MoveCallback, ChooseCallback
@@ -83,15 +83,10 @@ async def show_client_plan_exercise(callback: CallbackQuery, callback_data: Choo
         await notification.delete()
     elif exercise_media_type == 'video':
         await notification.edit_text(text='Получаю видео')
-        r = requests.get(exercise_media_link)
-        filename = exercise_media_link.split('/')[-1].split('.')[0]
-        open(f'tmp/{callback.from_user.id}-{filename}.mp4', 'wb').write(r.content)
-        file = FSInputFile(f'tmp/{callback.from_user.id}-{filename}.mp4')
+        file = URLInputFile(url=exercise_media_link, bot=bot)
         await notification.edit_text(text="Отправляю видео")
         await bot.send_video(video=file, **kwargs)
         await notification.delete()
-
-        os.remove(f'tmp/{callback.from_user.id}-{filename}.mp4')
     await callback.answer("Загрузка завершена")
 
 

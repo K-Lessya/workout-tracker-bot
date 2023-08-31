@@ -18,6 +18,8 @@ from app.utilities.helpers_functions import check_link
 import os
 from app.utilities.helpers_functions import callback_error_handler
 import asyncio
+from app.config import MAX_FILE_SIZE
+import threading
 
 add_exercise_router = Router()
 
@@ -119,25 +121,29 @@ async def process_media(message: Message, state: FSMContext):
         await state.update_data({'exercise_media_type': 'video'})
         file = await bot.get_file(message.video.file_id)
 
-    file_path = file.file_path
-    destination = file_path.replace('/', '_')
-    media_link = f'exercises/{file_path}'
-    await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
-    await state.update_data({'local_path': f'tmp/{destination}', 'file_path': file_path, 'exercise_media_link': media_link})
-    state_data = await state.get_data()
-    if isinstance(state_data["body_part"], BodyPart):
-        body_part_name = state_data['body_part'].name
+    if file.file_size <= MAX_FILE_SIZE:
+
+        file_path = file.file_path
+        destination = file_path.replace('/', '_')
+        media_link = f'exercises/{file_path}'
+        await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
+        await state.update_data({'local_path': f'tmp/{destination}', 'file_path': file_path, 'exercise_media_link': media_link})
+        state_data = await state.get_data()
+        if isinstance(state_data["body_part"], BodyPart):
+            body_part_name = state_data['body_part'].name
+        else:
+            body_part_name = state_data['body_part']
+        if isinstance(state_data['muscle_group'], MuscleGroup):
+            muscle_group_name = state_data["muscle_group"].name
+        else:
+            muscle_group_name = state_data['muscle_group']
+        await message.answer(f'Давай все проверим.\nЧасть тела: {body_part_name}\nГруппа мышц:'
+                                         f' {muscle_group_name}\nНазвание: {state_data["exercise_name"]}\n'
+                                         f'Сохранить?',
+                                         reply_markup=create_yes_no_keyboard(
+                                             target=CreateExerciseTargets.process_save_exercise))
     else:
-        body_part_name = state_data['body_part']
-    if isinstance(state_data['muscle_group'], MuscleGroup):
-        muscle_group_name = state_data["muscle_group"].name
-    else:
-        muscle_group_name = state_data['muscle_group']
-    await message.answer(f'Давай все проверим.\nЧасть тела: {body_part_name}\nГруппа мышц:'
-                                     f' {muscle_group_name}\nНазвание: {state_data["exercise_name"]}\n'
-                                     f'Сохранить?',
-                                     reply_markup=create_yes_no_keyboard(
-                                         target=CreateExerciseTargets.process_save_exercise))
+        await message.answer("Размер файла слишком большой, пожалуйста присылай файлы не больше 50Мб")
 
 
 
@@ -191,19 +197,19 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
 
 
 
-            progress_message = await callback.message.edit_text("Загрузка файла: 0%")
+            progress_message = await callback.message.edit_text("Загружаю файл")
 
             print('file_downloaded')
 
-            # upload_file(file=state_data['local_path'],
-            #             destination=state_data['exercise_media_link'],
-            #             callback_method=callback,
-            #             )
-            loop = asyncio.get_event_loop()
-            await upload_to_s3_and_update_progress(file_path=state_data["local_path"],
-                                             s3_file_key=state_data['exercise_media_link'],
-                                             callback=callback,
-                                                   loop=loop)
+            upload_file(file=state_data['local_path'],
+                        destination=state_data['exercise_media_link']
+                        )
+            await callback.message.edit_text("Файл загружен")
+            # new_loop = asyncio.new_event_loop()
+            # await upload_to_s3_and_update_progress(file_path=state_data["local_path"],
+            #                                  s3_file_key=state_data['exercise_media_link'],
+            #                                  callback=callback,
+            #                                        loop=new_loop)
             os.remove(state_data['local_path'])
             await callback.message.edit_text("Обрабатываю части тела и группы мышц")
         if isinstance(state_data['body_part'], BodyPart):
@@ -224,7 +230,6 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
         exercise.muscle_groups.append(muscle_group)
         create_exercise(exercise)
         body_parts = get_all_body_parts()
-        await callback.answer("Упражнение сохранено", show_alert=True)
         await callback.message.edit_text(f'Давай выберем упражнения',
                                          reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
                                                                                          source=callback,
@@ -239,7 +244,7 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
                                          reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
                                                                                          source=callback,
                                                                                          target=ExerciseDbTargets.show_body_part,
-                                                                                         go_back_filter=MoveToCallback(
+                                                                             go_back_filter=MoveToCallback(
                                                                                              move_to=UpstreamMenuMoveTo.show_exercise_db)
                                                                                          ))
         await callback.answer("Загрузка завершена")

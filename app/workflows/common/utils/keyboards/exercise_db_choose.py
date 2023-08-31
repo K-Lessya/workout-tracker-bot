@@ -10,6 +10,7 @@ from app.workflows.common.utils.callback_properties.movetos import CommonGoBackM
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from app.entities.exercise.crud import *
 from app.workflows.trainer.utils.callback_properties.targets import TrainerMyClientsTargets
+from app.workflows.client.utils.callback_properties.targets import ClientAddCustomTrainingTargets
 
 add_exercise_button = InlineKeyboardButton(text=f'Добавить упражнение',
                                            callback_data=MoveToCallback(
@@ -60,20 +61,32 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
             return create_choose_keyboard(options=None,
                                           target=None,
                                           option_attr=None,
-                                          additional_buttons=[add_exercise_button, create_go_back_button(go_back_filter)])
+                                          additional_buttons=[create_go_back_button(go_back_filter)])
 
 
 
 
 class ExerciseCommonListKeyboard(InlineKeyboardBuilder):
-    def __init__(self, items: list[BodyPart | MuscleGroup | Exercise]):
+    def __init__(self, items: list[BodyPart | MuscleGroup | Exercise], tg_id: int):
         super().__init__()
+
         if isinstance(items[0], BodyPart):
+            if get_trainer(tg_id=tg_id):
                 target = TrainerMyClientsTargets.choose_body_part
+            elif get_client_by_id(tg_id=tg_id):
+                target = ClientAddCustomTrainingTargets.choose_body_parts
+
         elif isinstance(items[0], MuscleGroup):
+            if get_trainer(tg_id=tg_id):
                 target = TrainerMyClientsTargets.choose_muscle_group
+            elif get_client_by_id(tg_id=tg_id):
+                target = ClientAddCustomTrainingTargets.show_muscle_groups
+
         else:
+            if get_trainer(tg_id=tg_id):
                 target = TrainerMyClientsTargets.choose_exercise_for_plan
+            elif get_client_by_id(tg_id=tg_id):
+                target = ClientAddCustomTrainingTargets.show_exercises
 
         for item in items:
             self.row(InlineKeyboardButton(text=f'{item.name}',

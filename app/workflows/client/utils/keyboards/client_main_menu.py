@@ -10,6 +10,10 @@ def create_client_main_menu_keyboard(client: Client):
     builder = InlineKeyboardBuilder()
     builder_buttons = [
         {
+            "text": "Добавить тренировку",
+            "target": ClientMainMenuMoveTo.add_training
+        },
+        {
             "text": f"Мои заявки({client_get_num_trainier_requests(client=client)})",
             "target": ClientMainMenuMoveTo.my_recieved_requests
         },
@@ -17,10 +21,7 @@ def create_client_main_menu_keyboard(client: Client):
             "text": "Мои тренировки",
             "target": ClientMainMenuMoveTo.my_trainings
         },
-        {
-            "text": "Добавить тренировку",
-            "target": ClientMainMenuMoveTo.add_training
-        },
+
         {
             "text": "Мой тренер",
             "target": ClientMainMenuMoveTo.my_trainer
@@ -42,9 +43,9 @@ def create_client_main_menu_keyboard(client: Client):
                 text=button['text'], callback_data=MoveCallback(target=button['target'])
             )
     if len(builder_buttons) == 5:
-        builder.adjust(2, 2, 1)
+        builder.adjust(1, 2, 2)
     elif len(builder_buttons) == 4:
-        builder.adjust(2, 2)
+        builder.adjust(1, 2, 1)
     elif len(builder_buttons) == 3:
-        builder.adjust(2, 1)
+        builder.adjust(1, 2)
     return builder.as_markup()

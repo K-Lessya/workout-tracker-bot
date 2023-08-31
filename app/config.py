@@ -12,3 +12,4 @@ LOCALE =os.environ.get("APP_LOCALE")
 TESTER_ID = os.environ.get("TESTER_ID")
 TEST_USERS_ID = os.environ.get("TEST_USERS_ID")
 MONGO_CONNECTION_STRING = os.environ.get("MONGO_CONNECTION_STRING")
+MAX_FILE_SIZE = 2e7

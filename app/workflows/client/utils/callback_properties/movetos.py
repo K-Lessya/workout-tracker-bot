@@ -9,6 +9,7 @@ class ClientMainMenuMoveTo:
 class ClientAddTrainingMoveTo:
     to_plan_training = 'to_plan_training'
     to_custom_training = 'to_custom_training'
+    to_list_body_parts = 'client_to_list_body_parts'
 
 class MyTrainingsMoveTo:
     to_prev_trainings = 'client_my_trainings_to_prev'

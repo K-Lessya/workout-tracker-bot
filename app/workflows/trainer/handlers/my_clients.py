@@ -84,6 +84,7 @@ async def process_plan_day_name(message: Message, state: FSMContext):
             await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
             await message.answer(f'Давай выберем упражнения для дня {len(plan.days)}',
                                  reply_markup=ExercisePlanListKeyboard(items=body_parts,
+                                                                       tg_id=message.from_user_id,
                                                                        day_num=len(plan.days),
                                                                        exercises_length=len(current_day.exercises)).as_markup())
         else:
@@ -147,6 +148,7 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
 
         await callback.message.edit_reply_markup(
             reply_markup=ExercisePlanListKeyboard(items=items,
+                                                  tg_id=callback.from_user.id,
                                                   exercises_length=len(plan.days[-1].exercises),
                                                   day_num=len(plan.days)).as_markup())
     await callback.answer("Загрузка завершена")
@@ -169,6 +171,7 @@ async def process_num_repeats(message: Message, state: FSMContext):
     await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
     await message.answer('Отлично, теперь давай добавим следующее упражнение либо сохраним день',
                          reply_markup=ExercisePlanListKeyboard(items=body_parts,
+                                                               tg_id=message.from_user.id,
                                                                day_num=len(plan.days),
                                                                exercises_length=len(plan.days[-1].exercises)).as_markup())
 

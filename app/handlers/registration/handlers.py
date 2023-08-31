@@ -23,7 +23,7 @@ registration_router = Router()
 async def start_registration_process(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     if 'process_user' in state_data:
-        await callback.answer(text='Че, самый хитрожопый? Закончи эту ту регистрацию', show_alert=True)
+        await callback.answer(text='Необходимо закончить текущую регистрацию', show_alert=True)
         await callback.message.delete()
     else:
         await state.update_data({'process_user': True})

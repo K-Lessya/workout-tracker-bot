@@ -16,6 +16,14 @@ class ClientAddTrainingTargets:
     process_client_note = 'client_add_training_process_client_note'
     save_training = "client_add_training_save_training"
 
+
+class ClientAddCustomTrainingTargets:
+    show_body_parts = "client_custom_body_parts"
+    choose_body_parts = "client_custom_choose_body_part"
+    show_muscle_groups = "client_custom_muscle_groups"
+    show_exercises = "client_custom_exercises"
+    show_exercise = "client_custom_exercise"
+
 class ClientMyTrainingsTarget:
     show_training = 'client_my_trainings_show_training'
     show_exercise = 'client_my_trainings_show_exercise'

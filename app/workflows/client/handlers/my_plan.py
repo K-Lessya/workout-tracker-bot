@@ -1,6 +1,6 @@
 import requests, os
 from aiogram import Router
-from aiogram.types import CallbackQuery, Message, FSInputFile
+from aiogram.types import CallbackQuery, Message, FSInputFile, URLInputFile
 from aiogram import F
 from aiogram.fsm.context import FSMContext
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, MoveToCallback
@@ -94,14 +94,8 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
         await state.update_data({'has_media': True})
         await bot.send_photo(photo=exercise_media_link, **kwargs)
     elif exercise_media_type == 'video':
-        r = requests.get(exercise_media_link)
-
-        filename = exercise_media_link.split('/')[-1].split('.')[0]
-        open(f'tmp/{callback.from_user.id}-{filename}.mp4', 'wb').write(r.content)
-        file = FSInputFile(f'tmp/{callback.from_user.id}-{filename}.mp4')
+        file = URLInputFile(url=exercise_media_link, bot=bot)
         await bot.send_video(video=file, **kwargs)
-
-        os.remove(f'tmp/{callback.from_user.id}-{filename}.mp4')
 
 
 @my_plan_router.message(ClientStates.show_client_plan.show_single_exercise)

@@ -1,7 +1,7 @@
 import logging, os, requests
 
 from aiogram import Router
-from aiogram.types import CallbackQuery, Message, FSInputFile
+from aiogram.types import CallbackQuery, Message, FSInputFile, URLInputFile
 from aiogram import F
 from aiogram.fsm.context import FSMContext
 from app.workflows.client.classes.training import ClientTrainingSchema, ClientTrainingExerciseSchema
@@ -24,7 +24,7 @@ from app.workflows.client.utils.keyboards.client_main_menu import create_client_
 # from moviepy.editor import VideoFileClip
 from app.s3.downloader import create_presigned_url
 from app.s3.uploader import upload_file
-from app.config import PHOTO_BUCKET
+from app.config import PHOTO_BUCKET, MAX_FILE_SIZE
 from app.keyboards.yes_no import YesNoKeyboard
 from app.utilities.helpers_functions import callback_error_handler
 
@@ -65,6 +65,8 @@ async def handle_message(message: Message, state: FSMContext):
 @callback_error_handler
 async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.set_state(ClientStates.add_training.add_from_plan.show_exercise)
+
+
     state_data = await state.get_data()
     training_days = state_data['training_days']
     training = state_data['training']
@@ -75,11 +77,11 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
     training_exercise.add_repeats(selected_exercise.num_repeats)
     selected_exercise_index = int(callback_data.option)
     await state.update_data({'selected_exercise_index': selected_exercise_index, 'training_exercise': training_exercise})
-    await callback.message.delete()
     await state.set_state(ClientStates.add_training.add_from_plan.process_exercise_weight)
 
     exercise = selected_exercise
     exercise_media_type = exercise.exercise.media_type
+    await callback.message.edit_text("Generating url")
     exercise_media_link = create_presigned_url(PHOTO_BUCKET, exercise.exercise.media_link)
     print(exercise_media_link)
     kwargs = {
@@ -89,35 +91,34 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
         'reply_markup': PlanExerciseGoBackKeyboard(source_option=str(selected_day),
                                                    go_back_target=ClientAddTrainingTargets.show_day).as_markup()
     }
+    await callback.message.delete()
     if exercise_media_type == 'photo':
         await state.update_data({'has_media': True})
         sent_message = await bot.send_photo(photo=exercise_media_link, **kwargs)
     elif exercise_media_type == 'video':
-        r = requests.get(exercise_media_link)
-
-        filename = exercise_media_link.split('/')[-1].split('.')[0]
-        open(f'tmp/{callback.from_user.id}-{filename}.mp4', 'wb').write(r.content)
-        file = FSInputFile(f'tmp/{callback.from_user.id}-{filename}.mp4')
+        file = URLInputFile(url=exercise_media_link, bot=bot)
         sent_message = await bot.send_video(video=file, **kwargs)
+        pth_to_file=await bot.get_file(sent_message.video.file_id)
+        print(pth_to_file.file_path)
 
-        os.remove(f'tmp/{callback.from_user.id}-{filename}.mp4')
 
     await state.update_data({'message_id_with_photo': sent_message.message_id})
     # await callback.answer('Загрузка завершена')
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.process_exercise_weight)
-async def process_exercise_wight(message: Message, state: FSMContext):
-    state_data = await state.get_data()
-    callback_msg_id = state_data['message_id_with_photo']
-    await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=callback_msg_id, reply_markup=None)
-    training_days = state_data['training_days']
-    selected_exercise_index = state_data['selected_exercise_index']
-    training = state_data['training']
-    print(training)
-    selected_exercise = state_data['training_exercise']
-    selected_day = state_data['selected_day']
-    text = message.text.replace(",",".")
-    if is_float(text):
+async def process_exercise_weight(message: Message, state: FSMContext):
+    if is_float(message.text):
+        state_data = await state.get_data()
+        callback_msg_id = state_data['message_id_with_photo']
+        await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=callback_msg_id, reply_markup=None)
+        training_days = state_data['training_days']
+        selected_exercise_index = state_data['selected_exercise_index']
+        training = state_data['training']
+        print(training)
+        selected_exercise = state_data['training_exercise']
+        selected_day = state_data['selected_day']
+        text = message.text.replace(",",".")
+
         selected_exercise.add_weight(float(text))
         await message.answer(text="Отлично, хочешь добавить видео?",
                              reply_markup=YesNoKeyboard(target=ClientAddTrainingTargets.process_video_link).as_markup())
@@ -159,22 +160,26 @@ async def process_exercise_video(message: Message, state: FSMContext):
     if message.video:
         video_id = message.video.file_id
         video_file = await bot.get_file(video_id)
-        video_path = video_file.file_path
+        video_size = video_file.file_size
+        if video_size <= MAX_FILE_SIZE:
+            video_path = video_file.file_path
 
-        print(video_path)
-        state_data = await state.get_data()
-        training_exercise = state_data['training_exercise']
-        path = f'tmp/{message.from_user.id}-{video_path.split("/")[1]}'
-        filename = path.split('.')[0]
-        await bot.download_file(file_path=video_path, destination=path)
-        training_exercise.add_video_link(path)
-        training_days = state_data['training_days']
-        selected_day_idx = state_data['selected_day']
-        selected_day = training_days[selected_day_idx]
-        training = state_data['training']
-        await state.set_state(ClientStates.add_training.add_from_plan.ask_for_client_note)
-        await message.answer("Хочешь оставить свой собственный коментарий или вопрос к видео для тренера?",
-                             reply_markup=YesNoKeyboard(target=ClientAddTrainingTargets.process_client_note).as_markup())
+            print(video_path)
+            state_data = await state.get_data()
+            training_exercise = state_data['training_exercise']
+            path = f'tmp/{message.from_user.id}-{video_path.split("/")[1]}'
+            filename = path.split('.')[0]
+            await bot.download_file(file_path=video_path, destination=path)
+            training_exercise.add_video_link(path)
+            training_days = state_data['training_days']
+            selected_day_idx = state_data['selected_day']
+            selected_day = training_days[selected_day_idx]
+            training = state_data['training']
+            await state.set_state(ClientStates.add_training.add_from_plan.ask_for_client_note)
+            await message.answer("Хочешь оставить свой собственный коментарий или вопрос к видео для тренера?",
+                                 reply_markup=YesNoKeyboard(target=ClientAddTrainingTargets.process_client_note).as_markup())
+        else:
+            await message.answer("Размер файла слишком большой, пожалуйста присылай файлы размером до 50 Мб")
 
     else:
         await message.answer('Необходимо прислать видео')
@@ -241,10 +246,10 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
         if exercise.video_link != '':
             s3_path = f'{callback.from_user.id}/trainings/{training.date}/{exercise.video_link.split("/")[1]}'
             logging.log(level=logging.INFO,msg=f'Processing video {s3_path}')
-            loop = asyncio.get_event_loop()
+            # loop = asyncio.get_event_loop()
             await callback.message.edit_text("Сохраняю видео")
-            await upload_to_s3_and_update_progress(loop, exercise.video_link,s3_path,callback)
-            # upload_file(exercise.video_link, s3_path)
+            # await upload_to_s3_and_update_progress(loop, exercise.video_link,s3_path,callback)
+            upload_file(exercise.video_link, s3_path)
             os.remove(exercise.video_link)
             exercise.video_link = s3_path
 

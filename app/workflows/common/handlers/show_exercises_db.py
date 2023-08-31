@@ -3,7 +3,7 @@ from aiogram import Router
 from aiogram import F
 from app.bot import bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile
+from aiogram.types import CallbackQuery, FSInputFile, URLInputFile
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, MoveToCallback
 from app.workflows.common.utils.callback_properties.movetos import UpstreamMenuMoveTo, CommonGoBackMoveTo
 from app.workflows.common.utils.callback_properties.targets import ExerciseDbTargets
@@ -100,11 +100,7 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
     elif exercise.media_type == 'video':
         await state.update_data({'has_media': True})
 
-        r = requests.get(media_link)
-
-        filename = exercise.media_link.split('/')[-1].split('.')[0]
-        open(f'tmp/{callback.from_user.id}-{filename}.mp4', 'wb').write(r.content)
-        file = FSInputFile(f'tmp/{callback.from_user.id}-{filename}.mp4')
+        file = URLInputFile(url=exercise.media_link, bot=bot)
         await bot.send_video(chat_id=callback.from_user.id, video=file,
                              caption=f'{exercise.name}',
                              reply_markup=create_exercise_db_choose_keyboard(

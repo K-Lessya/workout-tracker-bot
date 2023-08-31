@@ -56,14 +56,17 @@ def callback_error_handler(func):
                 await state.update_data({'button_clicked': True})
                 logging.log(level=logging.INFO, msg=f"Executing {func.__name__}")
                 await func(callback, callback_data, state)
-                await state.update_data({'button_clicked': False})
+
         except Exception as e:
             paste = traceback.format_exc()
 
             error_message = f"An error occurred in function {func.__name__}: {str(traceback.format_exception_only(e))}"
             logging.log(level=logging.ERROR, msg=f"An error occurred in function {func.__name__}: {str(paste)}")
-
-
             await bot.send_message(callback.from_user.id, error_message)
+        finally:
+            await state.update_data({'button_clicked': False})
+
+
+
     return wrapper
 

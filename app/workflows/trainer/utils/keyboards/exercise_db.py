@@ -7,8 +7,8 @@ from app.entities.exercise.exercise import *
 
 
 class ExercisePlanListKeyboard(ExerciseCommonListKeyboard):
-    def __init__(self, items: list[BodyPart | Exercise | MuscleGroup], day_num: int, exercises_length: int):
-        super().__init__(items=items)
+    def __init__(self, items: list[BodyPart | Exercise | MuscleGroup], day_num: int, exercises_length: int, tg_id: int):
+        super().__init__(items=items, tg_id=tg_id)
         if exercises_length >= 1 and isinstance(items[0], BodyPart):
             self.button(text=f'Сохранить день {day_num}',
                         callback_data=MoveToCallback(move_to=MyCLientsMoveTo.save_client_day))
