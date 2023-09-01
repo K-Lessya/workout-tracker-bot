@@ -84,7 +84,7 @@ async def process_plan_day_name(message: Message, state: FSMContext):
             await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
             await message.answer(f'Давай выберем упражнения для дня {len(plan.days)}',
                                  reply_markup=ExercisePlanListKeyboard(items=body_parts,
-                                                                       tg_id=message.from_user_id,
+                                                                       tg_id=message.from_user.id,
                                                                        day_num=len(plan.days),
                                                                        exercises_length=len(current_day.exercises)).as_markup())
         else:

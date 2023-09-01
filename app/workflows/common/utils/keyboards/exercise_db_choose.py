@@ -90,13 +90,13 @@ class ExerciseCommonListKeyboard(InlineKeyboardBuilder):
             if get_trainer(tg_id=tg_id):
                 target = TrainerMyClientsTargets.choose_muscle_group
             elif get_client_by_id(tg_id=tg_id):
-                target = ClientAddCustomTrainingTargets.show_muscle_groups
+                target = ClientAddCustomTrainingTargets.choose_muscle_group
 
         else:
             if get_trainer(tg_id=tg_id):
                 target = TrainerMyClientsTargets.choose_exercise_for_plan
             elif get_client_by_id(tg_id=tg_id):
-                target = ClientAddCustomTrainingTargets.show_exercises
+                target = ClientAddCustomTrainingTargets.choose_exercise
 
         for item in items:
             self.row(InlineKeyboardButton(text=f'{item.name}',
