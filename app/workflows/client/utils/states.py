@@ -20,6 +20,7 @@ class AddTrainingFromPlan(StatesGroup):
 class AddCustomTraining(StatesGroup):
     process_training_name = State()
     process_buttons = State()
+    process_client_comment =State()
     process_exercise_name = State()
     process_exercise_repeats = State()
     process_exercise_runs = State()

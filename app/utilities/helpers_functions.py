@@ -1,8 +1,10 @@
 import traceback
 
 from app.bot import bot
+from aiogram.types import Message
 import re
 import logging
+from app.config import MAX_FILE_SIZE
 from aiogram.types import CallbackQuery
 
 
@@ -69,4 +71,21 @@ def callback_error_handler(func):
 
 
     return wrapper
+
+
+
+async def process_message_video(message: Message):
+    if message.video.file_size < MAX_FILE_SIZE:
+        file = await bot.get_file(message.video.file_id)
+        file_path = file.file_path
+        file_destination = file_path.replace("/", "_")
+        await bot.download_file(file_path=file_path, destination=file_destination)
+        return file_destination
+    else:
+        await message.answer(f"Размер файла превышает максимально допустимый ({MAX_FILE_SIZE/1000000}MБ)")
+
+
+
+
+
 
