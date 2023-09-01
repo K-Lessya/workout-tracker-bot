@@ -22,6 +22,7 @@ class ClientAddCustomTrainingTargets:
     choose_body_parts = "client_custom_choose_body_part"
     choose_muscle_group = "client_custom_muscle_groups"
     choose_exercise = "client_custom_exercises"
+    ask_for_exercise_video = "ask_for_exercise_video"
     show_exercise = "client_custom_exercise"
 
 class ClientMyTrainingsTarget:

@@ -13,6 +13,8 @@ from app.entities.exercise.crud import get_all_body_parts, get_body_part_by_id, 
 from app.workflows.client.utils.callback_properties.targets import ClientAddCustomTrainingTargets
 from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo, ClientAddTrainingMoveTo
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback
+from app.keyboards.yes_no import YesNoKeyboard
+from app.utilities.default_callbacks.default_callbacks import YesNoOptions
 from app.callbacks.callbacks import MoveCallback
 from app.utilities.helpers_functions import callback_error_handler
 
@@ -132,10 +134,21 @@ async def process_exercise_runs(message: Message, state: FSMContext):
         state_data = await state.get_data()
         new_exercise = state_data['new_exercise']
         new_exercise.add_weight(int(message.text))
-        await state.set_state(ClientStates.add_training.add_custom.process_exercise_weight)
-        await message.answer("Хочешь загрузить свое видео выполнения чтобы тренер мог его посмотреть?")
+        await state.set_state(ClientStates.add_training.add_custom.process_buttons)
+        await message.answer("Хочешь загрузить свое видео выполнения чтобы тренер мог его посмотреть?",
+                             reply_markup=YesNoKeyboard(
+                                 target=ClientAddCustomTrainingTargets.ask_for_exercise_video).as_markup())
     else:
         await message.answer("Нужно ввести число")
+
+
+@custom_training_router.callback_query(ChooseCallback.filter(F.target == ClientAddCustomTrainingTargets.ask_for_exercise_video))
+async def process_exercise_answer(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    if callback_data.option == YesNoOptions.yes:
+        await state.set_state(ClientStates.add_training.add_custom.process_exercise_video)
+        await callback.message.edit_text('Присылай видео своего выполнения')
+    elif callback_data.option == YesNoOptions.no:
+
 
 
 
