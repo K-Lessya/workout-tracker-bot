@@ -43,7 +43,7 @@ resource "aws_ecs_task_definition" "this" {
   container_definitions = jsonencode(
         [
             {
-                cpu               = 800
+                cpu               = 700
                 secrets  = [
                   {
                     name = "TESTER_ID"
@@ -107,7 +107,7 @@ resource "aws_ecs_task_definition" "this" {
             },
         ]
     )
-    cpu                      = "800"
+    cpu                      = "700"
     execution_role_arn       = "arn:aws:iam::935625980877:role/ecsTaskExecutionRole"
     family                   = "workout-bot"
     memory                   = "512"

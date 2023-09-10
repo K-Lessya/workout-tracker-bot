@@ -87,7 +87,9 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
     kwargs = {
         'chat_id': callback.from_user.id,
         'caption': f'{selected_exercise.exercise.name}\n{selected_exercise.num_runs} подхода'
-                                 f' по {selected_exercise.num_repeats} раз(а)\nВведи вес с которым работал',
+                   f' по {selected_exercise.num_repeats} раз(а)\n'
+                   f'Примечание: {selected_exercise.trainer_note}\n'
+                   f'Введи вес с которым работал',
         'reply_markup': PlanExerciseGoBackKeyboard(source_option=str(selected_day),
                                                    go_back_target=ClientAddTrainingTargets.show_day).as_markup()
     }

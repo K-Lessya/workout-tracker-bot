@@ -77,7 +77,7 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
     selected_exercise = training_days[selected_day].training_exercises[int(callback_data.option)]
     media_link = create_presigned_url(bucket_name=PHOTO_BUCKET, object_name=selected_exercise.exercise.media_link)
     await callback.message.delete()
-    await callback.answer('Загружаю файл, подождите', cache_time=10)
+    loading = await bot.send_message(chat_id=callback.from_user.id, text='Загружаю видео')
 
     exercise = selected_exercise
     exercise_media_type = exercise.exercise.media_type
@@ -86,7 +86,7 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
     kwargs = {
         'chat_id': callback.from_user.id,
         'caption': f'{selected_exercise.exercise.name}\n{selected_exercise.num_runs} подхода'
-                   f' по {selected_exercise.num_repeats} раз(а)',
+                   f' по {selected_exercise.num_repeats} раз(а)\nПримечание: {selected_exercise.trainer_note}',
         'reply_markup': PlanExerciseGoBackKeyboard(source_option=str(selected_day),
                                                    go_back_target=ClientMyPlanTargets.show_day).as_markup()
     }
@@ -96,6 +96,7 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
     elif exercise_media_type == 'video':
         file = URLInputFile(url=exercise_media_link, bot=bot)
         await bot.send_video(video=file, **kwargs)
+    await loading.delete()
 
 
 @my_plan_router.message(ClientStates.show_client_plan.show_single_exercise)

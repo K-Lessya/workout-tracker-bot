@@ -71,6 +71,12 @@ resource "aws_subnet" "this" {
   vpc_id     = aws_vpc.this.id
   map_public_ip_on_launch = true
 }
+resource "aws_subnet" "second" {
+  cidr_block = "10.0.2.0/24"
+  availability_zone = "us-east-1a"
+  vpc_id     = aws_vpc.this.id
+  map_public_ip_on_launch = true
+}
 
 resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
@@ -83,13 +89,19 @@ resource "aws_security_group" "this" {
     from_port = 0
     protocol  = "tcp"
     to_port   = 0
+    security_groups = [aws_security_group.lb.id]
+  }
+  ingress {
+    from_port = 22
+    protocol  = "tcp"
+    to_port   = 22
     cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
     from_port = 0
     protocol  = "-1"
     to_port   = 0
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = [aws_security_group.lb.id]
   }
 }
 
@@ -104,6 +116,10 @@ resource "aws_route_table_association" "this" {
   route_table_id = aws_route_table.this.id
   subnet_id = aws_subnet.this.id
 }
+resource "aws_route_table_association" "second" {
+  route_table_id = aws_route_table.this.id
+  subnet_id = aws_subnet.second.id
+}
 
 
 resource "aws_key_pair" "this" {
@@ -113,4 +129,26 @@ resource "aws_key_pair" "this" {
 
 resource "aws_ecr_repository" "this" {
   name = "workout_bot"
+}
+resource "aws_security_group" "lb" {
+  vpc_id = aws_vpc.this.id
+  name = "alb-sg"
+  ingress {
+    from_port = 80
+    protocol  = "tcp"
+    to_port   = 80
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port = 0
+    protocol  = "-1"
+    to_port   = 0
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+resource "aws_lb" "this" {
+  name               = "test"
+  load_balancer_type = "application"
+  security_groups    = []
+  subnets            = [aws_subnet.this.id, aws_subnet.second.id]
 }

@@ -24,6 +24,7 @@ class CreateExerciseTargets:
 class TrainerMyClientsTargets:
     show_client = 'show_my_client'
     choose_day = 'choose_day'
+    show_body_parts = "client_add_plan_show_body_parts"
     choose_body_part = 'choose_body_part'
     choose_muscle_group = 'choose_muscle_group'
     choose_exercise_for_plan = 'choose_exercise_for_plan'

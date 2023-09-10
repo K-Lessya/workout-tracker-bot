@@ -1,8 +1,10 @@
 from mongoengine import *
+from app.entities.trainer.trainer import Trainer
 
 
 class BodyPart(Document):
     name = StringField()
+    trainer = ReferenceField(Trainer)
 
 
 class MuscleGroup(Document):
@@ -16,12 +18,14 @@ class Exercise(Document):
     media_type = StringField()
     photo_link = StringField()
     muscle_groups = ListField(ReferenceField(MuscleGroup))
+    trainer = ReferenceField(Trainer)
 
 
 class PlanTrainingExercise(EmbeddedDocument):
     exercise = ReferenceField(Exercise, required=True)
     num_repeats = IntField()
     num_runs = IntField()
+    trainer_note = StringField()
 
     meta = {"allow_inheritance": True}
 

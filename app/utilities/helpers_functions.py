@@ -45,19 +45,29 @@ def callback_error_handler(func):
 
     async def wrapper(callback, callback_data, state):
         try:
+            GREEN = "\033[92m"
+            RESET = "\033[0m"
             data = await state.get_data()
+            state_name = await state.get_state()
             if data.get('button_clicked'):
                 if data['button_clicked']:
                     await callback.answer('Дождись загрузки', show_alert=True)
                 else:
                     await state.update_data({'button_clicked': True})
+
                     logging.log(level=logging.INFO, msg=f"Executing {func.__name__}")
+                    logging.log(level=logging.INFO, msg=f"{GREEN}state before function {state_name}{RESET} ")
                     await func(callback, callback_data, state)
+                    state_name = await state.get_state()
+                    logging.log(level=logging.INFO, msg=f"{GREEN}state after function {state_name}{RESET} ")
                     await state.update_data({'button_clicked': False})
             else:
                 await state.update_data({'button_clicked': True})
                 logging.log(level=logging.INFO, msg=f"Executing {func.__name__}")
+                logging.log(level=logging.INFO, msg=f"{GREEN}state before function {state_name}{RESET} ")
                 await func(callback, callback_data, state)
+                state_name = await state.get_state()
+                logging.log(level=logging.INFO, msg=f"{GREEN}state after function {state_name}{RESET} ")
 
         except Exception as e:
             paste = traceback.format_exc()

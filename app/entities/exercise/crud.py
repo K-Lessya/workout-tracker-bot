@@ -11,8 +11,8 @@ def get_body_part_by_id(body_part_id: str):
     return BodyPart.objects(id=body_part_id).first()
 
 
-def get_all_body_parts() -> list[BodyPart]:
-    return BodyPart.objects()
+def get_all_body_parts(trainer_id) -> list[BodyPart]:
+    return BodyPart.objects(trainer=trainer_id)
 
 
 def create_muscle_group(muscle_group: MuscleGroup):

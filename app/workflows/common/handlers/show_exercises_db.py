@@ -3,7 +3,7 @@ from aiogram import Router
 from aiogram import F
 from app.bot import bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile, URLInputFile
+from aiogram.types import CallbackQuery, FSInputFile, URLInputFile, Message
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, MoveToCallback
 from app.workflows.common.utils.callback_properties.movetos import UpstreamMenuMoveTo, CommonGoBackMoveTo
 from app.workflows.common.utils.callback_properties.targets import ExerciseDbTargets
@@ -13,7 +13,8 @@ from app.entities.exercise.crud import *
 from app.s3.downloader import create_presigned_url
 from app.config import PHOTO_BUCKET
 from app.utilities.helpers_functions import callback_error_handler
-
+from app.entities.single_file.crud import get_trainer
+from app.workflows.trainer.utils.states import TrainerStates
 
 
 show_exercises_db_router = Router()
@@ -21,7 +22,9 @@ show_exercises_db_router = Router()
 @show_exercises_db_router.callback_query(MoveToCallback.filter(F.move_to == UpstreamMenuMoveTo.show_exercise_db))
 @callback_error_handler
 async def list_body_parts(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
-    body_parts = get_all_body_parts()
+    trainer =get_trainer(callback.from_user.id)
+    body_parts = get_all_body_parts(trainer)
+    await state.set_state(TrainerStates.exercises_db.process_buttons)
     await callback.message.edit_text(f'Давай выберем на какую часть тела хочешь просмотреть упражнения,'
                                      ' если частей тела нет то создай новое упражнение',
                                      reply_markup=create_exercise_db_choose_keyboard(
@@ -87,31 +90,34 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
     print(media_link)
     state_data = await state.get_data()
     go_back_ref = state_data['muscle_group']
+    keyboard = create_exercise_db_choose_keyboard(
+                                 options=None,
+                                 source=callback,
+                                 target="Exercise",
+                                 go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
+                                                               option=go_back_ref))
     if exercise.media_type == 'photo':
         await state.update_data({'has_media': True})
         await bot.send_photo(chat_id=callback.from_user.id, photo=media_link,
                              caption=f"{exercise.name}",
-                             reply_markup=create_exercise_db_choose_keyboard(
-                                 options=None,
-                                 source=callback,
-                                 target="",
-                                 go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
-                                                               option=go_back_ref)))
+                             reply_markup=keyboard)
     elif exercise.media_type == 'video':
         await state.update_data({'has_media': True})
 
         file = URLInputFile(url=media_link, bot=bot)
         await bot.send_video(chat_id=callback.from_user.id, video=file,
                              caption=f'{exercise.name}',
-                             reply_markup=create_exercise_db_choose_keyboard(
-                                 options=None,
-                                 source=callback,
-                                 target="",
-                                 go_back_filter=ChooseCallback(target=ExerciseDbTargets.show_muscle_group,
-                                                               option=go_back_ref)))
+                             reply_markup=keyboard)
 
     await callback.answer("Загрузка завершена")
 
+@show_exercises_db_router.message(TrainerStates.exercises_db.process_buttons)
+async def process_buttons_message(message: Message, state: FSMContext):
+    await state.update_data({'body_part': message.text})
+    await state.set_state(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
+    await message.answer(f"Данное сообщение воспринимается как процесс создания упражнения(части тела)\n"
+                         f"Часть тела {message.text} "
+                         f"А теперь введи название группы мышц")
 
 
 

@@ -25,6 +25,7 @@ class ListExercisesStates(StatesGroup):
 
 
 class ExercisesDb(StatesGroup):
+    process_buttons = State()
     add_exercise = AddExercisesSates
     list_exercises = ListExercisesStates
 
@@ -38,6 +39,7 @@ class CreatePlan(StatesGroup):
     process_day_name = State()
     process_num_days = State()
     process_body_parts = State()
+    process_trainer_note = State()
     process_num_runs = State()
     process_num_repeats = State()
 

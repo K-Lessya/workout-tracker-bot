@@ -72,7 +72,8 @@ async def show_client_plan_exercise(callback: CallbackQuery, callback_data: Choo
     print(exercise_media_link)
     kwargs = {
         'chat_id': callback.from_user.id,
-        'caption': f"{exercise.exercise.name}\n{exercise.num_runs}x{exercise.num_repeats}",
+        'caption': f"{exercise.exercise.name}\n{exercise.num_runs}x{exercise.num_repeats}\n"
+                   f"{exercise.trainer_note}",
         'reply_markup': ClientPlanExerciseKeyboard(day=selected_day).as_markup()
     }
 
