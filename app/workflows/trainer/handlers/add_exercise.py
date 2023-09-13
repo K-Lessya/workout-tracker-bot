@@ -208,6 +208,7 @@ async def process_video_link(message: Message, state: FSMContext):
 @add_exercise_router.callback_query(ChooseCallback.filter(F.target == CreateExerciseTargets.process_save_exercise))
 @callback_error_handler
 async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    trainer = get_trainer(callback.from_user.id)
     if callback_data.option == YesNoOptions.yes:
         await callback.message.edit_text("Сохраняю упражнение...")
         state_data = await state.get_data()
@@ -237,7 +238,7 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
             #                                        loop=new_loop)
             os.remove(state_data['local_path'])
             await callback.message.edit_text("Обрабатываю части тела и группы мышц")
-        trainer = get_trainer(callback.from_user.id)
+
         if isinstance(state_data['body_part'], BodyPart):
             body_part = state_data['body_part']
         else:
@@ -274,7 +275,7 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
 
     elif callback_data.option == YesNoOptions.no:
         await state.clear()
-        body_parts = get_all_body_parts()
+        body_parts = get_all_body_parts(trainer)
         await callback.message.edit_text(f'Упражнение не сохранено, возвращаемся в меню упражнений',
                                          reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
                                                                                          source=callback,

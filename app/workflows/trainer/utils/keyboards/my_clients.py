@@ -7,18 +7,47 @@ from app.entities.single_file.models import Client
 from ..callback_properties.movetos import MyCLientsMoveTo
 from app.callbacks.callbacks import MoveCallback
 from aiogram.types import InlineKeyboardButton
+from app.config import CHOOSE_BUTTON_MAX_COUNT_PER_PAGE
 
 
 class MyClientsKeyboard(InlineKeyboardBuilder):
-    def __init__(self, clients: Client):
-        super().__init__()
+    def __init__(self, clients: Client, start_index):
+        clients_list = []
         for client in clients:
-            self.button(
-                text=f"{client.name} {client.surname}", callback_data=ChooseCallback(
-                    target=TrainerMyClientsTargets.show_client,
-                    option=f'{str(client.id)}')
-            )
-        self.button(text=f"Назад", callback_data=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu))
+            clients_list.append(client)
+        super().__init__()
+        if len(clients_list) <= CHOOSE_BUTTON_MAX_COUNT_PER_PAGE:
+            for client in clients_list:
+                self.row(InlineKeyboardButton(
+                    text=f"{client.name} {client.surname}", callback_data=ChooseCallback(
+                        target=TrainerMyClientsTargets.show_client,
+                        option=f'{str(client.id)}').pack())
+                )
+        else:
+            for client in clients_list[start_index:start_index+CHOOSE_BUTTON_MAX_COUNT_PER_PAGE:1]:
+                self.row(InlineKeyboardButton(
+                    text=f"{client.name} {client.surname}", callback_data=ChooseCallback(
+                        target=TrainerMyClientsTargets.show_client,
+                        option=f'{str(client.id)}').pack())
+                )
+            move_buttons = []
+            if start_index > 0:
+                move_buttons.append(
+                    InlineKeyboardButton(
+                        text="<<",
+                        callback_data=MoveToCallback(move_to=MyCLientsMoveTo.show_prev_clients).pack()
+                    )
+                )
+            if start_index+CHOOSE_BUTTON_MAX_COUNT_PER_PAGE-1 < len(clients_list)-1:
+                move_buttons.append(
+                    InlineKeyboardButton(
+                        text=">>",
+                        callback_data=MoveToCallback(move_to=MyCLientsMoveTo.show_next_clients).pack()
+                    )
+                )
+            self.row(*move_buttons)
+            self.row(InlineKeyboardButton(text=f"Назад",
+                                          callback_data=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu).pack()))
 
 
 class SingleClientKeyboard(InlineKeyboardBuilder):

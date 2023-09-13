@@ -29,27 +29,41 @@ from app.utilities.helpers_functions import callback_error_handler
 my_clients_router = Router()
 my_clients_router.include_router(my_clients_trainings_router)
 
-@my_clients_router.callback_query(MoveToCallback.filter(F.move_to == TrainerMainMenuMoveTo.my_clients))
+@my_clients_router.callback_query(MoveToCallback.filter((F.move_to == TrainerMainMenuMoveTo.my_clients)|(F.move_to == MyCLientsMoveTo.show_next_clients)|(F.move_to == MyCLientsMoveTo.show_prev_clients)))
 @callback_error_handler
 async def show_my_clients_menu(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
-    await state.clear()
     trainer = get_trainer(callback.from_user.id)
     clients = get_trainer_clients(trainer=trainer)
-    if clients:
-        if callback.message.photo:
-            await callback.message.delete()
-            await bot.send_message(chat_id=callback.from_user.id, text="Мои клиенты. Выбирай нужного",
-                                   reply_markup=MyClientsKeyboard(clients=clients).as_markup())
-        else:
-            await callback.message.edit_text("Мои клиенты. Выбирай нужного",
-                                             reply_markup=MyClientsKeyboard(clients=clients).as_markup())
-        await callback.answer("Загрузка завершена")
-    else:
-        clients = get_trainer_clients_witout_name(trainer=trainer)
+    if callback_data.move_to == TrainerMainMenuMoveTo.my_clients:
+        await state.clear()
+        await state.update_data({'start_index': 0})
         if clients:
-            await callback.answer("Ни один из клиентов пока не зарегистрировался или не принял заявку", show_alert=True)
+            if callback.message.photo:
+                await callback.message.delete()
+                await bot.send_message(chat_id=callback.from_user.id, text="Мои клиенты. Выбирай нужного",
+                                       reply_markup=MyClientsKeyboard(clients=clients, start_index=0).as_markup())
+            else:
+                await callback.message.edit_text("Мои клиенты. Выбирай нужного",
+                                                 reply_markup=MyClientsKeyboard(clients=clients, start_index=0).as_markup())
+            await callback.answer("Загрузка завершена")
         else:
-            await callback.answer("Клиентов пока нет", show_alert=True)
+            clients = get_trainer_clients_witout_name(trainer=trainer)
+            if clients:
+                await callback.answer("Ни один из клиентов пока не зарегистрировался или не принял заявку", show_alert=True)
+            else:
+                await callback.answer("Клиентов пока нет", show_alert=True)
+    elif callback_data.move_to == MyCLientsMoveTo.show_next_clients:
+        state_data = await state.get_data()
+        start_index = state_data['start_index']
+        await state.update_data({'start_index': start_index+4})
+        await callback.message.edit_reply_markup(reply_markup=MyClientsKeyboard(clients=clients, start_index=start_index+4).as_markup())
+    elif callback_data.move_to == MyCLientsMoveTo.show_prev_clients:
+        state_data = await state.get_data()
+        start_index = state_data['start_index']
+        await state.update_data({'start_index': start_index-4})
+        await callback.message.edit_reply_markup(reply_markup=MyClientsKeyboard(clients=clients, start_index=start_index-4).as_markup())
+
+
 
 
 @my_clients_router.callback_query(ChooseCallback.filter(F.target == TrainerMyClientsTargets.show_client))

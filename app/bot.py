@@ -95,7 +95,7 @@ async def switch_role(message: types.Message, state: FSMContext):
 async def send_restart_message():
     recievers = TEST_USERS_ID.split(' ')
     for reciever in recievers:
-        await bot.send_message(chat_id=int(reciever), text="Я был перезапущен")
+        await bot.send_message(chat_id=int(reciever), text="Я был обновлен до новой версии")
 
 
 # @dp.startup()

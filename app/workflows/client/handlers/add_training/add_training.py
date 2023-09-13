@@ -33,16 +33,11 @@ add_training_router.include_routers(training_from_plan_router)
 @add_training_router.callback_query(MoveCallback.filter(F.target == ClientMainMenuMoveTo.add_training))
 @callback_error_handler# Create training flow
 async def start_creating_training(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
-    if get_all_exercises():
-
-
             await state.set_state(ClientStates.add_training.process_training_type)
 
             await callback.message.edit_text(f"Хочешь добавить собственную тренировку или из плана",
                                              reply_markup=TrainingTypeKeyboard().as_markup())
 
-    else:
-        await callback.answer("В базе еще нет упражнений, подождите пока тренера добавят упражнения", show_alert=True)
 
 
 @add_training_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.choose_training_type))
@@ -50,7 +45,14 @@ async def start_creating_training(callback: CallbackQuery, callback_data: MoveTo
 async def process_training_type(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     if callback_data.option == ClientAddTrainingOptions.custom:
         await state.set_state(ClientStates.add_training.add_custom.process_training_name)
-        await callback.message.edit_text(f"Введи название для своей тренировки")
+        await callback.message.edit_text(f"  Упражнения для свободной тренировки создаешь ты сам, поэтому тебе не будут доступны:\n\n"
+                                         f"- Упражнения которые могут использовать тренера\n"
+                                         f"- Описания упражнений и материалы показывающие технику\n"
+                                         f"- Индивидуальные рекомендации к упражнениям от тренеров\n"
+                                         f"  Все эти материалы доступны только если ты занимаешься по плану, который составил тебе тренер\n\n"
+                                         f"  Ты все еще сможешь оставлять видео своего выполнения упражнений и тренер(если он у тебя есть) сможет дать комментарий по тезнике\n\n"
+                                         f"  Если сейчас тренера у тебя нет, то когда он появится он сможет просмотреть все твои свобожные тренировки и дать по ним комментарий\n\n"
+                                         f"  Введи название своей тренировки.")
 
     elif callback_data.option == ClientAddTrainingOptions.from_plan:
         if get_client_by_id(tg_id=callback.from_user.id).training_plan:

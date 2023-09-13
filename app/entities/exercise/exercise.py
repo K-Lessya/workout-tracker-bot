@@ -2,6 +2,7 @@ from mongoengine import *
 from app.entities.trainer.trainer import Trainer
 
 
+
 class BodyPart(Document):
     name = StringField()
     trainer = ReferenceField(Trainer)

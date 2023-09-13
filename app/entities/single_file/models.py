@@ -20,6 +20,7 @@ class Client(Document):
     weight = FloatField()
     height = IntField()
     trainer = ReferenceField(Trainer)
+    custom_exercises = ListField(ReferenceField(Exercise))
     training_plan = EmbeddedDocumentField(DbTrainingPlan)
     trainings = EmbeddedDocumentListField(Training)
 

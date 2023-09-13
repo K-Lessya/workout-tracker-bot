@@ -39,6 +39,8 @@ class MyCLientsMoveTo:
     create_video_comment = 'my_clients_create_video_comment'
     show_client_plan_menu = 'my_clients_plan_show_client_plan_menu'
     show_client_plan_days = 'my_clients_plan_show_client_plan_days'
+    show_prev_clients = 'my_clients_show_prev_clients'
+    show_next_clients = 'my_clients_show_next_clients'
 
 
 

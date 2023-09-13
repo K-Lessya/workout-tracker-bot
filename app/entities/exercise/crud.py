@@ -45,3 +45,8 @@ def update_exercise_muscle_groups(exercise: Exercise, muscle_group: MuscleGroup)
 def get_all_exercises():
     exercises = Exercise.objects()
     return exercises
+
+
+def get_client_exercises(client):
+    exercises = Exercise.objects(client=client)
+    return exercises
