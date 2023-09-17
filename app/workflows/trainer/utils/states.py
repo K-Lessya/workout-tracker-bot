@@ -23,9 +23,13 @@ class ListExercisesStates(StatesGroup):
     list_exercises = State()
     show_exercise = State()
 
+class ProcessButtons(StatesGroup):
+    choose_body_part = State()
+    choose_muscle_group = State()
+    choose_exercise = State()
 
 class ExercisesDb(StatesGroup):
-    process_buttons = State()
+    process_buttons = ProcessButtons()
     add_exercise = AddExercisesSates
     list_exercises = ListExercisesStates
 

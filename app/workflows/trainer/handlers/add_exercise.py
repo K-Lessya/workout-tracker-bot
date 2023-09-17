@@ -6,6 +6,7 @@ from app.bot import bot
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback,MoveToCallback, YesNoOptions
 from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
 from app.s3.uploader import upload_to_s3_and_update_progress
+from ..utils.keyboards.exercise_db import ExercisePlanListKeyboard
 from ..utils.states import TrainerStates
 from ..utils.callback_properties.targets import CreateExerciseTargets
 from app.workflows.common.utils.keyboards.exercise_db_choose import create_exercise_db_choose_keyboard
@@ -21,6 +22,9 @@ import asyncio
 from app.config import MAX_FILE_SIZE
 from app.entities.single_file.crud import get_trainer
 from app.workflows.trainer.utils.classes.training_plan import PlanExercise
+from app.utilities.helpers_functions import album_handler
+from app.workflows.trainer.utils.callback_properties.movetos import MyCLientsMoveTo
+from app.workflows.trainer.utils.keyboards.next_action import NextActionKeyboard
 import threading
 
 add_exercise_router = Router()
@@ -29,15 +33,24 @@ add_exercise_router = Router()
 @callback_error_handler
 async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_name = await state.get_state()
+    state_data = await state.get_data()
     checker_state = "CreatePlan:process_body_parts"
     print('string state ' + str(state_name) )
     if str(state_name) == checker_state:
         print("MATCH!!!!!!")
+
         await state.update_data({"executing_from_plan": True})
     else:
-        await state.clear()
+
+        if not 'executing_from_plan' in state_data.keys():
+            await state.clear()
 
     state_data = await state.get_data()
+    if not 'executing_from_plan' in state_data.keys():
+        go_back = CommonGoBackMoveTo.to_trainer_main_menu
+    else:
+        go_back = MyCLientsMoveTo.go_back_to_bodyparts_list
+
     print(state_data)
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_body_part_name)
     trainer = get_trainer(tg_id=callback.from_user.id)
@@ -47,7 +60,7 @@ async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, s
                                      reply_markup=create_exercise_db_choose_keyboard(
                                          options=body_parts, source=callback,
                                          target=CreateExerciseTargets.process_body_part_name,
-                                         go_back_filter=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu)
+                                         go_back_filter=MoveToCallback(move_to=go_back)
                                      ))
     await callback.answer("Загрузка завершена")
 
@@ -62,6 +75,7 @@ async def process_body_part_name_message(message: Message, state: FSMContext):
 async def process_body_part_name_callback(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     body_part = get_body_part_by_id(callback_data.option)
     muscle_groups = get_muscle_groups_by_body_part(body_part)
+    state_data = await state.get_data()
     await state.update_data({'body_part': body_part})
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
     await callback.message.edit_text(f'Теперь введи группу мыщц для которой предназначено это упражнение'
@@ -70,7 +84,7 @@ async def process_body_part_name_callback(callback: CallbackQuery, callback_data
                                          options=muscle_groups, source=callback,
                                          target=CreateExerciseTargets.process_muscle_group_name,
                                          go_back_filter=MoveToCallback(
-                                             move_to=CommonGoBackMoveTo.to_trainer_main_menu)))
+                                             move_to=ExerciseDbMoveTo.create_exercise)))
     await callback.answer("Загрузка завершена")
 
 
@@ -103,6 +117,7 @@ async def process_muscle_group_name(message: Message, state: FSMContext):
 async def ask_for_photo(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     if callback_data.option == YesNoOptions.yes:
+        await state.update_data({'multiple_files_message_sent': False})
         await callback.message.edit_text(f'Тогда присылай фото или видео техники выполнения.\n'
                                          f'Желательно чтобы на фото были два крайних положения'
                                          f' при выполнении упражнения.')
@@ -126,10 +141,10 @@ async def ask_for_photo(callback: CallbackQuery, callback_data: ChooseCallback, 
 
 
 @add_exercise_router.message(TrainerStates.exercises_db.add_exercise.process_photo)
+@album_handler
 async def process_media(message: Message | list[Message], state: FSMContext):
-    await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
-    state_data = await state.get_data()
-    if not state_data['file_recieved']:
+    if message.photo or message.video:
+        await state.set_state(TrainerStates.exercises_db.add_exercise.process_save)
         await state.update_data({"file_recieved": True})
         if isinstance(message, Message):
             if message.photo:
@@ -164,7 +179,8 @@ async def process_media(message: Message | list[Message], state: FSMContext):
         else:
             await message.answer("Размер файла слишком большой, пожалуйста присылай файлы не больше 50Мб")
     else:
-        await message.answer("Ты отправил больше одного файла. мы обработаем первый")
+        await message.answer("Мне нужно фото или видео")
+
 
 
 
@@ -264,23 +280,41 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
             plan_exercise = PlanExercise(exercise=exercise)
             state_data['plan'].days[-1].add_exercise(plan_exercise)
             await state.set_state(TrainerStates.my_clients.create_plan.process_trainer_note)
-            await callback.message.edit_text("Добавь свой комментарий или рекомендацию по общей технике выполнения(Это общая рекомендация, которая будет выводиться вместе с упраднением)")
+            await callback.message.answer("Добавь свой комментарий или рекомендацию по общей технике выполнения(Это общая рекомендация, которая будет выводиться вместе с упраднением)",
+                                          reply_markup=NextActionKeyboard(target=MyCLientsMoveTo.skip_trainer_note).as_markup())
+            await callback.message.delete()
         else:
-            await callback.message.edit_text(f'Давай выберем упражнения',
+
+            await callback.message.answer(f'Давай выберем упражнения',
                                              reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
                                                                                              source=callback,
                                                                                              target=ExerciseDbTargets.show_body_part,
                                                                                              go_back_filter=MoveToCallback(
                                                                                                  move_to=UpstreamMenuMoveTo.show_exercise_db)))
+            await callback.message.delete()
 
     elif callback_data.option == YesNoOptions.no:
-        await state.clear()
+
         body_parts = get_all_body_parts(trainer)
-        await callback.message.edit_text(f'Упражнение не сохранено, возвращаемся в меню упражнений',
-                                         reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
+        state_data = await state.get_data()
+        if 'executing_from_plan' in state_data.keys():
+            await callback.answer(f'Упражнение не сохранено', show_alert=True)
+            plan = state_data['plan']
+            current_day = plan.days[-1]
+            await callback.message.answer(f'Давай выберем упражнения для дня {len(plan.days)}',
+                                          reply_markup=ExercisePlanListKeyboard(items=body_parts,
+                                                                                tg_id=callback.from_user.id,
+                                                                                day_num=len(plan.days),
+                                                                                exercises_length=len(
+                                                                                    current_day.exercises)).as_markup())
+        else:
+            await state.clear()
+            await callback.message.answer(f'Упражнение не сохранено, возвращаемся в меню упражнений',
+                                             reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
                                                                                          source=callback,
                                                                                          target=ExerciseDbTargets.show_body_part,
                                                                              go_back_filter=MoveToCallback(
                                                                                              move_to=UpstreamMenuMoveTo.show_exercise_db)
                                                                                          ))
+        await callback.message.delete()
         await callback.answer("Загрузка завершена")

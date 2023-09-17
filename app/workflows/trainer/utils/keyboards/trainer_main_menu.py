@@ -5,21 +5,22 @@ from ..callback_properties.movetos import TrainerMainMenuMoveTo
 from app.callbacks.callbacks import MoveCallback
 from app.utilities.default_callbacks.default_callbacks import MoveToCallback
 from aiogram.types import WebAppInfo,WebAppData
+from app.translations.base_translations import translations
 
 
-def create_trainer_main_menu_keyboard():
+def create_trainer_main_menu_keyboard(lang):
     builder = InlineKeyboardBuilder()
     builder_buttons = [
         {
-            "text": "Добавить клиента",
+            "text": translations[lang].trainer_main_menu_btn_add_client.value,
             "target": TrainerMainMenuMoveTo.add_client
         },
         {
-            "text": "Мои клиенты",
+            "text": translations[lang].trainer_main_menu_btn_my_clients.value,
             "target": TrainerMainMenuMoveTo.my_clients
         },
         {
-            "text": "База упражнений",
+            "text": translations[lang].trainer_main_menu_btn_exercise_db.value,
             "target": UpstreamMenuMoveTo.show_exercise_db
         }
     ]
@@ -28,6 +29,7 @@ def create_trainer_main_menu_keyboard():
                 text=button['text'], callback_data=MoveToCallback(move_to=button['target'])
             )
     webapp_info = WebAppInfo(url="https://aryzhykau.github.io/workout-tracker-bot/app/webapps/trainer-form/index.html")
-    builder.row(InlineKeyboardButton(text="Анкета для клиентов", callback_data=MoveCallback(target=TrainerMainMenuMoveTo.quiz).pack()))
+    builder.row(InlineKeyboardButton(text=translations[lang].trainer_main_menu_btn_questionaire.value,
+                                     callback_data=MoveCallback(target=TrainerMainMenuMoveTo.quiz).pack()))
     builder.adjust(2, 1, 1)
     return builder.as_markup()

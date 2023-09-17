@@ -25,6 +25,8 @@ from app.utilities.helpers_functions import process_message_video
 from app.entities.single_file.crud import get_client_by_id
 from app.entities.exercise.exercise import Exercise, ClientTrainingExercise
 from app.entities.exercise.crud import get_client_exercises, get_exercise_by_id
+from app.utilities.helpers_functions import is_float
+from app.utilities.helpers_functions import album_handler
 
 custom_training_router = Router()
 
@@ -36,11 +38,15 @@ async def process_training_name(message: Message, state: FSMContext):
     await state.update_data({'training': training})
     await state.set_state(ClientStates.add_training.add_custom.process_exercise_name)
     client = get_client_by_id(message.from_user.id)
-    client_exercises = client.custom_exercises
-    keyboard = ExerciseCommonListKeyboard(items=client_exercises, tg_id=message.from_user.id)
+    if client.custom_exercises:
+        client_exercises = client.custom_exercises
 
-    await message.answer(f"Теперь давай введем название первого упражнения или выбери из уже созданных тобой упражнений",
-                         reply_markup=keyboard.as_markup())
+        keyboard = ExerciseCommonListKeyboard(items=client_exercises, tg_id=message.from_user.id)
+
+        await message.answer(f"Теперь давай введем название первого упражнения или выбери из уже созданных тобой упражнений",
+                             reply_markup=keyboard.as_markup())
+    else:
+        await message.answer("У тебя еще нет своих урпажнений, введи название первого")
 
 
 @custom_training_router.message(ClientStates.add_training.add_custom.process_exercise_name)
@@ -100,11 +106,12 @@ async def process_exercise_runs(message: Message, state: FSMContext):
         await message.answer("Нужно ввести число")
 
 @custom_training_router.message(ClientStates.add_training.add_custom.process_exercise_weight)
-async def process_exercise_runs(message: Message, state: FSMContext):
-    if message.text.isdigit():
+async def process_exercise_weight(message: Message, state: FSMContext):
+    if is_float(message.text.replace(',','.')):
         state_data = await state.get_data()
         new_exercise = state_data['new_exercise']
-        new_exercise.add_weight(int(message.text))
+        weight = message.text.replace(',','.')
+        new_exercise.add_weight(float(weight))
         await state.set_state(ClientStates.add_training.add_custom.process_buttons)
         await message.answer("Хочешь загрузить свое видео выполнения чтобы тренер мог его посмотреть?",
                              reply_markup=YesNoKeyboard(
@@ -119,6 +126,7 @@ async def process_exercise_video_answer(callback: CallbackQuery, callback_data: 
     if callback_data.option == YesNoOptions.yes:
         await state.set_state(ClientStates.add_training.add_custom.process_exercise_video)
         await callback.message.edit_text('Присылай видео своего выполнения')
+        await state.update_data({'multiple_files_message_sent': False, 'file_recieved': False})
     elif callback_data.option == YesNoOptions.no:
         state_data = await state.get_data()
         new_exercise = state_data['new_exercise']
@@ -144,6 +152,7 @@ async def process_exercise_video_answer(callback: CallbackQuery, callback_data: 
 
 
 @custom_training_router.message(ClientStates.add_training.add_custom.process_exercise_video)
+@album_handler
 async def process_client_exercise_video(message: Message, state: FSMContext):
     if message.video:
         file_path = await process_message_video(message)

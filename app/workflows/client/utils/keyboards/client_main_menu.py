@@ -4,39 +4,40 @@ from app.entities.single_file.crud import client_get_num_trainier_requests
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from app.entities.single_file.models import Client
 from app.callbacks.callbacks import MoveCallback
+from app.translations.base_translations import translations
 
 
-def create_client_main_menu_keyboard(client: Client):
+def create_client_main_menu_keyboard(client: Client, lang):
     builder = InlineKeyboardBuilder()
     builder_buttons = [
         {
-            "text": "Добавить тренировку",
+            "text": translations[lang].client_menu_btn_add_training.value,
             "target": ClientMainMenuMoveTo.add_training
         },
         {
-            "text": f"Мои заявки({client_get_num_trainier_requests(client=client)})",
+            "text": translations[lang].client_main_menu_btn_my_requests.value.format(client_get_num_trainier_requests(client=client)),
             "target": ClientMainMenuMoveTo.my_recieved_requests
         },
         {
-            "text": "Мои тренировки",
+            "text": translations[lang].client_main_menu_btn_my_trainings.value,
             "target": ClientMainMenuMoveTo.my_trainings
         },
 
         {
-            "text": "Мой тренер",
+            "text": translations[lang].client_main_menu_btn_my_trainer.value,
             "target": ClientMainMenuMoveTo.my_trainer
         },
         {
-            "text": "Мой план",
+            "text": translations[lang].client_main_menu_btn_my_plan.value,
             "target": ClientMainMenuMoveTo.my_plan
         }
 
     ]
 
     for button in builder_buttons:
-        if not client.trainings and button['text'] == "Мои тренировки":
+        if not client.trainings and button['text'] == translations[lang].client_main_menu_btn_my_trainings.value:
             pass
-        elif not client.training_plan and button['text'] == "Мой план":
+        elif not client.training_plan and button['text'] == translations[lang].client_main_menu_btn_my_plan.value:
             pass
         else:
             builder.button(

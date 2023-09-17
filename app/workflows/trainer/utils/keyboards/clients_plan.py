@@ -25,7 +25,7 @@ class ClientPlanDaysKeyboard(InlineKeyboardBuilder):
     def __init__(self, plan_days: list[DbTrainingDay]):
         super().__init__()
         for idx, day in enumerate(plan_days):
-            self.row(InlineKeyboardButton(text=f"День {idx}({day.name})",
+            self.row(InlineKeyboardButton(text=f"День {idx+1}({day.name})",
                                           callback_data=ChooseCallback(target=TrainerMyClientsTargets.show_client_plan_day,
                                                                        option=str(idx)).pack()))
         self.row(InlineKeyboardButton(text="Назад",

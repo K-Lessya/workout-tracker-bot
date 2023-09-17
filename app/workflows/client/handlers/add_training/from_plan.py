@@ -27,6 +27,7 @@ from app.s3.uploader import upload_file
 from app.config import PHOTO_BUCKET, MAX_FILE_SIZE
 from app.keyboards.yes_no import YesNoKeyboard
 from app.utilities.helpers_functions import callback_error_handler
+from app.utilities.helpers_functions import album_handler
 
 training_from_plan_router = Router()
 
@@ -81,7 +82,7 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
 
     exercise = selected_exercise
     exercise_media_type = exercise.exercise.media_type
-    await callback.message.edit_text("Generating url")
+    await callback.message.edit_text("Загружаю файл упражнения")
     exercise_media_link = create_presigned_url(PHOTO_BUCKET, exercise.exercise.media_link)
     print(exercise_media_link)
     kwargs = {
@@ -93,13 +94,15 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
         'reply_markup': PlanExerciseGoBackKeyboard(source_option=str(selected_day),
                                                    go_back_target=ClientAddTrainingTargets.show_day).as_markup()
     }
-    await callback.message.delete()
+
     if exercise_media_type == 'photo':
         await state.update_data({'has_media': True})
         sent_message = await bot.send_photo(photo=exercise_media_link, **kwargs)
+        await callback.message.delete()
     elif exercise_media_type == 'video':
         file = URLInputFile(url=exercise_media_link, bot=bot)
         sent_message = await bot.send_video(video=file, **kwargs)
+        await callback.message.delete()
         pth_to_file=await bot.get_file(sent_message.video.file_id)
         print(pth_to_file.file_path)
 
@@ -109,7 +112,7 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.process_exercise_weight)
 async def process_exercise_weight(message: Message, state: FSMContext):
-    if is_float(message.text):
+    if is_float(message.text.replace(',','.')):
         state_data = await state.get_data()
         callback_msg_id = state_data['message_id_with_photo']
         await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=callback_msg_id, reply_markup=None)
@@ -132,6 +135,7 @@ async def process_exercise_weight(message: Message, state: FSMContext):
 async def process_exercise_video_link(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     if callback_data.option == YesNoOptions.yes:
         await state.set_state(ClientStates.add_training.add_from_plan.process_exercise_video)
+        await state.update_data({'multiple_files_message_sent': False, 'file_recieved': False})
         await callback.message.edit_text("Присылай видео своего выполнения")
     elif callback_data.option == YesNoOptions.no:
         state_data = await state.get_data()
@@ -158,6 +162,7 @@ async def process_exercise_video_link(callback: CallbackQuery, callback_data: Ch
                                          reply_markup=keyboard.as_markup())
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.process_exercise_video)
+@album_handler
 async def process_exercise_video(message: Message, state: FSMContext):
     if message.video:
         video_id = message.video.file_id

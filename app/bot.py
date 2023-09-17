@@ -17,6 +17,8 @@ from app.workflows.registration.utils.callback_properties import ChooseUsrTypeOp
 from app.utilities.default_callbacks.default_callbacks import TestCallback, TestTasks
 from app.states.registration.states import RegistrationStates
 from app.callbacks.callbacks import MoveCallback
+from app.translations.base_translations import Languages, translations
+from app.keyboards.registration.keyboards import ChooseLanguageKeyboard
 from app.entities.single_file.crud import get_all_clients, get_all_trainers
 bot = Bot(token=BOT_TOKEN)
 
@@ -30,32 +32,42 @@ dp = Dispatcher()
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message, state: FSMContext):
     await state.set_state(RegisterStates.ask_for_user_type)
+    print(translations)
     if get_client_by_id(tg_id=message.from_user.id):
         client = get_client_by_id(tg_id=message.from_user.id)
         if client.name:
             await state.clear()
-            await message.answer(f'Привет снова, выбирай, создать тренировку или просмотреть уже созданные',
-                                 reply_markup=create_client_main_menu_keyboard(client=client))
+            lang = client.lang
+            await message.answer(translations[client.lang].main_menu_text.value,
+                                 reply_markup=create_client_main_menu_keyboard(client=client, lang=lang))
         else:
-            await state.set_state(RegistrationStates.process_user_name)
-            await state.update_data({'usr_type': ChooseUsrTypeOptions.client})
-            await message.answer(f'Привет ты был добавлен в систему тренером {client.trainer.name} '
-                                 f'{client.trainer.surname}, давай заполним твой профиль, введи свое имя')
+            #await state.set_state(RegistrationStates.process_user_name)
+            await message.answer("Please choose language",
+                                 reply_markup=ChooseLanguageKeyboard().as_markup())
+            #await state.update_data({'usr_type': ChooseUsrTypeOptions.client, 'lang': client.lang})
+            # await message.answer(translations[client.lang].already_added_client_welcome_message_1
+            #                      .value+client.trainer.name
+            #                      + client.trainer.surname
+            #                      + translations[client.lang].already_added_client_welcome_message_2.value)
     elif get_trainer(tg_id=message.from_user.id):
         await state.clear()
         trainer = get_trainer(tg_id=message.from_user.id)
-        await message.answer(f'Привет снова, {trainer.name}! Давай продолжим работу, выбери один из пунктов меню',
-                             reply_markup=create_trainer_main_menu_keyboard())
+        lang = trainer.lang
+        await message.answer(translations[trainer.lang].main_menu_text.value,
+                             reply_markup=create_trainer_main_menu_keyboard(lang=lang))
     else:
-        await message.answer("Привет, регаемся как тренер или как клиент?",
-                             reply_markup=ChooseUsrTypeKeyboard().as_markup())
+
+        await message.answer("Please choose language",
+                             reply_markup=ChooseLanguageKeyboard().as_markup())
 
 
 
 @dp.message(RegisterStates.ask_for_user_type)
 async def alert(message: types.Message, state: FSMContext):
     # await message.delete()
-    await message.reply(text="Воспользуйся кнопкой", reply_markup=create_choose_user_type_keyboard())
+    state_data = await state.get_data()
+    lang = state_data['user_lang']
+    await message.reply(text=translations[lang].use_btn_alert.value, reply_markup=create_choose_user_type_keyboard())
 
 
 @dp.message(Command("tester"))

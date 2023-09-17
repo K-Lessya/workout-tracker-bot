@@ -46,8 +46,8 @@ class MyClientsKeyboard(InlineKeyboardBuilder):
                     )
                 )
             self.row(*move_buttons)
-            self.row(InlineKeyboardButton(text=f"Назад",
-                                          callback_data=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu).pack()))
+        self.row(InlineKeyboardButton(text=f"Назад",
+                                      callback_data=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu).pack()))
 
 
 class SingleClientKeyboard(InlineKeyboardBuilder):

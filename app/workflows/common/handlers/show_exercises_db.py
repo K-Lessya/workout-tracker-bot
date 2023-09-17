@@ -5,6 +5,7 @@ from app.bot import bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, FSInputFile, URLInputFile, Message
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, MoveToCallback
+from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
 from app.workflows.common.utils.callback_properties.movetos import UpstreamMenuMoveTo, CommonGoBackMoveTo
 from app.workflows.common.utils.callback_properties.targets import ExerciseDbTargets
 from app.workflows.common.utils.keyboards.exercise_db_choose import create_exercise_db_choose_keyboard
@@ -15,7 +16,7 @@ from app.config import PHOTO_BUCKET
 from app.utilities.helpers_functions import callback_error_handler
 from app.entities.single_file.crud import get_trainer
 from app.workflows.trainer.utils.states import TrainerStates
-
+from ...trainer.utils.callback_properties.targets import CreateExerciseTargets
 
 show_exercises_db_router = Router()
 
@@ -24,7 +25,7 @@ show_exercises_db_router = Router()
 async def list_body_parts(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     trainer =get_trainer(callback.from_user.id)
     body_parts = get_all_body_parts(trainer)
-    await state.set_state(TrainerStates.exercises_db.process_buttons)
+    await state.set_state(TrainerStates.exercises_db.process_buttons.choose_body_part)
     await callback.message.edit_text(f'Давай выберем на какую часть тела хочешь просмотреть упражнения,'
                                      ' если частей тела нет то создай новое упражнение',
                                      reply_markup=create_exercise_db_choose_keyboard(
@@ -38,8 +39,9 @@ async def list_body_parts(callback: CallbackQuery, callback_data: ChooseCallback
 @callback_error_handler
 async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     body_part = get_body_part_by_id(callback_data.option)
-    await state.update_data({'body_part': str(body_part.id)})
-    muscle_groups = get_muscle_groups_by_body_part(body_part=body_part)
+    await state.set_state(TrainerStates.exercises_db.process_buttons.choose_muscle_group)
+    await state.update_data({'body_part': body_part})
+    muscle_groups = get_muscle_groups_by_body_part(body_part=body_part.id)
     await callback.message.edit_text(f'Давай выберем на какую группу мышц хочешь просмотреть',
                                      reply_markup=create_exercise_db_choose_keyboard(
                                          options=muscle_groups,
@@ -53,11 +55,12 @@ async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallb
 @callback_error_handler
 async def show_muscle_groups(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     muscle_group = get_muscle_group_by_id(callback_data.option)
+    await state.set_state(TrainerStates.exercises_db.process_buttons.choose_exercise)
     state_data = await state.get_data()
-    go_back_ref = state_data['body_part']
+    go_back_ref = str(state_data['body_part'].id)
     print(muscle_group)
-    exercises = get_exercises_by_muscle_group(muscle_group=muscle_group)
-    await state.update_data({'muscle_group': str(muscle_group.id)})
+    exercises = get_exercises_by_muscle_group(muscle_group=muscle_group.id)
+    await state.update_data({'muscle_group': muscle_group})
     print(exercises)
     if 'has_media' in state_data.keys():
         await bot.send_message(chat_id=callback.from_user.id,
@@ -89,7 +92,7 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
     media_link = create_presigned_url(PHOTO_BUCKET, exercise.media_link)
     print(media_link)
     state_data = await state.get_data()
-    go_back_ref = state_data['muscle_group']
+    go_back_ref = str(state_data['muscle_group'].id)
     keyboard = create_exercise_db_choose_keyboard(
                                  options=None,
                                  source=callback,
@@ -111,13 +114,35 @@ async def show_exercise(callback: CallbackQuery, callback_data: ChooseCallback, 
 
     await callback.answer("Загрузка завершена")
 
-@show_exercises_db_router.message(TrainerStates.exercises_db.process_buttons)
-async def process_buttons_message(message: Message, state: FSMContext):
+@show_exercises_db_router.message(TrainerStates.exercises_db.process_buttons.choose_body_part)
+async def process_buttons_body_part_message(message: Message, state: FSMContext):
     await state.update_data({'body_part': message.text})
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
     await message.answer(f"Данное сообщение воспринимается как процесс создания упражнения(части тела)\n"
                          f"Часть тела {message.text} "
                          f"А теперь введи название группы мышц")
+
+@show_exercises_db_router.message(TrainerStates.exercises_db.process_buttons.choose_muscle_group)
+async def process_buttons_muscle_group_message(message: Message, state: FSMContext):
+    await state.update_data({'muscle_group': message.text})
+    state_data = await state.get_data()
+    body_part = state_data['body_part']
+    await state.set_state(TrainerStates.exercises_db.add_exercise.process_exercise_name)
+    await message.answer("Данное сообщение воспринимается как процесс создания упражнения(группы мышц)\n"
+                         f"Часть тела {body_part.name}\n"
+                         f"Группа мышц {message.text}\n"
+                         f"А теперь введи название упражнения")
+
+@show_exercises_db_router.message(TrainerStates.exercises_db.process_buttons.choose_exercise)
+async def process_buttons_exercise_message(message: Message, state: FSMContext):
+    await state.update_data({'exercise_name': message.text, 'file_recieved': False})
+    await state.set_state(TrainerStates.exercises_db.add_exercise.process_photo)
+    await message.answer(f'Данное сообщение воспринято как создание нового упражнения (Названия упражнения)'
+                         f'Хочешь загрузить фотографию или видео с техникой упражнения?',
+                         reply_markup=create_yes_no_keyboard(target=CreateExerciseTargets.ask_for_exercise_photo))
+
+
+""
 
 
 

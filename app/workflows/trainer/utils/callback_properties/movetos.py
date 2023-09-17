@@ -41,7 +41,8 @@ class MyCLientsMoveTo:
     show_client_plan_days = 'my_clients_plan_show_client_plan_days'
     show_prev_clients = 'my_clients_show_prev_clients'
     show_next_clients = 'my_clients_show_next_clients'
-
+    skip_trainer_note = 'my_clients_skip_trainer_note'
+    go_back_to_bodyparts_list = 'my_clients_add_plan_go_back_body_parts'
 
 
 

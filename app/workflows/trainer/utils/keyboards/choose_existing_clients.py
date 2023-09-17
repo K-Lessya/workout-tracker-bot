@@ -5,9 +5,10 @@ from app.workflows.common.utils.callback_properties.movetos import CommonGoBackM
 from app.workflows.registration.utils.callback_properties import ChooseUsrTypeOptions, RegistrationCallbackTargets
 from ..callback_properties.targets import TrainerAddClientTargets, TrainerMainMenuTargets
 from app.entities.single_file.models import Client
+from app.translations.base_translations import translations
 
 
-def create_choose_existing_clients_keyboard(clients: list[Client]):
+def create_choose_existing_clients_keyboard(clients: list[Client], lang):
     builder = InlineKeyboardBuilder()
     for client in clients:
         builder.button(
@@ -15,5 +16,6 @@ def create_choose_existing_clients_keyboard(clients: list[Client]):
                 target=TrainerAddClientTargets.show_clients,
                 option=f'{client.tg_id}')
         )
-    builder.button(text=f"Назад", callback_data=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu))
+    builder.button(text=translations[lang].go_back_btn,
+                   callback_data=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu))
     return builder.as_markup()

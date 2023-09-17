@@ -12,6 +12,7 @@ class Training(EmbeddedDocument):
 class Client(Document):
     tg_id = IntField(unique=True)
     tg_username = StringField()
+    lang = StringField()
     phone_number = StringField()
     visibility = BooleanField()
     photo_link = StringField()

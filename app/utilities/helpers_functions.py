@@ -29,6 +29,7 @@ def check_link(link: str):
     else:
         return False
 
+
 def double_button_click_handler(func):
     async def wrapper(callback, callback_data, state):
         data = await state.get_data()
@@ -40,6 +41,30 @@ def double_button_click_handler(func):
         else:
             await func(callback, callback_data, state)
         return wrapper
+
+
+def album_handler(func):
+    async def wrapper(message, state):
+        state_data = await state.get_data()
+        print(state_data['multiple_files_message_sent'])
+        if not state_data['multiple_files_message_sent']:
+            print("message was not send yet, sending ...")
+            if not state_data['file_recieved']:
+                print(f'handled file from message {message.message_id}')
+                await state.update_data({'file_recieved': True})
+                await func(message, state)
+            else:
+                print(f'another file catched sending message')
+                await state.update_data({"multiple_files_message_sent": True})
+                print('STATE UPDATED')
+                await message.answer("Ты прислал больше одного файла, мы обработаем первый")
+
+        else:
+            print('another file catched but message was already sent')
+    return wrapper
+
+
+
 
 def callback_error_handler(func):
 

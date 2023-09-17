@@ -16,6 +16,7 @@ class Trainer(Document):
     tg_id = IntField(unique=True)
     tg_username = StringField()
     name = StringField()
+    lang = StringField()
     surname = StringField()
     visibility = BooleanField()
     photo_link = StringField()

@@ -26,6 +26,9 @@ from aiogram.types.menu_button_commands import MenuButtonCommands
 from aiogram.types import WebAppInfo
 from app.entities.single_file.crud import get_trainer
 from app.utilities.helpers_functions import callback_error_handler
+from app.workflows.trainer.utils.keyboards.next_action import NextActionKeyboard
+
+
 my_clients_router = Router()
 my_clients_router.include_router(my_clients_trainings_router)
 
@@ -114,22 +117,43 @@ async def process_num_days(message: Message, state: FSMContext):
 
 @my_clients_router.message(TrainerStates.my_clients.create_plan.process_day_name)
 async def process_plan_day_name(message: Message, state: FSMContext):
-        state_data = await state.get_data()
-        plan = state_data['plan']
-        current_day = plan.days[-1]
-        current_day.add_name(message.text)
-        await state.update_data({'plan': plan})
-        body_parts = get_all_body_parts(trainer_id=get_trainer(message.from_user.id))
-        if body_parts:
-            await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
-            await message.answer(f'Давай выберем упражнения для дня {len(plan.days)}, либо создай новое упражнение',
-                                 reply_markup=ExercisePlanListKeyboard(items=body_parts,
-                                                                       tg_id=message.from_user.id,
-                                                                       day_num=len(plan.days),
-                                                                       exercises_length=len(current_day.exercises)).as_markup())
-        else:
-            await state.clear()
-            await message.answer(f'Пока в твоей базе нет упражнений, давай добавим упраднение', reply_markup=create_trainer_main_menu_keyboard())
+    state_data = await state.get_data()
+    plan = state_data['plan']
+    current_day = plan.days[-1]
+    current_day.add_name(message.text)
+    await state.update_data({'plan': plan})
+    body_parts = get_all_body_parts(trainer_id=get_trainer(message.from_user.id))
+    if body_parts:
+        await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
+        await message.answer(f'Давай выберем упражнения для дня {len(plan.days)}, либо создай новое упражнение',
+                             reply_markup=ExercisePlanListKeyboard(items=body_parts,
+                                                                   tg_id=message.from_user.id,
+                                                                   day_num=len(plan.days),
+                                                                   exercises_length=len(current_day.exercises)).as_markup())
+    else:
+        await state.clear()
+        await message.answer(f'Пока в твоей базе нет упражнений, давай добавим упраднение', reply_markup=create_trainer_main_menu_keyboard())
+
+
+@my_clients_router.message(TrainerStates.my_clients.create_plan.process_body_parts)
+async def process_message_on_body_parts(message: Message, state: FSMContext):
+    await message.delete()
+
+
+@my_clients_router.callback_query(MoveToCallback.filter(F.move_to == MyCLientsMoveTo.go_back_to_bodyparts_list))
+async def show_body_parts(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
+    state_data = await state.get_data()
+    plan = state_data['plan']
+    current_day = plan.days[-1]
+    body_parts = get_all_body_parts(trainer_id=get_trainer(callback.from_user.id))
+    if body_parts:
+        await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
+        await callback.message.edit_text(f'Давай выберем упражнения для дня {len(plan.days)}, либо создай новое упражнение',
+                             reply_markup=ExercisePlanListKeyboard(items=body_parts,
+                                                                   tg_id=callback.from_user.id,
+                                                                   day_num=len(plan.days),
+                                                                   exercises_length=len(
+                                                                       current_day.exercises)).as_markup())
 
 
 
@@ -144,10 +168,11 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
         existing_exercises = [exercise.exercise.id for exercise in plan.days[-1].exercises]
         if exercise.id not in existing_exercises:
             plan.days[-1].add_exercise(PlanExercise(exercise))  #Добавляем упражнение в день плана
-
+            keyboard = NextActionKeyboard(target=MyCLientsMoveTo.skip_trainer_note).as_markup()
             await state.update_data({'plan': plan}) #Обновляем состояние плана
             await state.set_state(TrainerStates.my_clients.create_plan.process_trainer_note) #Обновляем текущее состояние на процессинг количества подходов
-            await callback.message.edit_text(text="Добавь свой комментарий или рекомендацию по общей технике выполнения(Это общая рекомендация, которая будет выводиться вместе с упраднением)") #Отправляем сообщение
+            await callback.message.edit_text(text="Добавь свой комментарий или рекомендацию по общей технике выполнения(Это общая рекомендация, которая будет выводиться вместе с упраднением), либо нажми далее",\
+                                             reply_markup=keyboard) #Отправляем сообщение
         else:
             await callback.answer("Ты уже добавил это упраднение в план", show_alert=True)
     else:
@@ -179,6 +204,16 @@ async def process_trainer_note(message: Message, state: FSMContext):
     await state.set_state(TrainerStates.my_clients.create_plan.process_num_runs)
     await message.answer("Отлично, теперь введи кодичество подходов")
 
+
+
+@my_clients_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.skip_trainer_note))
+async def skip_trainer_note(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
+    state_data = await state.get_data()
+    plan = state_data['plan']
+    plan.days[-1].exercises[-1].add_trainer_note("Тренер не добавил примечание")
+    await state.update_data({'plan': plan})
+    await state.set_state(TrainerStates.my_clients.create_plan.process_num_runs)
+    await callback.message.edit_text("Отлично, теперь введи кодичество подходов")
 
 @my_clients_router.message(TrainerStates.my_clients.create_plan.process_num_runs)
 async def process_num_runs(message: Message, state: FSMContext):
