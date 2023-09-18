@@ -30,6 +30,6 @@ def create_trainer_main_menu_keyboard(lang):
             )
     webapp_info = WebAppInfo(url="https://aryzhykau.github.io/workout-tracker-bot/app/webapps/trainer-form/index.html")
     builder.row(InlineKeyboardButton(text=translations[lang].trainer_main_menu_btn_questionaire.value,
-                                     callback_data=MoveCallback(target=TrainerMainMenuMoveTo.quiz).pack()))
+                                     callback_data=MoveCallback(target="to_no_content").pack()))
     builder.adjust(2, 1, 1)
     return builder.as_markup()

@@ -8,10 +8,11 @@ from ..callback_properties.movetos import MyCLientsMoveTo
 from app.callbacks.callbacks import MoveCallback
 from aiogram.types import InlineKeyboardButton
 from app.config import CHOOSE_BUTTON_MAX_COUNT_PER_PAGE
+from app.translations.base_translations import translations
 
 
 class MyClientsKeyboard(InlineKeyboardBuilder):
-    def __init__(self, clients: Client, start_index):
+    def __init__(self, clients: Client, start_index, lang):
         clients_list = []
         for client in clients:
             clients_list.append(client)
@@ -46,29 +47,34 @@ class MyClientsKeyboard(InlineKeyboardBuilder):
                     )
                 )
             self.row(*move_buttons)
-        self.row(InlineKeyboardButton(text=f"Назад",
+        self.row(InlineKeyboardButton(text=translations[lang].go_back_btn.value,
                                       callback_data=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu).pack()))
 
 
 class SingleClientKeyboard(InlineKeyboardBuilder):
-    def __init__(self, client: Client):
+    def __init__(self, client: Client, lang):
         super().__init__()
         self.button(
-            text="Анкета", callback_data=MoveCallback(target=MyCLientsMoveTo.client_quiz)
+            text=translations[lang].trainer_my_clients_single_clietn_menu_btn_questionnaire.value,
+            callback_data=MoveCallback(target="to_no_content")
         )
         self.button(
-            text="Тренировки", callback_data=MoveCallback(target=MyCLientsMoveTo.show_trainings)
+            text=translations[lang].trainer_my_clients_single_clietn_menu_btn_trainings.value,
+            callback_data=MoveCallback(target=MyCLientsMoveTo.show_trainings)
         )
         if not client.training_plan:
             self.button(
-                text="Составить план", callback_data=MoveToCallback(move_to=MyCLientsMoveTo.create_client_plan).pack()
+                text=translations[lang].trainer_my_clients_single_clietn_menu_btn_create_plan.value,
+                callback_data=MoveToCallback(move_to=MyCLientsMoveTo.create_client_plan).pack()
             )
         else:
             self.button(
-                text="Тренировочный план", callback_data=MoveCallback(target=MyCLientsMoveTo.show_client_plan_menu).pack()
+                text=translations[lang].trainer_my_clients_single_clietn_menu_btn_show_plan.value,
+                callback_data=MoveCallback(target=MyCLientsMoveTo.show_client_plan_menu).pack()
             )
         self.button(
-            text="Назад", callback_data=MoveToCallback(move_to=TrainerMainMenuMoveTo.my_clients).pack()
+            text=translations[lang].go_back_btn.value,
+            callback_data=MoveToCallback(move_to=TrainerMainMenuMoveTo.my_clients).pack()
         )
         self.adjust(2,1,1)
 

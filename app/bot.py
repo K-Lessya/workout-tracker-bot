@@ -130,7 +130,7 @@ async def delete_test_user(callback: CallbackQuery, callback_data: TestCallback,
 
 @dp.callback_query(MoveCallback.filter(F.target == "to_no_content"))
 async def not_added_handler(callback: CallbackQuery, callback_data: str, state: FSMContext):
-    await callback.answer(text='Функционал еще не добавлен', show_alert=True)
+    await callback.answer(text='Coming soon :)', show_alert=True)
 
 
 @dp.message(Command("version"))

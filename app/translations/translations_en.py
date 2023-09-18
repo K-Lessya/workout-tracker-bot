@@ -53,7 +53,75 @@ class EnglishTranslations(Enum):
     trainer_add_client_menu_watch_others = "Well, let's see other clients"
     trainer_add_client_menu_back_to_main_menu = "We are in main menu again"
 
+    trainer_add_exercise_choose_body_part = 'Type the exercise body part name or select one from the list'
+    trainer_add_exercise_create_muscle_group_message = 'Type the exercise muscle group name'
+    trainer_add_exercise_create_muscle_group_callback = 'Type the exercise muscle group name or select it from the list'
+    trainer_add_exercise_type_exercise_name = "Now type the exercise name"
+    trainer_add_exercise_ask_for_media = "Do you want to upload photo or video that will show exercise technique?"
+    trainer_add_exercise_process_media = 'Then send me the photo or the video that will show exercise technique\n' \
+                                         'It will be better if photo will consist of two positions in exercise'
+    trainer_add_exercise_process_media_text_recieved = "You need to send photo or video"
+    trainer_add_exercise_process_media_file_size_alert = "File size must be less, than 50Мб"
+    trainer_add_exercise_ask_for_save = 'Check your exercise.\nBody part: {}\nMuscle group:' \
+                                        ' {}\nExercise name: {}\n Do you want to save it?'
+    trainer_add_exercise_process_save_loading = "Saving exercise..."
+    trainer_add_exercise_process_save_process_file = "Processing exercise media..."
+    trainer_add_exercise_process_save_upload_file = "Uploading exercise file..."
+    trainer_add_exercise_process_save_file_uploaded = "File uploaded"
+    trainer_add_exercise_process_save_process_bp_mg = "Processing body part and muscle group..."
+    trainer_add_exercise_process_save_not_saved = "Exercise was not saved"
 
+    trainer_exercise_db_choose_bodypart = "Choose exercise by body part and muscle group"
+    trainer_exercise_db_menu_choose_body_part = "Choose exercise's body part\n" \
+                                                " If no body parts listed, create new exercise"
+    trainer_exercise_db_menu_choose_muscle_group = "Choose muscle group"
+    trainer_exercise_db_menu_choose_exercise = "Choose exercise"
+    trainer_exercise_db_menu_sending_exercie_media = "Sending exercise media"
+    trainer_exercise_db_menu_inline_create_body_part = "This message will start exercise creation process(will be handled as body part name)\n" \
+                                                       "Body part {} " \
+                                                       "Now type muscle group name"
+    trainer_exercise_db_menu_inline_create_muscle_group = "This message will start exercise creation process(will be handled as muscle group name)\n" \
+                                                          "Body part {}\n" \
+                                                          "Muscle group {}\n" \
+                                                          "Now enter the exercise name"
+    trainer_exercise_db_menu_inline_create_exercise = "This message will start exercise creation process(will be handled as exercise name)" \
+                                                      "Do you want to upload exercise's technique photo or video?"
+
+    trainer_my_clients_menu_my_clients = "My clients menu\nSelect from the list"
+    trainer_my_clients_menu_no_clients_registered = "No one from your selected clients completed registration or accepted your request"
+    trainer_my_clients_menu_no_clients = "You don't have any clients now\nAdd them from add client menu"
+    trainer_my_clients_menu_single_client_menu = "Client:\nName: {}\nSurname: {}"
+    trainer_my_clients_menu_single_client_create_plan_select_exercise = "Let's choose exercise for day {}, or you can create new exercise"
+
+    trainer_my_clients_menu_single_client_create_plan_start = "Creating plan for client {} {}.\n" \
+                                                              "Type how many days of training should be in plan"
+    trainer_my_clients_menu_single_client_create_plan_day_name = "There're {} days in a plan\nType the name of the day {}"
+    trainer_my_clients_menu_single_client_create_plan_no_exercises = "There are no exercise in your db yet, just add one"
+    trainer_my_clients_menu_single_client_create_plan_add_trainer_note = "Add your own recommendation(hint) about the" \
+                                                                         " base technique(It's a basic " \
+                                                                         "recommendation, which will be shown " \
+                                                                         "with exercise)\n Or if you don't want to add anything press" \
+                                                                         " next"
+    trainer_my_clietns_menu_single_client_create_plan_exercise_already_added = "You have already added this exercise into plan, please selec another exercise or save day"
+    trainer_my_clietns_menu_single_client_create_plan_add_num_runs = "Type how many runs should be in exercise"
+    trainer_my_clietns_menu_single_client_create_plan_add_num_repeats = "Type how many repeats should be in each run"
+    trainer_my_clietns_menu_single_client_create_plan_trainer_note_was_not_added = "Trainer didn't add any hints"
+
+
+    trainer_create_plan_choose_exercise_for_day = "Let's choose exercises for day {}"
+    trainer_create_plan_add_trainer_note = 'Add your own note or recommendation for client about technique (This is a basic recommendation, which will be shown to client with an exercise)'
+    trainer_my_clietns_menu_single_client_create_plan_add_one_more_or_save_day = "Add another exercise to this day or save it"
+    trainer_my_clients_menu_single_clietn_create_plan_save_client_notification = "{} {} just created a training plan for you"
+    trainer_my_clients_menu_single_clietn_create_plan_save_trainer_alert = "Training plan was saved successfully, client can check it in menu"
+    trainer_my_clients_menu_single_clietn_create_plan_save_plan_question = "Do you want to save plan?"
+
+    trainer_my_clients_menu_single_client_plan_menu = "You can view current plan or create a new one"
+    trainer_my_clients_menu_single_client_vieew_plan_show_days = "Choose a day from plan"
+    trainer_my_clients_menu_single_client_vieew_plan_show_exercises = "Choose exercise"
+    trainer_my_clients_menu_single_client_view_plan_load_data = "Loading data..."
+    trainer_my_clients_menu_single_client_view_plan_send_photo = "Sending photo..."
+    trainer_my_clients_menu_single_client_view_plan_get_video = "Getting video..."
+    trainer_my_clients_menu_single_client_view_plan_send_video = "Sending video..."
 
     trainer_main_menu_btn_add_client = "Add client"
     trainer_main_menu_btn_my_clients = "My clients"
@@ -62,6 +130,25 @@ class EnglishTranslations(Enum):
     trainer_add_client_btn_share_contact = "Share contact"
     trainer_add_client_btn_select_existed = "Add from already registered clients"
 
+    trainer_my_clients_single_clietn_menu_btn_questionnaire = "Questionnaire"
+    trainer_my_clients_single_clietn_menu_btn_trainings = "Trainings"
+    trainer_my_clients_single_clietn_menu_btn_create_plan = "Create training plan"
+    trainer_my_clients_single_clietn_menu_btn_show_plan = "Training plan"
+
+    trainer_exercise_plan_list_keyboard_save_day = "Save training day {}"
+    trainer_exercise_plan_list_keyboard_add_exercise = "Add exercise to day"
+
+    trainer_client_plan_menu_keyboard_show_plan = "Show client plan"
+    trainer_client_plan_menu_keyboard_create_new_plan = "Create new plan"
+
+    trainer_client_plan_days_keyboard_day_btn = "Day {}({})"
+
+    trainer_add_exercise_btn_add_exercise = "Create exercise"
+
+    multiple_files_alert = "You've sent multiple files, ony the first one will be processed"
+
 
 
     go_back_btn = "Go Back"
+    next_action_btn = "Next"
+    not_a_number_alert = "Please type number"

@@ -11,5 +11,3 @@ translations = {
     Languages.RU.name: RussianTranslations,
     Languages.EN.name: EnglishTranslations
 }
-
-

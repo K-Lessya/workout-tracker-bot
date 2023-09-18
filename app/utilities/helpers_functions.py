@@ -5,6 +5,7 @@ from aiogram.types import Message
 import re
 import logging
 from app.config import MAX_FILE_SIZE
+from app.translations.base_translations import translations
 from aiogram.types import CallbackQuery
 
 
@@ -46,6 +47,7 @@ def double_button_click_handler(func):
 def album_handler(func):
     async def wrapper(message, state):
         state_data = await state.get_data()
+        lang = state_data['lang']
         print(state_data['multiple_files_message_sent'])
         if not state_data['multiple_files_message_sent']:
             print("message was not send yet, sending ...")
@@ -57,7 +59,7 @@ def album_handler(func):
                 print(f'another file catched sending message')
                 await state.update_data({"multiple_files_message_sent": True})
                 print('STATE UPDATED')
-                await message.answer("Ты прислал больше одного файла, мы обработаем первый")
+                await message.answer(translations[lang].multiple_files_alert.value)
 
         else:
             print('another file catched but message was already sent')
