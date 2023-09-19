@@ -119,6 +119,20 @@ class RussianTranslations(Enum):
     trainer_my_clients_menu_single_client_view_plan_get_video = "Получаю видео..."
     trainer_my_clients_menu_single_client_view_plan_send_video = "Отправляю видео..."
 
+    trainer_my_clients_menu_single_client_view_trainings_no_trainings = "Клиент еще не добавил тренировку"
+    trainer_my_clients_menu_single_client_view_trainings_choose_day = "Выбери тренировку из списка"
+    trainer_my_clients_menu_single_client_view_trainings_show_training = "Тренировка {}\nДата: {}\nУпражнения:"
+
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise = "Упражнение: {}\n" \
+                                                                         "Количество: {}x{}\n" \
+                                                                         "Вес с которым работал: {} кг"
+    trainer_my_clients_menu_single_client_view_trainings_update_comment = "Обновить комментарий"
+    trainer_my_clients_menu_single_client_view_trainings_create_comment = "Добавить комментарий"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video = "Пометка клиента: {}\nКомментарий: {}"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video_no_comment = "Пометка клиента: {}\nКомментарий отсутствует"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_as_for_comment = "Напиши свой комментарий к видео"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_comment_saved = "Комментарий сохранен"
+
 
     trainer_create_plan_choose_exercise_for_day = "Давай выберем упражнения для дня {}"
 
@@ -148,6 +162,8 @@ class RussianTranslations(Enum):
 
     trainer_client_plan_days_keyboard_day_btn = "День {}({})"
 
+    trainer_client_training_exercise_show_video_with_comments = "Показать видео с комментариями"
+
 
     trainer_add_exercise_btn_add_exercise = "Добавить упражнение"
 
@@ -156,6 +172,8 @@ class RussianTranslations(Enum):
     go_back_btn = "Назад"
     next_action_btn = "Далее"
     use_btn_alert = "Воспользуйся одной из кнопок"
+
+
 
 
     multiple_files_alert = "Ты прислал больше одного файла, обработан будет первый"

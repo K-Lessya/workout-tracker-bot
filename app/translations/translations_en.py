@@ -123,6 +123,19 @@ class EnglishTranslations(Enum):
     trainer_my_clients_menu_single_client_view_plan_get_video = "Getting video..."
     trainer_my_clients_menu_single_client_view_plan_send_video = "Sending video..."
 
+    trainer_my_clients_menu_single_client_view_trainings_no_trainings = "Client has not added any training yet"
+    trainer_my_clients_menu_single_client_view_trainings_choose_day = "Select training from the list"
+    trainer_my_clients_menu_single_client_view_trainings_show_training = "Training {}\nDate: {}\nExercises:"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise = "Exercise: {}\n" \
+                                                                         "Runs x Repeats: {}x{}\n" \
+                                                                         "Working weight: {} kg"
+    trainer_my_clients_menu_single_client_view_trainings_update_comment = "Update comment"
+    trainer_my_clients_menu_single_client_view_trainings_create_comment = "Add comment"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video = "Client note: {}\nTrainer comment: {}"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video_no_comment = "Client note: {}\nNo trainer comment"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_as_for_comment = "Type your comment about client video"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_comment_saved = "Comment has been saved"
+
     trainer_main_menu_btn_add_client = "Add client"
     trainer_main_menu_btn_my_clients = "My clients"
     trainer_main_menu_btn_exercise_db = "Exercises database"
@@ -140,6 +153,8 @@ class EnglishTranslations(Enum):
 
     trainer_client_plan_menu_keyboard_show_plan = "Show client plan"
     trainer_client_plan_menu_keyboard_create_new_plan = "Create new plan"
+
+    trainer_client_training_exercise_show_video_with_comments = "Show client video and comments"
 
     trainer_client_plan_days_keyboard_day_btn = "Day {}({})"
 
