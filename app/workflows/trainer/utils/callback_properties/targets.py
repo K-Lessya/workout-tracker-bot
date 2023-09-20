@@ -4,6 +4,7 @@ class TrainerMainMenuTargets:
     list_exercises = 'list_exercises'
     create_muscle_group = 'create_mscl_grp'
     go_to_main_menu = 'to_trainer_main_menu'
+    choose_language = "trainer_choose_language"
 
 
 class TrainerAddClientTargets:

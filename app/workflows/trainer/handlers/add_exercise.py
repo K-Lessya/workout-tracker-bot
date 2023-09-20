@@ -74,7 +74,7 @@ async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, s
 async def process_body_part_name_message(message: Message, state: FSMContext):
     await state.update_data({'body_part': message.text})
     state_data = await state.get_data()
-    lang = state_data['lang']
+    lang = state_data.get('lang')
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
     await message.answer(translations[lang].trainer_add_exercise_create_muscle_group_message.value)
 

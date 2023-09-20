@@ -22,6 +22,10 @@ def create_trainer_main_menu_keyboard(lang):
         {
             "text": translations[lang].trainer_main_menu_btn_exercise_db.value,
             "target": UpstreamMenuMoveTo.show_exercise_db
+        },
+        {
+            "text": translations[lang].trainer_main_menu_btn_change_language.value,
+            "target": TrainerMainMenuMoveTo.change_language
         }
     ]
     for button in builder_buttons:

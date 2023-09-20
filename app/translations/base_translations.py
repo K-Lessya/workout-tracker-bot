@@ -4,7 +4,7 @@ from .translations_ru import RussianTranslations
 
 
 class Languages(Enum):
-    RU = 'Russian'
+    RU = 'Русский'
     EN = 'English'
 
 translations = {

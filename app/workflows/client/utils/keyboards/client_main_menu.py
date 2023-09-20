@@ -30,6 +30,10 @@ def create_client_main_menu_keyboard(client: Client, lang):
         {
             "text": translations[lang].client_main_menu_btn_my_plan.value,
             "target": ClientMainMenuMoveTo.my_plan
+        },
+        {
+            "text": translations[lang].trainer_main_menu_btn_change_language.value,
+            "target": ClientMainMenuMoveTo.change_language
         }
 
     ]
@@ -43,10 +47,10 @@ def create_client_main_menu_keyboard(client: Client, lang):
             builder.button(
                 text=button['text'], callback_data=MoveCallback(target=button['target'])
             )
-    if len(builder_buttons) == 5:
-        builder.adjust(1, 2, 2)
+    if len(builder_buttons) == 6:
+        builder.adjust(1, 2, 2,1)
+    elif len(builder_buttons) == 5:
+        builder.adjust(1, 2, 1,1)
     elif len(builder_buttons) == 4:
-        builder.adjust(1, 2, 1)
-    elif len(builder_buttons) == 3:
-        builder.adjust(1, 2)
+        builder.adjust(1, 2,1)
     return builder.as_markup()

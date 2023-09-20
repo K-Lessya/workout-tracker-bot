@@ -32,3 +32,5 @@ class ClientMyTrainingsTarget:
     show_training = 'client_my_trainings_show_training'
     show_exercise = 'client_my_trainings_show_exercise'
 
+class ClientChangeLanguageTarget:
+    choose_language = 'client_choose_language'

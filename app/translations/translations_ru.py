@@ -88,6 +88,10 @@ class RussianTranslations(Enum):
                                                       'Хочешь загрузить фотографию или видео с техникой упражнения?'
 
 
+    trainer_choose_language = "Выбери язык"
+
+
+
     trainer_my_clients_menu_my_clients = "Мои клиенты. Выбирай нужного"
     trainer_my_clients_menu_no_clients_registered = "Ни один из клиентов пока не зарегистрировался или не принял заявку"
     trainer_my_clients_menu_no_clients = "У тебя пока не клиентов"
@@ -146,6 +150,7 @@ class RussianTranslations(Enum):
     trainer_main_menu_btn_my_clients = "Мои клиенты"
     trainer_main_menu_btn_exercise_db = "База упражнений"
     trainer_main_menu_btn_questionaire = "Анкета для клиентов"
+    trainer_main_menu_btn_change_language = "Сменить язык"
     trainer_add_client_btn_share_contact = "Поделиться контактом"
     trainer_add_client_btn_select_existed = "Добавить из уже зарегистрированных клиентов"
 
@@ -166,6 +171,89 @@ class RussianTranslations(Enum):
 
 
     trainer_add_exercise_btn_add_exercise = "Добавить упражнение"
+
+################## Client ########################
+    client_main_menu = "Меню клиента"
+
+    client_my_trainer = "Имя: {}\nФамилия: {}"
+    client_my_trainer_no_trainer = "У тебя еще нет тренера"
+
+    client_requests_menu = "Входящие заявки от тренеров"
+    client_requests_show_request = "Заявка от тренера:\n{} {}\nПринять заявку?"
+    client_requests_accept_request = "Поздравляю, теперь {} {} тренирует тебя"
+    client_requests_accept_request_trainer_notification = "{} {} принял твою заявку, теперь ты можешь просмотреть его в списке клиентов"
+    client_requests_decline_request = "Заявка от {} {} была удалена"
+    client_requests_decline_request_trainer_notification = "{} {} отклонил твою заявку"
+
+    client_my_plan_loading_data = "Загружаю данные"
+    client_my_plan_choose_day = "Выбери день"
+    client_my_plan_show_day = "Вот твои упражнения, для дня {}, если не знаешь как выполнять просто выбери упражнение из списка"
+    client_my_plan_loading_video = "Загружаю файл"
+    client_my_plan_show_exercise = "{}\n{} подхода по {} раз(а)\nПримечание: {}"
+
+    client_my_trainings_choose_training = "Выбирай день тренировки"
+    client_my_trainings_show_training = "Тренировка {}\nДата: {}\nУпражнения:"
+    client_my_trainings_show_exercise = "Упражнение: {}\nКоличество: {}x{}\nВес с которым работал: {} кг"
+    client_my_trainings_show_video_client_comment = "Мой комментарий: {}\n"
+    client_my_trainings_show_video_no_client_comment = "Ты не оставил комментария\n"
+    client_my_trainings_show_video_trainer_comment = "Комментарий  тренера: {}"
+    client_my_trainings_show_video_no_trainer_comment = "Комментарий тренера отсутствует"
+
+    client_add_training_choose_training = "Хочешь добавить собственную тренировку или из плана"
+    client_add_training_add_custom_start = "  Упражнения для свободной тренировки создаешь ты сам, поэтому тебе не будут доступны:\n\n"\
+                                         "- Упражнения которые могут использовать тренера\n"\
+                                         "- Описания упражнений и материалы показывающие технику\n"\
+                                         "- Индивидуальные рекомендации к упражнениям от тренеров\n"\
+                                         "  Все эти материалы доступны только если ты занимаешься по плану, который составил тебе тренер\n\n"\
+                                         "  Ты все еще сможешь оставлять видео своего выполнения упражнений и тренер(если он у тебя есть) сможет дать комментарий по тезнике\n\n"\
+                                         "  Если сейчас тренера у тебя нет, то когда он появится он сможет просмотреть все твои свобожные тренировки и дать по ним комментарий\n\n"\
+                                         "  Введи название своей тренировки."
+    client_add_training_add_from_plan = "Выбери день из плана"
+    client_add_training_add_from_plan_no_plan = "Тренер еще не составил для тебя план"
+
+
+    client_add_from_plan_show_day =  "Вот твои упражнения, для дня {}\n Если не знаешь как выполнять просто выбери упражнение из списка"
+    client_add_from_plan_show_exercise = "{}\n{} подхода по {} раз(а)\nПримечание: {}\nВведи вес с которым работал"
+    client_add_from_plan_show_exercise_already_added = "Ты уже добавил это упражнение, выбери другое"
+    client_add_from_plan_ask_video = "Отлично, хочешь добавить видео?"
+    client_add_from_plan_process_video = "Присылай видео своего выполнения"
+    client_add_from_plan_ask_for_save = "Ты добавил следующие упражнения из плана:\n{}\nВыбирай упражнение"
+    client_add_from_plan_ask_for_question = "Хочешь оставить свой собственный коментарий или вопрос к видео для тренера?"
+    client_add_from_plan_process_client_note = "Напиши свой вопрос или комментарийц и тренер сможет его увидеть"
+    client_add_from_plan_process_save = "Сохраняю видео упражнений"
+    client_add_from_plan_process_sace_single_video = "Сохраняю видео для упражнения {}"
+
+    client_add_custom_start = "Теперь давай введем название первого упражнения или выбери из уже созданных тобой упражнений"
+    client_add_custom_start_no_exercises = "У тебя еще нет своих урпажнений, введи название первого"
+    client_add_custom_process_num_runs = "А теперь введи количество подходов"
+    client_add_custom_already_added = "Ты уже добавил это упражнение в тренировку, выбери дрпугое или создай новое"
+    client_add_custom_process_num_repeats = "Хорошо, а теперь введи количество повторений за подход"
+    client_add_custom_process_weight = "Хорошо, а теперь введи вес с которым работал"
+
+
+    client_fill_questionnaire = "Заполнить анкету"
+    client_custom_training_btn = "Свободная тренировка"
+    client_from_plan_training_btn = "Тренировка по плану"
+    client_training_save_btn = "Сохранить"
+
+
+
+    client_number_required = "Нужно ввести число"
+    client_video_required = "Необходимо прислать видео"
+
+    file_too_big = "Размер файла слишком большой, пожалуйста присылай файлы размером до 50 Мб"
+
+
+
+
+
+
+
+
+
+
+
+
 
     yes_no_btn_yes = "Да"
     yes_no_btn_no = "Нет"

@@ -20,6 +20,7 @@ from app.workflows.client.utils.keyboards.notifications import create_new_traine
 from aiogram.types.menu_button_commands import MenuButtonCommands
 from app.utilities.helpers_functions import callback_error_handler
 from app.translations.base_translations import translations
+from app.workflows.trainer.utils.keyboards.add_client_options import AddClientByContactKeyboard
 
 add_client_router = Router()
 
@@ -37,7 +38,8 @@ async def choose_add_flow(callback: CallbackQuery, callback_data: ChooseCallback
 async def start_add_client(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     lang = get_trainer(callback.from_user.id).lang
     await state.set_state(TrainerStates.add_client.process_contact)
-    await callback.message.edit_text(translations[lang].trainer_add_client_menu_share_contact.value)
+    await callback.message.edit_text(translations[lang].trainer_add_client_menu_share_contact.value,
+                                     reply_markup=AddClientByContactKeyboard(lang).as_markup())
     await callback.answer()
 
 

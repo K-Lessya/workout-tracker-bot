@@ -7,7 +7,7 @@ from app.bot import bot
 from app.config import PHOTO_BUCKET, LOCALE
 from app.s3.downloader import create_presigned_url
 from app.callbacks.callbacks import MoveCallback
-from app.entities.single_file.crud import get_client_trainings, get_client_training
+from app.entities.single_file.crud import get_client_trainings, get_client_training, get_all_client_trainigs
 from app.keyboards.trainings.keyboard import PaginationKeyboard, TrainingExercisesKeyboard,\
     TrainingSingleExerciseKeyboard, TrainingVideoKeyboard
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback
@@ -19,6 +19,7 @@ from app.workflows.trainer.utils.states import TrainerStates
 from app.utilities.helpers_functions import callback_error_handler
 from app.translations.base_translations import translations
 from app.entities.single_file.crud import get_trainer
+
 my_clients_trainings_router = Router()
 
 
@@ -37,6 +38,7 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
     client = state_data['client']
     if callback_data.target == MyCLientsMoveTo.show_trainings:
         trainings = get_client_trainings(tg_id=client.tg_id, start_pos=-4, range=4)[0]
+        all_trainings = get_all_client_trainigs(tg_id=client.tg_id)
         if trainings != []:
             query = MyTrainings(start_pos=trainings['length']-4,
                                 end_pos=trainings['length']-1,
@@ -132,7 +134,7 @@ async def show_client_training_exercise(callback: CallbackQuery, callback_data: 
                                                   source_option=str(training_id),
                                                   lang=lang).as_markup()
     if callback.message.video:
-        await callback.message.edit_caption(reply_markup=None, caption=callback.message.caption)
+        await callback.message.delete()
         await bot.send_message(chat_id=callback.from_user.id, text=msg_text, reply_markup=reply_markup)
     else:
         await callback.message.edit_text(text=msg_text, reply_markup=reply_markup)
@@ -145,8 +147,8 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
     lang = state_data['lang']
     exercise = state_data['selected_exercise']
     selected_exercise_id = state_data['selected_exercise_id']
-
-    await callback.answer(text=translations[lang].trainer_my_clients_menu_single_client_view_plan_send_video.value)
+    await callback.message.delete()
+    notification = await callback.message.answer(text=translations[lang].trainer_my_clients_menu_single_client_view_plan_send_video.value)
     exercise_link = create_presigned_url(PHOTO_BUCKET, exercise.video_link)
     r = requests.get(exercise_link)
     filename = exercise.video_link.split('/')[-1].split('.')[0]
@@ -172,6 +174,7 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
                          .trainer_my_clients_menu_single_client_view_trainings_show_exercise_video_no_comment
                          .value.format(exercise.client_note),
                          reply_markup=keyboard.as_markup())
+    await notification.delete()
 
 @my_clients_trainings_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.create_video_comment))
 @callback_error_handler

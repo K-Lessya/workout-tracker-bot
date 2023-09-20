@@ -27,6 +27,9 @@ from app.workflows.client.handlers.add_training.from_plan import training_from_p
 from app.callbacks.callbacks import MoveCallback
 from app.workflows.common.utils.callback_properties.movetos import CommonGoBackMoveTo
 from app.utilities.helpers_functions import callback_error_handler
+from app.entities.single_file.crud import get_client_by_id
+from app.translations.base_translations import translations
+
 add_training_router = Router()
 add_training_router.include_routers(training_from_plan_router)
 
@@ -34,33 +37,32 @@ add_training_router.include_routers(training_from_plan_router)
 @callback_error_handler# Create training flow
 async def start_creating_training(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
             await state.set_state(ClientStates.add_training.process_training_type)
-
-            await callback.message.edit_text(f"Хочешь добавить собственную тренировку или из плана",
-                                             reply_markup=TrainingTypeKeyboard().as_markup())
+            client = get_client_by_id(callback.from_user.id)
+            lang = client.lang
+            await state.update_data({'lang': lang})
+            await callback.message.edit_text(translations[lang].client_add_training_choose_training.value,
+                                             reply_markup=TrainingTypeKeyboard(lang).as_markup())
 
 
 
 @add_training_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.choose_training_type))
 @callback_error_handler
 async def process_training_type(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    state_data = await state.get_data()
+    lang = state_data.get('lang')
     if callback_data.option == ClientAddTrainingOptions.custom:
         await state.set_state(ClientStates.add_training.add_custom.process_training_name)
-        await callback.message.edit_text(f"  Упражнения для свободной тренировки создаешь ты сам, поэтому тебе не будут доступны:\n\n"
-                                         f"- Упражнения которые могут использовать тренера\n"
-                                         f"- Описания упражнений и материалы показывающие технику\n"
-                                         f"- Индивидуальные рекомендации к упражнениям от тренеров\n"
-                                         f"  Все эти материалы доступны только если ты занимаешься по плану, который составил тебе тренер\n\n"
-                                         f"  Ты все еще сможешь оставлять видео своего выполнения упражнений и тренер(если он у тебя есть) сможет дать комментарий по тезнике\n\n"
-                                         f"  Если сейчас тренера у тебя нет, то когда он появится он сможет просмотреть все твои свобожные тренировки и дать по ним комментарий\n\n"
-                                         f"  Введи название своей тренировки.")
+        await callback.message.edit_text(translations[lang].client_add_training_add_custom_start.value)
 
     elif callback_data.option == ClientAddTrainingOptions.from_plan:
         if get_client_by_id(tg_id=callback.from_user.id).training_plan:
             training_days = get_training_days(client_id=callback.from_user.id)
             await state.update_data({"training_days": training_days})
             await state.set_state(ClientStates.add_training.add_from_plan.show_plan)
-            await callback.message.edit_text(f'Выбери день из плана',
+            await callback.message.edit_text(translations[lang].client_add_training_add_from_plan.value,
                                              reply_markup=TrainingDaysKeyboard(training_days,
-                                                                               target=ClientAddTrainingTargets.show_day,                                                                          go_back_target=CommonGoBackMoveTo.to_client_main_menu).as_markup())
+                                                                               target=ClientAddTrainingTargets.show_day,
+                                                                               lang=lang,
+                                                                               go_back_target=CommonGoBackMoveTo.to_client_main_menu).as_markup())
         else:
-            await callback.answer("Тренер еще не составил для тебя план", show_alert=True)
+            await callback.answer(translations[lang].client_add_training_add_from_plan_no_plan.value, show_alert=True)

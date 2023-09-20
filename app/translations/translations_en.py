@@ -34,6 +34,7 @@ class EnglishTranslations(Enum):
     client_main_menu_btn_my_trainer = "My trainer"
     client_main_menu_btn_my_plan = "My plan"
 
+    trainer_choose_language = "Сhoose language"
 
     trainer_add_client_menu_choose_add_method = "Select the adding method please"
     trainer_add_client_menu_share_contact = "Then share a client contact with me and i will add him(her)," \
@@ -140,6 +141,7 @@ class EnglishTranslations(Enum):
     trainer_main_menu_btn_my_clients = "My clients"
     trainer_main_menu_btn_exercise_db = "Exercises database"
     trainer_main_menu_btn_questionaire = "Questionnaire for clients"
+    trainer_main_menu_btn_change_language = "Change Language"
     trainer_add_client_btn_share_contact = "Share contact"
     trainer_add_client_btn_select_existed = "Add from already registered clients"
 
@@ -159,6 +161,73 @@ class EnglishTranslations(Enum):
     trainer_client_plan_days_keyboard_day_btn = "Day {}({})"
 
     trainer_add_exercise_btn_add_exercise = "Create exercise"
+
+    ################## Client ########################
+    client_main_menu = "ClientMenu"
+
+    client_my_trainer = "Name: {}\nSurname: {}"
+    client_my_trainer_no_trainer = "You don't have trainer yet"
+
+    client_requests_menu = "Incoming requests from trainers"
+    client_requests_show_request = "Request from trainer:\n{} {}\nAccept request?"
+    client_requests_accept_request = "Congratulations, from now {} {} is your trainer"
+    client_requests_accept_request_trainer_notification = "{} {} has accepted you request, now you can view him(her) in the clients list"
+    client_requests_decline_request = "Request from {} {} was deleted"
+    client_requests_decline_request_trainer_notification = "{} {} declined your request"
+
+    client_my_plan_loading_data = "Loading data..."
+    client_my_plan_choose_day = "Choose day"
+    client_my_plan_show_day = "Here are your exercises for day {}, if you are struggling with technique just select exercise"
+    client_my_plan_loading_video = "Loading media..."
+    client_my_plan_show_exercise = "{}\n{} runs {} repeats\nTrainer note for you: {}"
+
+    client_my_trainings_choose_training = "Choose training day"
+    client_my_trainings_show_training = "Training {}\nDate: {}\nExercises:"
+    client_my_trainings_show_exercise = "Exercise: {}\nAmount: {}x{}\nWorking weight: {} kg"
+    client_my_trainings_show_video_client_comment = "My question: {}"
+    client_my_trainings_show_video_no_client_comment = "You haven't left any questions\n"
+    client_my_trainings_show_video_trainer_comment = "Trainer's comment: {}"
+    client_my_trainings_show_video_no_trainer_comment = "Trainer still didn't added any comments about your technique"
+
+    client_add_training_choose_training = "Do you want to add a custom training or add a traiing from your plan?"
+    client_add_training_add_custom_start = "  You create your own exercises for custom trainings and in this trainings you are not allowed to:\n\n" \
+                                           "- Use trainer's exercises\n" \
+                                           "- See exercises techinque description and media\n" \
+                                           "- Your trainer's personal recommendation about exercise technique\n" \
+                                           "  All above is allowed only if you will create training from plan\n\n" \
+                                           "  However you are still able to record your own videos of exercises and your trainer will be able to make corrections\n\n" \
+                                           "  If you don't have trainer now, your custom trainings will be available for your future trainer to watch them\n\n" \
+                                           "  Type training name"
+    client_add_training_add_from_plan = "Choose a day from your plan"
+    client_add_training_add_from_plan_no_plan = "Your trainer hasn't created a plan for you yet"
+
+    client_add_from_plan_show_day = "Here are your exercises for day {}\n Select one of them to add it to your training"
+    client_add_from_plan_show_exercise = "{}\n{} runs, {} repeats\nPersonal recommendation: {}\nType your working weight"
+    client_add_from_plan_show_exercise_already_added = "You have already added this exercise into your training, please select another one or save training"
+    client_add_from_plan_ask_video = "Do you want to add your own video where you showing how do you do this exercise?"
+    client_add_from_plan_process_video = "Send me a video with your technique"
+    client_add_from_plan_ask_for_save = "You have added next exercises from your plan:\n{}\nSelect one more or save training"
+    client_add_from_plan_ask_for_question = "Do you want to leave a question about your technique? Your trainer will rely on it when will provide corrections"
+    client_add_from_plan_process_client_note = "Type your question here"
+    client_add_from_plan_process_save = "Saving exercises videos..."
+    client_add_from_plan_process_sace_single_video = "Saveing video for exercise {}..."
+
+    client_add_custom_start = "Type the name of the exercise or select one from your personal exercise list"
+    client_add_custom_start_no_exercises = "You haven't added any exercise yet, type the name of the exercise"
+    client_add_custom_process_num_runs = "Type the number of runs for exercise"
+    client_add_custom_already_added = "You have already added this exercise to your training, create new one or select one from the list"
+    client_add_custom_process_num_repeats = "Type the number of repeats per one run"
+    client_add_custom_process_weight = "Type your working weight"
+
+    client_fill_questionnaire = "Fill the questionnaire"
+    client_custom_training_btn = "Custom training"
+    client_from_plan_training_btn = "Training from plan"
+    client_training_save_btn = "Save"
+
+    client_number_required = "Type number pls"
+    client_video_required = "I need a video file"
+
+    file_too_big = "File too big. File size should be less than 50 Мb"
 
     multiple_files_alert = "You've sent multiple files, ony the first one will be processed"
 

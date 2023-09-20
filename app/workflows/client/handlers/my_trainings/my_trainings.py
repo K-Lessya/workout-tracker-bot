@@ -17,6 +17,7 @@ from app.workflows.client.utils.callback_properties.targets import ClientMyTrain
 from app.workflows.client.classes.my_trainings import MyTrainings, MyTrainingsOption
 from app.keyboards.trainings.keyboard import PaginationKeyboard, TrainingExercisesKeyboard,\
     TrainingSingleExerciseKeyboard, TrainingVideoKeyboard
+from app.translations.base_translations import translations
 
 
 my_trainings_router = Router()
@@ -29,7 +30,10 @@ my_trainings_router = Router()
 @callback_error_handler
 async def show_trainings(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     locale.setlocale(locale.LC_TIME, LOCALE)
-    formatted_date_string = '%A, %d %B'
+    formatted_date_string = '%d %m %Y'
+    client = get_client_by_id(callback.from_user.id)
+    lang = client.lang
+    await state.update_data({'lang': lang})
     if callback_data.target == ClientMainMenuMoveTo.my_trainings:
         trainings = get_client_trainings(tg_id=callback.from_user.id, start_pos=-4, range=4)[0]
         query = MyTrainings(start_pos=trainings['length']-4,
@@ -62,28 +66,34 @@ async def show_trainings(callback: CallbackQuery, callback_data: MoveCallback, s
                                   first_index=query.start_pos,
                                   prev_target=MyTrainingsMoveTo.to_prev_trainings,
                                   next_target=MyTrainingsMoveTo.to_next_trainings,
-                                  go_back_target=CommonGoBackMoveTo.to_client_main_menu)
-    await callback.message.edit_text(text=f'Выбирай день тренировки', reply_markup=keyboard.as_markup())
+                                  go_back_target=CommonGoBackMoveTo.to_client_main_menu,
+                                  lang=lang)
+    await callback.message.edit_text(text=translations[lang].client_my_trainings_choose_training.value, reply_markup=keyboard.as_markup())
 
 @my_trainings_router.callback_query(ChooseCallback.filter(F.target == ClientMyTrainingsTarget.show_training))
 @callback_error_handler
 async def show_training(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     locale.setlocale(locale.LC_TIME, LOCALE)
-    formatted_date_string = '%A, %d %B'
+    state_data = await state.get_data()
+    lang = state_data['lang']
+    formatted_date_string = '%d/%m/%Y'
     training_id = int(callback_data.option)
     training = get_client_training(tg_id=callback.from_user.id, training_id=training_id)
     print(training)
     exercises = training['training_exercises']
     await state.update_data({'training_exercises': exercises, 'training_id': training_id})
-    await callback.message.edit_text(text=f'Тренировка\nДата: {training.date.strftime(formatted_date_string)}\nУпражнения:',
+    await callback.message.edit_text(text=translations[lang]
+                                     .client_my_trainings_show_training
+                                     .value.format(training.name, training.date.strftime(formatted_date_string)),
                                      reply_markup=TrainingExercisesKeyboard(target=ClientMyTrainingsTarget.show_exercise,
                                                                             go_back_target=ClientMainMenuMoveTo.my_trainings,
-                                                                            exercises=exercises).as_markup())
+                                                                            exercises=exercises, lang=lang).as_markup())
 
 @my_trainings_router.callback_query(ChooseCallback.filter(F.target == ClientMyTrainingsTarget.show_exercise))
 @callback_error_handler
 async def show_training_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
+    lang = state_data['lang']
     exercise = state_data['training_exercises'][int(callback_data.option)]
     if exercise.video_link != '':
         has_video = True
@@ -91,15 +101,16 @@ async def show_training_exercise(callback: CallbackQuery, callback_data: ChooseC
         has_video = False
     training_id = state_data['training_id']
     await state.update_data({'selected_exercise': exercise, 'selected_exercise_id': callback_data.option})
-    msg_text = f'Упражнение: {exercise.exercise.name}\n' \
-               f'Количество: {exercise.num_runs}x{exercise.num_repeats}\n' \
-               f'Вес с которым работал: {exercise.weight} кг'
+    msg_text = translations[lang].client_my_trainings_show_exercise.value.format(exercise.exercise.name,
+                                                                                 exercise.num_runs,
+                                                                                 exercise.num_repeats,
+                                                                                 exercise.weight)
     reply_markup = TrainingSingleExerciseKeyboard(has_video=has_video, target=MyTrainingsMoveTo.show_exercise_video,
                                                   go_back_target=ClientMyTrainingsTarget.show_training,
-                                                  source_option=str(training_id)).as_markup()
+                                                  source_option=str(training_id),lang=lang).as_markup()
 
     if callback.message.video:
-        await callback.message.edit_caption(reply_markup=None, caption=callback.message.caption)
+        await callback.message.delete()
         await bot.send_message(chat_id=callback.from_user.id, text=msg_text, reply_markup=reply_markup)
     else:
         await callback.message.edit_text(text=msg_text, reply_markup=reply_markup)
@@ -108,12 +119,14 @@ async def show_training_exercise(callback: CallbackQuery, callback_data: ChooseC
 @callback_error_handler
 async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await  state.get_data()
+    lang = state_data['lang']
+    await callback.message.delete()
     selected_exercise_id = state_data['selected_exercise_id']
     training_id = state_data['training_id']
     client = get_client_by_id(tg_id=callback.from_user.id)
     exercise = client.trainings[int(training_id)].training_exercises[int(selected_exercise_id)]
     await state.update_data({'selected_exercise': exercise})
-    await callback.answer(text='Загружаю видео')
+    notification = await callback.message.answer(text=translations[lang].client_my_plan_loading_video.value)
     exercise_link = create_presigned_url(PHOTO_BUCKET, exercise.video_link)
     r = requests.get(exercise_link)
     filename = exercise.video_link.split('/')[-1].split('.')[0]
@@ -122,12 +135,17 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
     print(filename)
     print('downloaded')
     file = FSInputFile(f'tmp/{callback.from_user.id}-{filename}.mp4')
-
+    caption = ""
     await bot.send_video(chat_id=callback.from_user.id, video=file,
-                         caption=f'{f"Мой комментарий: {exercise.client_note}" if exercise.client_note else "Ты не оставил комментария"}\n'
-                                 f'{f"Комментарий  тренера: {exercise.comment}" if exercise.comment else "Комментарий тренера отсутствует"}',
+                         caption=translations[lang].client_my_trainings_show_video_client_comment.value.format(exercise.client_note) if exercise.client_note
+                         else translations[lang].client_my_trainings_show_video_no_client_comment.value
+                         + translations[lang].client_my_trainings_show_video_trainer_comment.value.format(exercise.comment) if exercise.comment
+                         else translations[lang].client_my_trainings_show_video_no_trainer_comment.value,
                          reply_markup=TrainingVideoKeyboard(go_back_target=ClientMyTrainingsTarget.show_exercise,
-                                                            source_option=selected_exercise_id).as_markup())
+                                                            source_option=selected_exercise_id,
+                                                            lang=lang).as_markup())
+    await notification.delete()
+
 
 
 

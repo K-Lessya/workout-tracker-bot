@@ -2,6 +2,7 @@ class TrainerMainMenuMoveTo:
     add_client = 'add_client'
     my_clients = 'my_clients'
     quiz = 'quiz'
+    change_language = 'trainer_change_language'
 
 
 class ExerciseDbMoveTo:

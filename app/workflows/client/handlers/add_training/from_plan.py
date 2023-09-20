@@ -28,6 +28,7 @@ from app.config import PHOTO_BUCKET, MAX_FILE_SIZE
 from app.keyboards.yes_no import YesNoKeyboard
 from app.utilities.helpers_functions import callback_error_handler
 from app.utilities.helpers_functions import album_handler
+from app.translations.base_translations import translations
 
 training_from_plan_router = Router()
 
@@ -35,6 +36,9 @@ training_from_plan_router = Router()
 @callback_error_handler
 async def process_day(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await state.set_state(ClientStates.add_training.add_from_plan.show_day)
+    client = get_client_by_id(tg_id=callback.from_user.id)
+    lang = client.lang
+    await state.update_data({'lang': lang})
     state_data = await state.get_data()
     training_days = state_data['training_days']
     print(training_days[int(callback_data.option)])
@@ -42,21 +46,21 @@ async def process_day(callback: CallbackQuery, callback_data: ChooseCallback, st
     training = ClientTrainingSchema(selected_day.name)
     await state.update_data({'selected_day': int(callback_data.option), 'training': training})
     if callback.message.text:
-        await callback.message.edit_text(
-            f"Вот твои упражнения, для дня {int(callback_data.option) + 1}, если не знаешь как"
-            f" выполнять просто выбери упражнение из списка",
-            reply_markup=TrainingDayExercises(selected_day.training_exercises,
+        await callback.message.edit_text(translations[lang].client_add_from_plan_show_day.value
+                                         .format(int(callback_data.option) + 1),
+                                         reply_markup=TrainingDayExercises(selected_day.training_exercises,
                                               target=ClientAddTrainingTargets.show_exercise,
-                                              go_back_target=ClientMainMenuMoveTo.add_training).as_markup())
+                                              go_back_target=ClientMainMenuMoveTo.add_training,
+                                              lang=lang).as_markup())
     elif callback.message.photo or callback.message.video:
         await callback.message.delete()
-        await bot.send_message(chat_id=callback.from_user.id, text=f"Вот твои упражнения, для дня"
-                                                                   f" {int(callback_data.option) + 1}, если не знаешь как"
-                                                                   f" выполнять просто выбери упражнение из списка",
+        await bot.send_message(chat_id=callback.from_user.id, text=translations[lang].client_add_from_plan_show_day
+                               .value.format(int(callback_data.option) + 1),
                                reply_markup=TrainingDayExercises(selected_day.training_exercises,
                                                                  target=ClientAddTrainingTargets.show_exercise,
-                                                                 go_back_target=ClientMainMenuMoveTo.add_training).as_markup())
-    await callback.answer("Загрезка завершена")
+                                                                 go_back_target=ClientMainMenuMoveTo.add_training,
+                                                                 lang=lang).as_markup())
+    await callback.answer()
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.show_day)
 async def handle_message(message: Message, state: FSMContext):
@@ -70,50 +74,57 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
 
     state_data = await state.get_data()
     training_days = state_data['training_days']
+    lang = state_data['lang']
     training = state_data['training']
     selected_day = state_data['selected_day']
     selected_exercise = training_days[selected_day].training_exercises[int(callback_data.option)]
     training_exercise = ClientTrainingExerciseSchema(exercise=selected_exercise.exercise)
-    training_exercise.add_runs(selected_exercise.num_runs)
-    training_exercise.add_repeats(selected_exercise.num_repeats)
-    selected_exercise_index = int(callback_data.option)
-    await state.update_data({'selected_exercise_index': selected_exercise_index, 'training_exercise': training_exercise})
-    await state.set_state(ClientStates.add_training.add_from_plan.process_exercise_weight)
+    if training_exercise.exercise not in [item.exercise for item in training.training_exercises]:
+        training_exercise.add_runs(selected_exercise.num_runs)
+        training_exercise.add_repeats(selected_exercise.num_repeats)
+        selected_exercise_index = int(callback_data.option)
+        await state.update_data({'selected_exercise_index': selected_exercise_index, 'training_exercise': training_exercise})
+        await state.set_state(ClientStates.add_training.add_from_plan.process_exercise_weight)
 
-    exercise = selected_exercise
-    exercise_media_type = exercise.exercise.media_type
-    await callback.message.edit_text("Загружаю файл упражнения")
-    exercise_media_link = create_presigned_url(PHOTO_BUCKET, exercise.exercise.media_link)
-    print(exercise_media_link)
-    kwargs = {
-        'chat_id': callback.from_user.id,
-        'caption': f'{selected_exercise.exercise.name}\n{selected_exercise.num_runs} подхода'
-                   f' по {selected_exercise.num_repeats} раз(а)\n'
-                   f'Примечание: {selected_exercise.trainer_note}\n'
-                   f'Введи вес с которым работал',
-        'reply_markup': PlanExerciseGoBackKeyboard(source_option=str(selected_day),
-                                                   go_back_target=ClientAddTrainingTargets.show_day).as_markup()
-    }
+        exercise = selected_exercise
+        exercise_media_type = exercise.exercise.media_type
+        await callback.message.edit_text(translations[lang].client_my_plan_loading_data.value)
+        exercise_media_link = create_presigned_url(PHOTO_BUCKET, exercise.exercise.media_link)
+        print(exercise_media_link)
+        kwargs = {
+            'chat_id': callback.from_user.id,
+            'caption': translations[lang].client_add_from_plan_show_exercise
+            .value.format(selected_exercise.exercise.name,
+                          selected_exercise.num_runs,
+                          selected_exercise.num_repeats,
+                          selected_exercise.trainer_note),
+            'reply_markup': PlanExerciseGoBackKeyboard(source_option=str(selected_day),
+                                                       go_back_target=ClientAddTrainingTargets.show_day,
+                                                       lang=lang).as_markup()
+        }
 
-    if exercise_media_type == 'photo':
-        await state.update_data({'has_media': True})
-        sent_message = await bot.send_photo(photo=exercise_media_link, **kwargs)
-        await callback.message.delete()
-    elif exercise_media_type == 'video':
-        file = URLInputFile(url=exercise_media_link, bot=bot)
-        sent_message = await bot.send_video(video=file, **kwargs)
-        await callback.message.delete()
-        pth_to_file=await bot.get_file(sent_message.video.file_id)
-        print(pth_to_file.file_path)
+        if exercise_media_type == 'photo':
+            await state.update_data({'has_media': True})
+            sent_message = await bot.send_photo(photo=exercise_media_link, **kwargs)
+            await callback.message.delete()
+        elif exercise_media_type == 'video':
+            file = URLInputFile(url=exercise_media_link, bot=bot)
+            sent_message = await bot.send_video(video=file, **kwargs)
+            await callback.message.delete()
+            pth_to_file=await bot.get_file(sent_message.video.file_id)
+            print(pth_to_file.file_path)
 
 
-    await state.update_data({'message_id_with_photo': sent_message.message_id})
-    # await callback.answer('Загрузка завершена')
+        await state.update_data({'message_id_with_photo': sent_message.message_id})
+        # await callback.answer('Загрузка завершена')
+    else:
+        await callback.answer(translations[lang].client_add_from_plan_show_exercise_already_added.value, show_alert=True)
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.process_exercise_weight)
 async def process_exercise_weight(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    lang = state_data['lang']
     if is_float(message.text.replace(',','.')):
-        state_data = await state.get_data()
         callback_msg_id = state_data['message_id_with_photo']
         await bot.edit_message_reply_markup(chat_id=message.from_user.id, message_id=callback_msg_id, reply_markup=None)
         training_days = state_data['training_days']
@@ -125,20 +136,21 @@ async def process_exercise_weight(message: Message, state: FSMContext):
         text = message.text.replace(",",".")
 
         selected_exercise.add_weight(float(text))
-        await message.answer(text="Отлично, хочешь добавить видео?",
-                             reply_markup=YesNoKeyboard(target=ClientAddTrainingTargets.process_video_link).as_markup())
+        await message.answer(text=translations[lang].client_add_from_plan_ask_video.value,
+                             reply_markup=YesNoKeyboard(target=ClientAddTrainingTargets.process_video_link, lang=lang).as_markup())
     else:
-        await message.answer("Нужно ввести число")
+        await message.answer(translations[lang].client_number_required.value)
 
 @training_from_plan_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.process_video_link))
 @callback_error_handler
 async def process_exercise_video_link(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    state_data = await state.get_data()
+    lang = state_data.get('lang')
     if callback_data.option == YesNoOptions.yes:
         await state.set_state(ClientStates.add_training.add_from_plan.process_exercise_video)
         await state.update_data({'multiple_files_message_sent': False, 'file_recieved': False})
-        await callback.message.edit_text("Присылай видео своего выполнения")
+        await callback.message.edit_text(translations[lang].client_add_from_plan_process_video.value)
     elif callback_data.option == YesNoOptions.no:
-        state_data = await state.get_data()
         selected_day_idx = state_data['selected_day']
         training_days = state_data['training_days']
         selected_day = training_days[selected_day_idx]
@@ -153,17 +165,18 @@ async def process_exercise_video_link(callback: CallbackQuery, callback_data: Ch
             reply_str+=f"{exercise.exercise.name}\n"
         keyboard = TrainingDayExercises(selected_day.training_exercises,
                                         target=ClientAddTrainingTargets.show_exercise,
-                                        go_back_target=ClientMainMenuMoveTo.add_training)
-        keyboard.button(text="Cохранить",
+                                        go_back_target=ClientMainMenuMoveTo.add_training,
+                                        lang=lang)
+        keyboard.button(text=translations[lang].client_training_save_btn.value,
                         callback_data=MoveCallback(target=ClientAddTrainingTargets.save_training).pack())
-        await callback.message.edit_text(text="Ты добавил следующие упражнения из плана:\n"
-                                              + reply_str
-                                              + "Выбирай упражнение",
+        await callback.message.edit_text(text=translations[lang].client_add_from_plan_ask_for_save.value.format(reply_str),
                                          reply_markup=keyboard.as_markup())
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.process_exercise_video)
 @album_handler
 async def process_exercise_video(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    lang = state_data["lang"]
     if message.video:
         video_id = message.video.file_id
         video_file = await bot.get_file(video_id)
@@ -172,7 +185,8 @@ async def process_exercise_video(message: Message, state: FSMContext):
             video_path = video_file.file_path
 
             print(video_path)
-            state_data = await state.get_data()
+
+
             training_exercise = state_data['training_exercise']
             path = f'tmp/{message.from_user.id}-{video_path.split("/")[1]}'
             filename = path.split('.')[0]
@@ -183,18 +197,19 @@ async def process_exercise_video(message: Message, state: FSMContext):
             selected_day = training_days[selected_day_idx]
             training = state_data['training']
             await state.set_state(ClientStates.add_training.add_from_plan.ask_for_client_note)
-            await message.answer("Хочешь оставить свой собственный коментарий или вопрос к видео для тренера?",
-                                 reply_markup=YesNoKeyboard(target=ClientAddTrainingTargets.process_client_note).as_markup())
+            await message.answer(translations[lang].client_add_from_plan_ask_for_question.value,
+                                 reply_markup=YesNoKeyboard(target=ClientAddTrainingTargets.process_client_note, lang=lang).as_markup())
         else:
-            await message.answer("Размер файла слишком большой, пожалуйста присылай файлы размером до 50 Мб")
+            await message.answer(translations[lang].file_too_big.value)
 
     else:
-        await message.answer('Необходимо прислать видео')
+        await message.answer(translations[lang].client_video_required.value)
 
 @training_from_plan_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.process_client_note))
 @callback_error_handler
 async def process_client_note_callback(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
+    lang = state_data.get('lang')
     training = state_data['training']
     training_exercise = state_data['training_exercise']
     selected_day_idx = state_data['selected_day']
@@ -202,7 +217,7 @@ async def process_client_note_callback(callback: CallbackQuery, callback_data: C
     selected_day = training_days[selected_day_idx]
     if callback_data.option == YesNoOptions.yes:
         await state.set_state(ClientStates.add_training.add_from_plan.process_client_note)
-        await callback.message.edit_text('Напиши свой вопрос или комментарийц и тренер сможет его увидеть')
+        await callback.message.edit_text(translations[lang].client_add_from_plan_process_client_note.value)
     elif callback_data.option == YesNoOptions.no:
         training_exercise.add_client_note('')
         training.add_exercise(training_exercise)
@@ -211,17 +226,17 @@ async def process_client_note_callback(callback: CallbackQuery, callback_data: C
             reply_str+=f"{exercise.exercise.name}\n"
         keyboard = TrainingDayExercises(selected_day.training_exercises,
                                               target=ClientAddTrainingTargets.show_exercise,
-                                              go_back_target=ClientMainMenuMoveTo.add_training)
-        keyboard.button(text="Cохранить", callback_data=MoveCallback(target=ClientAddTrainingTargets.save_training).pack())
-        await callback.message.edit_text(text="Ты добавил следующие упражнения из плана:\n"
-                                              + reply_str
-                                              + "Выбирай упражнение",
+                                              go_back_target=ClientMainMenuMoveTo.add_training,
+                                        lang=lang)
+        keyboard.button(text=translations[lang].client_training_save_btn.value, callback_data=MoveCallback(target=ClientAddTrainingTargets.save_training).pack())
+        await callback.message.edit_text(text=translations[lang].client_add_from_plan_ask_for_save.value.format(reply_str),
                                          reply_markup=keyboard.as_markup())
 
 @training_from_plan_router.message(ClientStates.add_training.add_from_plan.process_client_note)
 async def process_note(message: Message, state: FSMContext):
     note = message.text
     state_data = await state.get_data()
+    lang = state_data.get('lang')
     training = state_data['training']
     training_exercise = state_data['training_exercise']
     selected_day_idx = state_data['selected_day']
@@ -234,11 +249,10 @@ async def process_note(message: Message, state: FSMContext):
         reply_str += f"{exercise.exercise.name}\n"
     keyboard = TrainingDayExercises(selected_day.training_exercises,
                                     target=ClientAddTrainingTargets.show_exercise,
-                                    go_back_target=ClientMainMenuMoveTo.add_training)
-    keyboard.button(text="Cохранить", callback_data=MoveCallback(target=ClientAddTrainingTargets.save_training).pack())
-    await message.answer(text="Ты добавил следующие упражнения из плана:\n"
-                                          + reply_str
-                                          + "Выбирай упражнение",
+                                    go_back_target=ClientMainMenuMoveTo.add_training,
+                                    lang=lang)
+    keyboard.button(text=translations[lang].client_training_save_btn.value, callback_data=MoveCallback(target=ClientAddTrainingTargets.save_training).pack())
+    await message.answer(text=translations[lang].client_add_from_plan_ask_for_save.value.format(reply_str),
                                      reply_markup=keyboard.as_markup())
 
 
@@ -246,15 +260,19 @@ async def process_note(message: Message, state: FSMContext):
 @callback_error_handler
 async def process_save_training(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await state.get_data()
+    lang = state_data.get('lang')
     training = state_data['training']
     mongo_training = Training(date=training.date, name=training.name)
 
+    await callback.message.edit_text(translations[lang].client_add_from_plan_process_save.value)
     for exercise in training.training_exercises:
+        await callback.message.edit_text(translations[lang].client_add_from_plan_process_sace_single_video
+                                         .value.format(exercise.exercise.name))
         if exercise.video_link != '':
             s3_path = f'{callback.from_user.id}/trainings/{training.date}/{exercise.video_link.split("/")[1]}'
             logging.log(level=logging.INFO,msg=f'Processing video {s3_path}')
             # loop = asyncio.get_event_loop()
-            await callback.message.edit_text("Сохраняю видео")
+
             # await upload_to_s3_and_update_progress(loop, exercise.video_link,s3_path,callback)
             upload_file(exercise.video_link, s3_path)
             os.remove(exercise.video_link)
@@ -264,14 +282,14 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
                                                 num_repeats=exercise.num_repeats, video_link=exercise.video_link,
                                                 weight=exercise.weight,
                                                 client_note=exercise.client_note if exercise.client_note != ''
-                                                else 'Отсутствует')
+                                                else '')
         mongo_training.training_exercises.append(mongo_exercise)
     client = get_client_by_id(callback.from_user.id)
     client.trainings.append(mongo_training)
     client.save()
-    await callback.answer('Тренировка сохранена', show_alert=True)
 
-    await callback.message.edit_text("Меню клиента", reply_markup=create_client_main_menu_keyboard(client=client))
+    await callback.message.edit_text(translations[lang].client_main_menu.value,
+                                     reply_markup=create_client_main_menu_keyboard(client=client, lang=lang))
 
 
 

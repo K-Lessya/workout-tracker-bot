@@ -118,6 +118,10 @@ def delete_client_or_trainer(tg_id: int):
             trainer.delete()
     return True
 
+def get_all_client_trainigs(tg_id):
+    client = Client.objects(tg_id=tg_id).first()
+    trainings = client.trainings
+    return trainings
 
 def get_client_trainings(tg_id: int, start_pos, range):
     client = Client.objects(tg_id=tg_id).first()
