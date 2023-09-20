@@ -26,7 +26,7 @@ registration_router = Router()
 @registration_router.callback_query(ChooseCallback.filter(F.target == RegistrationTargets.choose_user_language))
 async def set_user_language(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     lang = callback_data.option
-    await state.update_data({'user_lang': lang})
+    await state.update_data({'lang': lang})
     client = get_client_by_id(tg_id=callback.from_user.id)
     if client and not client.name:
         await state.set_state(RegistrationStates.process_user_name)
@@ -45,7 +45,7 @@ async def set_user_language(callback: CallbackQuery, callback_data: ChooseCallba
 @registration_router.callback_query(ChooseCallback.filter(F.target == RegistrationTargets.choose_user_type))
 async def start_registration_process(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
-    lang = state_data['user_lang']
+    lang = state_data['lang']
     if 'process_user' in state_data:
         await callback.answer(text=translations[lang].finish_registration_alert.value, show_alert=True)
         await callback.message.delete()
@@ -82,7 +82,7 @@ async def start_registration_process(callback: CallbackQuery, callback_data: Cho
 @registration_router.message(RegistrationStates.process_user_name)
 async def process_name(message: Message, state: FSMContext):
     state_data = await state.get_data()
-    lang = state_data['user_lang']
+    lang = state_data['lang']
     await state.update_data({'name': message.text})
     await state.set_state(RegistrationStates.process_user_surname)
     await message.answer(translations[lang].registration_process_name.value.format(message.text))
@@ -93,7 +93,7 @@ async def process_surname(message: Message, state: FSMContext):
     await state.update_data({'surname': message.text})
     state_data = await state.get_data()
     print(state_data)
-    lang = state_data['user_lang']
+    lang = state_data['lang']
     user_name = state_data['name']
     await state.set_state(RegistrationStates.ask_for_user_photo)
 
@@ -104,7 +104,7 @@ async def process_surname(message: Message, state: FSMContext):
 @registration_router.callback_query(ChooseCallback.filter(F.target == RegistrationTargets.process_user_photo))
 async def declined_photo_message(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     usr_type = await state.get_data()
-    lang = usr_type["user_lang"]
+    lang = usr_type["lang"]
     if callback_data.option == YesNoOptions.no:
         await state.update_data({'photo_link': 'defaults/no-user-image-icon-0.png'})
 
@@ -137,7 +137,7 @@ async def process_photo(message: Message, state: FSMContext):
     await state.set_state(RegisterStates.process_visibility)
 
     user_type = await state.get_data()
-    lang = user_type["user_lang"]
+    lang = user_type["lang"]
 
     if user_type['usr_type'] == RegistrationOptions.client:
         reply_str = translations[lang].registration_visibility_question_client.value
@@ -152,7 +152,7 @@ async def process_photo(message: Message, state: FSMContext):
 @registration_router.message(RegistrationStates.process_user_photo, F.text)
 async def process_photo(message: Message, state: FSMContext):
     state_data = await state.get_data()
-    lang = state_data["user_lang"]
+    lang = state_data["lang"]
     await message.answer(translations[lang].registration_alert_waiting_for_photo.value)
 
 
@@ -169,7 +169,7 @@ async def process_visibility(callback: CallbackQuery, callback_data: ChooseCallb
 
     await state.set_state(RegistrationStates.process_user_save)
     user_info = await state.get_data()
-    lang = user_info["user_lang"]
+    lang = user_info["lang"]
     if callback.from_user.username:
         username = callback.from_user.username
     else:
@@ -191,7 +191,7 @@ async def process_visibility(callback: CallbackQuery, callback_data: ChooseCallb
                                  tg_username=username,
                                  photo_link=user_info['photo_link'],
                                  visibility=user_info['visibility'],
-                                 lang=user_info['user_lang']
+                                 lang=user_info['lang']
                                 )
             create_client(new_client)
 
@@ -206,7 +206,7 @@ async def process_visibility(callback: CallbackQuery, callback_data: ChooseCallb
                                surname=user_info['surname'],
                                photo_link=user_info['photo_link'],
                                visibility=user_info['visibility'],
-                               lang=user_info['user_lang']))
+                               lang=user_info['lang']))
         await callback.message.edit_text(translations[lang].registration_finish_trainer.value,
                                          reply_markup=create_trainer_main_menu_keyboard(lang=lang))
 
