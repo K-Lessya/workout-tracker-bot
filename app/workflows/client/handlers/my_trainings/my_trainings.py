@@ -137,10 +137,10 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
     file = FSInputFile(f'tmp/{callback.from_user.id}-{filename}.mp4')
     caption = ""
     await bot.send_video(chat_id=callback.from_user.id, video=file,
-                         caption=translations[lang].client_my_trainings_show_video_client_comment.value.format(exercise.client_note) if exercise.client_note
-                         else translations[lang].client_my_trainings_show_video_no_client_comment.value
-                         + translations[lang].client_my_trainings_show_video_trainer_comment.value.format(exercise.comment) if exercise.comment
-                         else translations[lang].client_my_trainings_show_video_no_trainer_comment.value,
+                         caption=(translations[lang].client_my_trainings_show_video_client_comment.value.format(exercise.client_note) if exercise.client_note
+                         else translations[lang].client_my_trainings_show_video_no_client_comment.value)
+                         + (translations[lang].client_my_trainings_show_video_trainer_comment.value.format(exercise.comment) if exercise.comment
+                         else translations[lang].client_my_trainings_show_video_no_trainer_comment.value),
                          reply_markup=TrainingVideoKeyboard(go_back_target=ClientMyTrainingsTarget.show_exercise,
                                                             source_option=selected_exercise_id,
                                                             lang=lang).as_markup())
