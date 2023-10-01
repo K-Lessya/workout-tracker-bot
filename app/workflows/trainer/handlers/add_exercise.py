@@ -273,7 +273,8 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
             state_data['plan'].days[-1].add_exercise(plan_exercise)
             await state.set_state(TrainerStates.my_clients.create_plan.process_trainer_note)
             await callback.message.answer(translations[lang].trainer_create_plan_add_trainer_note.value,
-                                          reply_markup=NextActionKeyboard(target=MyCLientsMoveTo.skip_trainer_note).as_markup())
+                                          reply_markup=NextActionKeyboard(target=MyCLientsMoveTo.skip_trainer_note,
+                                                                          lang=lang).as_markup())
             await callback.message.delete()
         else:
 
