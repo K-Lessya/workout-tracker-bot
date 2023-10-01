@@ -96,7 +96,7 @@ async def show_user_profile(callback: CallbackQuery, callback_data: ChooseCallba
     await state.update_data({'tg_id': client.tg_id})
     await bot.send_photo(chat_id=callback.from_user.id, photo=photo_link,
                          caption=translations[lang].trainer_add_client_menu_add_client_profile.value
-                         .value.format({client.name}, {client.surname}),
+                         .format(client.name, client.surname),
                          reply_markup=create_yes_no_keyboard(target=TrainerAddClientTargets.add_existing_client))
     await callback.message.delete()
     await callback.answer()
