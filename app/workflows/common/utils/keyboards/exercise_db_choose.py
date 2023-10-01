@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardButton, Message, CallbackQuery
 from app.utilities.default_keyboards.choose import create_choose_keyboard
 from app.utilities.default_callbacks.default_callbacks import MoveToCallback, ChooseCallback
+from app.callbacks.callbacks import MoveCallback
 from app.workflows.common.utils.callback_properties.movetos import ExerciseDbMoveTo, UpstreamMenuMoveTo
 from app.workflows.trainer.utils.callback_properties.targets import CreateExerciseTargets
 from app.workflows.common.utils.callback_properties.targets import ExerciseDbTargets
@@ -31,53 +32,53 @@ def create_go_back_button(move_to: ChooseCallback | MoveToCallback, lang):
     return go_back_button
 
 
-def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleGroup | Exercise]],
-                                       source: Message | CallbackQuery, target: Optional[str],
-                                       go_back_filter: ChooseCallback | MoveToCallback, lang):
-    user = source.from_user.id
-
-    if get_client_by_id(user):
-        if options:
-            return create_choose_keyboard(options=options,
-                                   additional_buttons=[create_go_back_button(go_back_filter, lang=lang)],
-                                   option_attr='id', target=target)
-        else:
-            return create_choose_keyboard(options=None,
-                                          target=None,
-                                          option_attr=None,
-                                          additional_buttons=[create_go_back_button(go_back_filter, lang=lang)])
-    elif get_trainer(user):
-        print("get_trainer")
-        if options:
-            if isinstance(options[0], BodyPart):
-                if target == CreateExerciseTargets.process_body_part_name:
-                    return create_choose_keyboard(options=options,
-                                                  additional_buttons=[create_go_back_button(go_back_filter, lang=lang)],
-                                                  option_attr='id', target=target)
-                else:
-                    return create_choose_keyboard(options=options,
-                                       additional_buttons=[create_add_exercise_button(lang),
-                                                           create_go_back_button(go_back_filter, lang=lang)],
-                                       option_attr='id', target=target)
-            else:
-                return create_choose_keyboard(options=options,
-                                              additional_buttons=[create_go_back_button(
-                                                                      go_back_filter, lang=lang)],
-                                              option_attr='id', target=target)
-        else:
-            if target == ExerciseDbTargets.show_body_part:
-                return create_choose_keyboard(options=None,
-                                              target=None,
-                                              option_attr=None,
-                                              additional_buttons=[create_add_exercise_button(lang),
-                                                                  create_go_back_button(go_back_filter, lang=lang)])
-            elif target == "Exercise":
-                return create_choose_keyboard(options=None,
-                                              target=None,
-                                              option_attr=None,
-                                              additional_buttons=[create_go_back_button(go_back_filter, lang=lang)]
-
-                )
+# def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleGroup | Exercise]],
+#                                        source: Message | CallbackQuery, target: Optional[str],
+#                                        go_back_filter: ChooseCallback | MoveToCallback, lang):
+#     user = source.from_user.id
+#
+#     if get_client_by_id(user):
+#         if options:
+#             return create_choose_keyboard(options=options,
+#                                    additional_buttons=[create_go_back_button(go_back_filter, lang=lang)],
+#                                    option_attr='id', target=target)
+#         else:
+#             return create_choose_keyboard(options=None,
+#                                           target=None,
+#                                           option_attr=None,
+#                                           additional_buttons=[create_go_back_button(go_back_filter, lang=lang)])
+#     elif get_trainer(user):
+#         print("get_trainer")
+#         if options:
+#             if isinstance(options[0], BodyPart):
+#                 if target == CreateExerciseTargets.process_body_part_name:
+#                     return create_choose_keyboard(options=options,
+#                                                   additional_buttons=[create_go_back_button(go_back_filter, lang=lang)],
+#                                                   option_attr='id', target=target)
+#                 else:
+#                     return create_choose_keyboard(options=options,
+#                                        additional_buttons=[create_add_exercise_button(lang),
+#                                                            create_go_back_button(go_back_filter, lang=lang)],
+#                                        option_attr='id', target=target)
+#             else:
+#                 return create_choose_keyboard(options=options,
+#                                               additional_buttons=[create_go_back_button(
+#                                                                       go_back_filter, lang=lang)],
+#                                               option_attr='id', target=target)
+#         else:
+#             if target == ExerciseDbTargets.show_body_part:
+#                 return create_choose_keyboard(options=None,
+#                                               target=None,
+#                                               option_attr=None,
+#                                               additional_buttons=[create_add_exercise_button(lang),
+#                                                                   create_go_back_button(go_back_filter, lang=lang)])
+#             elif target == "Exercise":
+#                 return create_choose_keyboard(options=None,
+#                                               target=None,
+#                                               option_attr=None,
+#                                               additional_buttons=[create_go_back_button(go_back_filter, lang=lang)]
+#
+#                 )
 
 
 
@@ -125,7 +126,7 @@ class CategoryPaginationKeyboard:
     ui: InlineKeyboardBuilder
 
     def __init__(self, options, target, option_attr, count, start_index, lang, go_back_callback_data,
-                 additional_btns=list):
+                 additional_btns: Optional[list[InlineKeyboardButton]] = None):
         super().__init__()
         self.start_index = start_index
         self.count = count
@@ -134,9 +135,10 @@ class CategoryPaginationKeyboard:
         self.option_attr = option_attr
         self.lang = lang
         self.go_back_callback_data = go_back_callback_data
-        self.draw_keyboard(additional_btns=additional_btns)
+        self.additional_btns = additional_btns
+        self.draw_keyboard(self.additional_btns)
 
-    def draw_keyboard(self, additional_btns):
+    def draw_keyboard(self, additional_btns: Optional[list[InlineKeyboardButton]] = None):
         self.ui = InlineKeyboardBuilder()
         options_list = []
         for option in self.options:
@@ -169,47 +171,58 @@ class CategoryPaginationKeyboard:
                     )
                 )
             self.ui.row(*move_buttons)
-            if additional_btns:
-                self.ui.row(*additional_btns)
-            self.ui.row(InlineKeyboardButton(
-                text=translations[self.lang].go_back_btn.value,
-                callback_data=self.go_back_callback_data.pack()
-            ))
+        if additional_btns:
+            self.ui.row(*additional_btns)
+        self.ui.row(InlineKeyboardButton(
+            text=translations[self.lang].go_back_btn.value,
+            callback_data=self.go_back_callback_data.pack()
+        ))
 
     def list_forward(self):
         self.start_index += self.count
-        self.draw_keyboard()
+        self.draw_keyboard(self.additional_btns)
 
     def list_backward(self):
         self.start_index -= self.count
-        self.draw_keyboard()
+        self.draw_keyboard(self.additional_btns)
 
 
 class BodyPartsKeyboard(CategoryPaginationKeyboard):
 
-    def __init__(self, body_parts, start_index, lang, create_exercise_btn: bool):
-        go_back_callback = MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu)
+    def __init__(self, body_parts, start_index, lang, create_exercise_btn: bool, next_target,
+                 go_back_target: Optional[str] = CommonGoBackMoveTo.to_trainer_main_menu):
+        go_back_callback = MoveToCallback(move_to=go_back_target)
         if create_exercise_btn:
             additional_btns = [
                 InlineKeyboardButton(
                     text=translations[lang].trainer_add_exercise_btn_add_exercise.value,
-                    callback_data=
+                    callback_data=MoveToCallback(move_to=ExerciseDbMoveTo.create_exercise).pack()
                 )
             ]
-        super().__init__(body_parts, ExerciseDbTargets.show_body_part, 'id', 1, start_index, lang, go_back_callback)
+            super().__init__(body_parts, next_target, 'id', 6, start_index, lang, go_back_callback,
+                             additional_btns)
+        else:
+            super().__init__(body_parts, next_target, 'id', 6, start_index, lang, go_back_callback)
 
 
 class MuscleGroupsKeyboard(CategoryPaginationKeyboard):
 
-    def __init__(self, muscle_groups, start_index, lang):
-        go_back_callback = MoveToCallback(move_to=UpstreamMenuMoveTo.show_exercise_db)
-        super().__init__(muscle_groups, ExerciseDbTargets.show_muscle_group, 'id', 1, start_index, lang, go_back_callback)
+    def __init__(self, muscle_groups, start_index, lang, go_back_target):
+
+        go_back_callback = MoveToCallback(move_to=go_back_target)
+        super().__init__(muscle_groups, ExerciseDbTargets.show_muscle_group, 'id', 6, start_index, lang, go_back_callback)
 
 class ExercisesListKeyboard(CategoryPaginationKeyboard):
 
     def __init__(self, exercises, start_index, source_option, lang):
         go_back_callback = ChooseCallback(target=ExerciseDbTargets.show_body_part, option=source_option)
-        super().__init__(exercises, ExerciseDbTargets.show_exercise, 'id', 1, start_index, lang,
+        super().__init__(exercises, ExerciseDbTargets.show_exercise, 'id', 6, start_index, lang,
+                         go_back_callback)
+
+class ClientExercisesListKeyboard(CategoryPaginationKeyboard):
+    def __init__(self, exercises, start_index, source_option, lang):
+        go_back_callback = MoveCallback(target=source_option)
+        super().__init__(exercises, ClientAddCustomTrainingTargets.choose_exercise, 'id', 6, start_index, lang,
                          go_back_callback)
 
 class ExerciseKeyboard(InlineKeyboardBuilder):

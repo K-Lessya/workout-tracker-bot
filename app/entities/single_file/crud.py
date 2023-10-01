@@ -78,7 +78,7 @@ def client_get_num_trainier_requests(client: Client) -> int:
 
 
 def get_all_not_assigned_clients_with_name():
-    return Client.objects(name__exists=True, trainer__exists=False, visibility=True)
+    return Client.objects(name__exists=True, trainer__exists=False, visibility=True).order_by('name', 'surname')
 
 
 def get_client_requests_by_id(tg_id):
@@ -93,7 +93,7 @@ def get_trainer_clients_range(first: int, range: int, trainer_id):
 
 
 def get_trainer_clients(trainer: Trainer):
-    clients = Client.objects(name__exists=True, trainer=trainer)
+    clients = Client.objects(name__exists=True, trainer=trainer).order_by('name', 'surname')
     return clients
 
 def get_trainer_clients_witout_name(trainer: Trainer):

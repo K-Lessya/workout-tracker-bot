@@ -12,7 +12,7 @@ def get_body_part_by_id(body_part_id: str):
 
 
 def get_all_body_parts(trainer_id) -> list[BodyPart]:
-    return BodyPart.objects(trainer=trainer_id)
+    return BodyPart.objects(trainer=trainer_id).order_by('name')
 
 
 def create_muscle_group(muscle_group: MuscleGroup):
@@ -21,7 +21,7 @@ def create_muscle_group(muscle_group: MuscleGroup):
 
 
 def get_muscle_groups_by_body_part(body_part: BodyPart):
-    return MuscleGroup.objects(body_part=body_part)
+    return MuscleGroup.objects(body_part=body_part).order_by('name')
 
 
 def get_muscle_group_by_id(muscle_group_id: str):
@@ -33,7 +33,7 @@ def create_exercise(exercise: Exercise):
     return True
 
 def get_exercises_by_muscle_group(muscle_group: MuscleGroup):
-    return Exercise.objects(muscle_groups=muscle_group)
+    return Exercise.objects(muscle_groups=muscle_group).order_by('name')
 
 def get_exercise_by_id(exercise_id: str):
     return Exercise.objects(id=exercise_id).first()

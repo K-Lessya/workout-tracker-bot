@@ -10,7 +10,8 @@ from app.s3.uploader import upload_to_s3_and_update_progress
 from ..utils.keyboards.exercise_db import ExercisePlanListKeyboard
 from ..utils.states import TrainerStates
 from ..utils.callback_properties.targets import CreateExerciseTargets
-from app.workflows.common.utils.keyboards.exercise_db_choose import create_exercise_db_choose_keyboard
+from app.workflows.common.utils.keyboards.exercise_db_choose import  \
+    BodyPartsKeyboard, MuscleGroupsKeyboard
 from app.workflows.common.utils.callback_properties.targets import ExerciseDbTargets
 from app.workflows.common.utils.callback_properties.movetos import ExerciseDbMoveTo, UpstreamMenuMoveTo,\
     CommonGoBackMoveTo
@@ -60,13 +61,13 @@ async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, s
     lang = trainer.lang
     await state.update_data({'lang': lang})
     body_parts = get_all_body_parts(trainer)
+    keyboard = BodyPartsKeyboard(body_parts, 0, lang, False, CreateExerciseTargets.process_body_part_name,
+                                 UpstreamMenuMoveTo.show_exercise_db)
+    start_index = state_data.get('body_part_index', 0)
+    await state.update_data({'current_keyboard': keyboard})
     await callback.message.edit_text(translations[lang].trainer_add_exercise_choose_body_part.value,
-                                     reply_markup=create_exercise_db_choose_keyboard(
-                                         options=body_parts, source=callback,
-                                         target=CreateExerciseTargets.process_body_part_name,
-                                         go_back_filter=MoveToCallback(move_to=go_back),
-                                         lang=lang
-                                     ))
+                                     reply_markup=keyboard.ui.as_markup()
+                                     )
     await callback.answer()
 
 
@@ -87,15 +88,18 @@ async def process_body_part_name_callback(callback: CallbackQuery, callback_data
     state_data = await state.get_data()
     lang = state_data['lang']
     await state.update_data({'body_part': body_part})
+    start_index = state_data.get('muscle_group_index', 0)
+    keyboard = MuscleGroupsKeyboard(muscle_groups, start_index, lang, ExerciseDbMoveTo.create_exercise)
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
     await callback.message.edit_text(translations[lang].trainer_add_exercise_create_muscle_group_callback.value,
-                                     reply_markup=create_exercise_db_choose_keyboard(
-                                         options=muscle_groups, source=callback,
-                                         target=CreateExerciseTargets.process_muscle_group_name,
-                                         go_back_filter=MoveToCallback(
-                                             move_to=ExerciseDbMoveTo.create_exercise),
-                                         lang=lang
-                                     ))
+                                     reply_markup=keyboard.ui.as_markup()
+                                     # reply_markup=create_exercise_db_choose_keyboard(
+                                     #     options=muscle_groups, source=callback,
+                                     #     target=CreateExerciseTargets.process_muscle_group_name,
+                                     #     go_back_filter=MoveToCallback(
+                                     #         move_to=ExerciseDbMoveTo.create_exercise),
+                                     #     lang=lang
+                                     )
     await callback.answer()
 
 
@@ -276,15 +280,17 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
                                           reply_markup=NextActionKeyboard(target=MyCLientsMoveTo.skip_trainer_note).as_markup())
             await callback.message.delete()
         else:
-
+            keyboard = BodyPartsKeyboard(body_parts, 0, lang, True, ExerciseDbTargets.show_body_part)
+            await state.update_data({'current_keyboard': keyboard})
             await callback.message.answer(translations[lang].trainer_exercise_db_choose_bodypart.value,
-                                             reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
-                                                                                             source=callback,
-                                                                                             target=ExerciseDbTargets.show_body_part,
-                                                                                             go_back_filter=MoveToCallback(
-                                                                                                 move_to=UpstreamMenuMoveTo.show_exercise_db),
-                                                                                             lang=lang
-                                                                                             ))
+                                          reply_markup=keyboard.ui.as_markup())
+                                             # reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
+                                             #                                                 source=callback,
+                                             #                                                 target=ExerciseDbTargets.show_body_part,
+                                             #                                                 go_back_filter=MoveToCallback(
+                                             #                                                     move_to=UpstreamMenuMoveTo.show_exercise_db),
+                                             #                                                 lang=lang
+                                             #                                                 ))
             await callback.message.delete()
 
     elif callback_data.option == YesNoOptions.no:
@@ -303,13 +309,15 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
                                                                                     current_day.exercises)).as_markup())
         else:
             await state.clear()
+            keyboard = BodyPartsKeyboard(body_parts, 0, lang, True, ExerciseDbTargets.show_body_part)
             await callback.message.answer(translations[lang].trainer_add_exercise_process_save_not_saved.value,
-                                             reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
-                                                                                         source=callback,
-                                                                                         target=ExerciseDbTargets.show_body_part,
-                                                                             go_back_filter=MoveToCallback(
-                                                                                             move_to=UpstreamMenuMoveTo.show_exercise_db),
-                                                                                             lang=lang
-                                                                                         ))
+                                          reply_markup=keyboard.ui.as_markup())
+                                             # reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
+                                             #                                             source=callback,
+                                             #                                             target=ExerciseDbTargets.show_body_part,
+                                             #                                 go_back_filter=MoveToCallback(
+                                             #                                                 move_to=UpstreamMenuMoveTo.show_exercise_db),
+                                             #                                                 lang=lang
+                                             #                                             ))
         await callback.message.delete()
         await callback.answer()
