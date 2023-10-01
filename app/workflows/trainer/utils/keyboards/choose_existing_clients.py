@@ -16,6 +16,6 @@ def create_choose_existing_clients_keyboard(clients: list[Client], lang):
                 target=TrainerAddClientTargets.show_clients,
                 option=f'{client.tg_id}')
         )
-    builder.button(text=translations[lang].go_back_btn,
+    builder.button(text=translations[lang].go_back_btn.value,
                    callback_data=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu))
     return builder.as_markup()
