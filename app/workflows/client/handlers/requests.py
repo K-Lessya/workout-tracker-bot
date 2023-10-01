@@ -39,8 +39,9 @@ async def show_requests(callback: CallbackQuery, callback_data: MoveToCallback, 
 @callback_error_handler
 async def show_income_request(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await callback.message.delete()
+    client = get_client_by_id(callback.from_user.id)
     state_data = await state.get_data()
-    lang = state_data['lang']
+    lang = client.lang
     trainer = get_trainer_by_obj_id(obj_id=callback_data.option)
     photo_link = create_presigned_url(bucket_name=PHOTO_BUCKET,object_name=trainer.photo_link)
     await state.update_data({'trainer': trainer})
