@@ -268,7 +268,7 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
         await callback.message.edit_text(translations[lang].client_add_from_plan_process_sace_single_video
                                          .value.format(exercise.exercise.name))
         if exercise.video_link != '':
-            s3_path = f'{callback.from_user.id}/trainings/{training.date}/{exercise.video_link.split("/")[1]}'
+            s3_path = f'{callback.from_user.id}/trainings/{training.date}/{exercise.exercise.name.replace(" ", "_")}.{exercise.video_link.split(".")[1]}'
             logging.log(level=logging.INFO,msg=f'Processing video {s3_path}')
             # loop = asyncio.get_event_loop()
 
