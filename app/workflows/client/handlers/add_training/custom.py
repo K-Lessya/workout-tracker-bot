@@ -168,7 +168,7 @@ async def process_client_exercise_video(message: Message, state: FSMContext):
     lang = state_data.get('lang')
     if message.video:
         new_exercise = state_data['new_exercise']
-        file_path = await process_message_video(message, file_name=f"{message.from_user.id}-custom-{new_exercise.exercise.name}")
+        file_path = await process_message_video(message, file_name=f"{message.from_user.id}-custom-{new_exercise.exercise.name.replace(' ', '_')}")
         new_exercise.add_video_link(file_path)
         await state.set_state(ClientStates.add_training.add_custom.process_buttons)
         await message.answer(translations[lang].client_add_from_plan_ask_for_question.value,

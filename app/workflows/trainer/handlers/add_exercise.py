@@ -178,7 +178,7 @@ async def process_media(message: Message | list[Message], state: FSMContext):
 
             file_path = file.file_path
             destination = file_path.replace('/', '_')
-            media_link = f'exercises/{file_path}'
+            media_link = f'{message.from_user.id}/exercises_db/{state_data.get("exercise_name").replace(" ","_")}.{file_path.split(".")[1]}'
 
             await state.update_data(
                 {'local_path': f'tmp/{destination}', 'file_path': file_path, 'exercise_media_link': media_link})
