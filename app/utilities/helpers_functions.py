@@ -111,11 +111,11 @@ def callback_error_handler(func):
 
 
 
-async def process_message_video(message: Message):
+async def process_message_video(message: Message, file_name):
     if message.video.file_size < MAX_FILE_SIZE:
         file = await bot.get_file(message.video.file_id)
         file_path = file.file_path
-        file_destination = file_path.replace("/", "_")
+        file_destination = f'tmp/{file_name}.{file_path.split(".")[1]}'
         await bot.download_file(file_path=file_path, destination=file_destination)
         return file_destination
     else:

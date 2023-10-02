@@ -188,7 +188,7 @@ async def process_exercise_video(message: Message, state: FSMContext):
 
 
             training_exercise = state_data['training_exercise']
-            path = f'tmp/{message.from_user.id}-{video_path.split("/")[1]}'
+            path = f'tmp/{message.from_user.id}-from-plan-{training_exercise.exercise.name}'
             filename = path.split('.')[0]
             await bot.download_file(file_path=video_path, destination=path)
             training_exercise.add_video_link(path)

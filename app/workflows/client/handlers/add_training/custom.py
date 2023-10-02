@@ -167,8 +167,8 @@ async def process_client_exercise_video(message: Message, state: FSMContext):
     state_data = await state.get_data()
     lang = state_data.get('lang')
     if message.video:
-        file_path = await process_message_video(message)
         new_exercise = state_data['new_exercise']
+        file_path = await process_message_video(message, file_name=f"{message.from_user.id}-custom-{new_exercise.exercise.name}")
         new_exercise.add_video_link(file_path)
         await state.set_state(ClientStates.add_training.add_custom.process_buttons)
         await message.answer(translations[lang].client_add_from_plan_ask_for_question.value,
@@ -244,7 +244,7 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
     for idx ,exercise in enumerate(training.training_exercises):
         if exercise.video_link != '':
             await callback.message.edit_text(translations[lang].client_add_from_plan_process_sace_single_video.value.format(exercise.exercise.name))
-            s3_destination = f'{callback.from_user.id}/trainings/{training.date}/{exercise.video_link.split("_")[1]}'
+            s3_destination = f'{callback.from_user.id}/trainings/{training.date}/{exercise.exercise.name}'
             local_path = exercise.video_link
             upload_file(local_path, s3_destination)
             os.remove(local_path)
