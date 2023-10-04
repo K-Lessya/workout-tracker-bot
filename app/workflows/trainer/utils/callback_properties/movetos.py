@@ -37,6 +37,7 @@ class MyCLientsMoveTo:
     change_num_runs = 'change_num_runs'
     change_num_repeats = 'change_num_repeats'
     change_trainer_note = 'change_trainer_note'
+    publish_plan = 'publish_plan'
     save_client_day = 'save_client_day'
     edit_client_plan = 'edit_client_plan'
     show_trainings = 'my_clients_show_client_training'

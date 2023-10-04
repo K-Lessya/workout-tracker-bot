@@ -73,14 +73,16 @@ async def process_day_name(message: Message, state: FSMContext):
     lang = state_data.get('lang')
     client_id = state_data.get('client')
     plan_id = state_data.get('plan_id')
-    days = get_training_days(client_id, plan_id=plan_id)
     create_day(client_id, message.text, plan_id=plan_id)
+    days = get_training_days(client_id, plan_id=plan_id)
     await state.update_data({'day_id': -1})
+    await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
     trainer = get_trainer(message.from_user.id)
     body_parts = get_all_body_parts(trainer)
+    print(len(days[-1].training_exercises))
     await message.answer("Давай добавим упражнения в план",
                          reply_markup=ExercisePlanListKeyboard(body_parts,
-                                                               len(days[-1].training_exercises),
+                                                               len(days[-1].training_exercises) if days[-1].training_exercises else 0,
                                                                message.from_user.id,
                                                                lang,
                                                                plan_id
@@ -100,6 +102,7 @@ async def process_exercise(callback: CallbackQuery, callback_data: ChooseCallbac
     print(day.name)
     lang = state_data['lang']
     print(callback_data.target)
+
     if callback_data.target == TrainerMyClientsTargets.choose_exercise_for_plan: #Чекаем что в кнопке находится упражнение
         exercise = get_exercise_by_id(callback_data.option)#Забираем упражнение из базы
         existing_exercises = [exercise.exercise.id for exercise in day.training_exercises]

@@ -1,3 +1,4 @@
+from app.entities.training_plan.crud import get_client_active_plans
 from app.utilities.default_callbacks.default_callbacks import MoveToCallback
 from ..callback_properties.movetos import ClientMainMenuMoveTo
 from app.entities.single_file.crud import client_get_num_trainier_requests
@@ -41,7 +42,7 @@ def create_client_main_menu_keyboard(client: Client, lang):
     for button in builder_buttons:
         if not client.trainings and button['text'] == translations[lang].client_main_menu_btn_my_trainings.value:
             pass
-        elif not client.training_plans and button['text'] == translations[lang].client_main_menu_btn_my_plan.value:
+        elif not get_client_active_plans(client.tg_id) and button['text'] == translations[lang].client_main_menu_btn_my_plan.value:
             pass
         else:
             builder.button(

@@ -38,6 +38,10 @@ class ClientPlanDaysKeyboard(InlineKeyboardBuilder):
                                                                        option=str(idx)).pack()))
         self.row(InlineKeyboardButton(text=translations[lang].trainer_my_clients_single_client_create_plan_menu.value,
                                       callback_data=MoveCallback(target=MyCLientsMoveTo.add_day_to_plan).pack()))
+        self.row(InlineKeyboardButton(
+            text=translations[lang].trainer_my_clients_menu_single_client_publish_plan.value,
+            callback_data=MoveCallback(target=MyCLientsMoveTo.publish_plan).pack()
+        ))
         self.row(InlineKeyboardButton(text=translations[lang].go_back_btn.value,
                                       callback_data=MoveCallback(target=MyCLientsMoveTo.show_client_plan_menu).pack()))
 
@@ -68,7 +72,7 @@ class ClientPlanExerciseKeyboard(InlineKeyboardBuilder):
         #     callback_data=MoveCallback(target=MyCLientsMoveTo.change_exercise).pack()
         # ))
         self.row(InlineKeyboardButton(
-            text=translations[lang].trainer_my_clients_edit_plan_exercise_cange_runs.value,
+            text=translations[lang].trainer_my_clients_edit_plan_exercise_change_runs.value,
             callback_data=MoveCallback(target=MyCLientsMoveTo.change_num_runs).pack()
         ))
         self.row(InlineKeyboardButton(

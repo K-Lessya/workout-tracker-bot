@@ -9,7 +9,7 @@ from app.bot import bot
 from app.s3.downloader import create_presigned_url
 from app.config import PHOTO_BUCKET
 from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo
-from app.entities.training_plan.crud import get_training_days
+from app.entities.training_plan.crud import get_training_days, get_client_active_plans
 from app.workflows.client.utils.keyboards.training_plan import TrainingDaysKeyboard, TrainingDayExercises,\
     PlanExerciseGoBackKeyboard
 from app.workflows.client.utils.callback_properties.targets import ClientMyPlanTargets
@@ -31,11 +31,12 @@ async def start_creating_training(callback: CallbackQuery, callback_data: MoveTo
     await state.update_data({"lang": lang})
     await callback.answer(translations[lang].client_my_plan_loading_data.value)
     await state.set_state(ClientStates.show_client_plan.show_days)
-    training_days = get_training_days(client_id=callback.from_user.id)
-    await state.update_data({'training_days': training_days})
+    plan = get_client_active_plans(client_id=callback.from_user.id)[0]
+    days = plan.days
+    await state.update_data({'training_days': days})
 
     await callback.message.edit_text(translations[lang].client_my_plan_choose_day.value,
-                                     reply_markup=TrainingDaysKeyboard(days=training_days,
+                                     reply_markup=TrainingDaysKeyboard(days=days,
                                                                        target=ClientMyPlanTargets.show_day,
                                                                        go_back_target=CommonGoBackMoveTo.to_client_main_menu,
                                                                        lang=lang).as_markup())

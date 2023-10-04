@@ -49,6 +49,14 @@ def add_new_exercise_to_day(client_id: int, plan_id: int, day_id: int, exercise)
     client.training_plans[plan_id].days[day_id].training_exercises.append(PlanTrainingExercise(exercise=exercise))
     client.save()
 
+def get_client_active_plans(client_id: int):
+    client = Client.objects(tg_id=client_id).first()
+
+    active_plans = [plan for plan in client.training_plans if plan.published == True]
+    print(active_plans)
+    return active_plans
+
+
 def create_last_plan_exercise_num_runs(client_id: int, num_runs: int, plan_id: int, day_id):
     client = Client.objects(tg_id=client_id).first()
     exercise = client.training_plans[plan_id].days[day_id].training_exercises[-1]
@@ -78,5 +86,13 @@ def edit_exercise_num_repeats(client_id: int, plan_id: int, day_id: int, exercis
 def edit_exercise_trainer_note(client_id: int, plan_id: int, day_id: int, exercise_id: int, trainer_note: str):
     client = Client.objects(tg_id=client_id).first()
     client.training_plans[plan_id].days[day_id].training_exercises[exercise_id].trainer_note = trainer_note
+    client.save()
+
+def publish_new_plan(client_id: int, plan_id: int):
+    client = Client.objects(tg_id=client_id).first()
+    for plan in client.training_plans:
+        if plan.published:
+            plan.published = False
+    client.training_plans[plan_id].published = True
     client.save()
 

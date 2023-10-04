@@ -115,6 +115,13 @@ class EnglishTranslations(Enum):
     trainer_my_clients_menu_single_clietn_create_plan_save_client_notification = "{} {} just created a training plan for you"
     trainer_my_clients_menu_single_clietn_create_plan_save_trainer_alert = "Training plan was saved successfully, client can check it in menu"
     trainer_my_clients_menu_single_clietn_create_plan_save_plan_question = "Do you want to save plan?"
+    trainer_my_clients_menu_single_client_publish_plan = "Publish plan to client"
+    trainer_my_clients_menu_single_client_publish_plan_notification = "This plan will become active in client menu and will replace current active plan if exists"
+
+    trainer_my_clients_edit_plan_exercise_change_exercise = "Change exercise"
+    trainer_my_clients_edit_plan_exercise_change_runs = "Edit number of runs"
+    trainer_my_clients_edit_plan_exercise_change_repeats = "Edit number of repeats"
+    trainer_my_clients_edit_plan_exercise_change_trainer_note = "Edit trainer note"
 
     trainer_my_clients_menu_single_client_plan_menu = "You can view current plan or create a new one"
     trainer_my_clients_menu_single_client_vieew_plan_show_days = "Choose a day from plan"

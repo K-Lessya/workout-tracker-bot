@@ -21,7 +21,7 @@ from datetime import date
 from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo
 from app.workflows.client.utils.callback_properties.targets import ClientAddTrainingTargets
 from app.workflows.client.utils.callback_properties.options import ClientAddTrainingOptions
-from app.entities.training_plan.crud import get_training_days
+from app.entities.training_plan.crud import get_training_days, get_client_active_plans
 from app.workflows.client.utils.keyboards.training_plan import TrainingDaysKeyboard
 from app.workflows.client.handlers.add_training.from_plan import training_from_plan_router
 from app.callbacks.callbacks import MoveCallback
@@ -55,8 +55,10 @@ async def process_training_type(callback: CallbackQuery, callback_data: ChooseCa
         await callback.message.edit_text(translations[lang].client_add_training_add_custom_start.value)
 
     elif callback_data.option == ClientAddTrainingOptions.from_plan:
-        if get_client_by_id(tg_id=callback.from_user.id).training_plan:
-            training_days = get_training_days(client_id=callback.from_user.id)
+        active_plans = get_client_active_plans(callback.from_user.id)
+        if active_plans:
+            plan = active_plans[0]
+            training_days = plan.days
             await state.update_data({"training_days": training_days})
             await state.set_state(ClientStates.add_training.add_from_plan.show_plan)
             await callback.message.edit_text(translations[lang].client_add_training_add_from_plan.value,

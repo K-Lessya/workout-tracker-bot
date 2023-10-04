@@ -3,6 +3,8 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from app.bot import bot
+from app.entities.exercise.exercise import PlanTrainingExercise
+from app.entities.training_plan.crud import get_single_plan, add_new_exercise_to_day
 from app.keyboards.yes_no import YesNoKeyboard
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback,MoveToCallback, YesNoOptions
 from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
@@ -38,7 +40,7 @@ async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, s
     state_name = await state.get_state()
     state_data = await state.get_data()
     checker_state = "CreatePlan:process_body_parts"
-    print('string state ' + str(state_name) )
+    print('string state ' + str(state_name))
     if str(state_name) == checker_state:
         print("MATCH!!!!!!")
 
@@ -223,9 +225,7 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
     lang = trainer.lang
     if callback_data.option == YesNoOptions.yes:
         state_data = await state.get_data()
-        if "executing_from_plan" in state_data.keys():
-            print(len(state_data['plan'].days))
-        else:
+        if not "executing_from_plan" in state_data.keys():
             await state.clear()
 
         if state_data['exercise_media_link'] != 'defaults/panda_workout.jpeg':
@@ -269,8 +269,10 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
         body_parts = get_all_body_parts(trainer)
         print(state_data)
         if 'executing_from_plan' in state_data.keys():
-            plan_exercise = PlanExercise(exercise=exercise)
-            state_data['plan'].days[-1].add_exercise(plan_exercise)
+            client_id = state_data.get('client')
+            plan_id = state_data.get('plan_id')
+            day_id = state_data.get('day_id')
+            add_new_exercise_to_day(client_id, plan_id, day_id, exercise)
             await state.set_state(TrainerStates.my_clients.create_plan.process_trainer_note)
 
             message_with_button = await callback.message.answer(translations[lang].trainer_create_plan_add_trainer_note.value,

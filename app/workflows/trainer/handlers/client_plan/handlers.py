@@ -7,7 +7,7 @@ from app.bot import bot
 from app.callbacks.callbacks import MoveCallback, ChooseCallback
 from app.entities.exercise.crud import get_all_body_parts
 from app.entities.training_plan.crud import get_single_plan, get_training_days, edit_exercise_num_runs, \
-    get_plan_exercise, get_day_exercises, edit_exercise_num_repeats, edit_exercise_trainer_note
+    get_plan_exercise, get_day_exercises, edit_exercise_num_repeats, edit_exercise_trainer_note, publish_new_plan
 from app.workflows.trainer.utils.callback_properties.movetos import MyCLientsMoveTo
 from app.workflows.trainer.utils.callback_properties.targets import TrainerMyClientsTargets
 from app.workflows.trainer.utils.keyboards.clients_plan import ClientPlanMenuKeyboard, ClientPlanDaysKeyboard, \
@@ -95,6 +95,7 @@ async def add_exercise_to_day(callback: CallbackQuery, callback_data: MoveCallba
     client_id = state_data.get('client')
     trainer = get_trainer(callback.from_user.id)
     days = get_training_days(client_id, plan_id)
+    await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
     body_parts = get_all_body_parts(trainer)
     await callback.message.edit_text(text=translations[lang].trainer_create_plan_choose_exercise_for_day.value,
                                      reply_markup=ExercisePlanListKeyboard(body_parts,
@@ -318,3 +319,14 @@ async def process_edit_trainer_note(message: Message, state: FSMContext):
             .value)
         await bot.send_video(video=file, **kwargs)
         await notification.delete()
+
+
+@client_plan_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.publish_plan))
+@callback_error_handler
+async def publish_plan(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
+    state_data = await state.get_data()
+    lang = state_data.get('lang')
+    client_id = state_data.get('client')
+    plan_id = state_data.get('plan_id')
+    publish_new_plan(client_id, plan_id)
+    await callback.answer(translations[lang].trainer_my_clients_menu_single_client_publish_plan_notification.value, show_alert=True)

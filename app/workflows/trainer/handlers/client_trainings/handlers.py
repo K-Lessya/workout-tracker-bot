@@ -7,7 +7,8 @@ from app.bot import bot
 from app.config import PHOTO_BUCKET, LOCALE
 from app.s3.downloader import create_presigned_url
 from app.callbacks.callbacks import MoveCallback
-from app.entities.single_file.crud import get_client_trainings, get_client_training, get_all_client_trainigs
+from app.entities.single_file.crud import get_client_trainings, get_client_training, get_all_client_trainigs, \
+    get_client_by_id
 from app.keyboards.trainings.keyboard import PaginationKeyboard, TrainingExercisesKeyboard,\
     TrainingSingleExerciseKeyboard, TrainingVideoKeyboard
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback
@@ -35,7 +36,8 @@ async def show_client_trainings(callback: CallbackQuery, callback_data: MoveCall
     lang = trainer.lang
     await state.update_data({'lang': lang})
     await state.set_state(TrainerStates.my_clients.client_training.working_with_menu)
-    client = state_data['client']
+    client_id = state_data['client']
+    client = get_client_by_id(client_id)
     if callback_data.target == MyCLientsMoveTo.show_trainings:
         trainings = get_client_trainings(tg_id=client.tg_id, start_pos=-4, range=4)[0]
         all_trainings = get_all_client_trainigs(tg_id=client.tg_id)
@@ -99,7 +101,8 @@ async def show_client_single_training(callback: CallbackQuery, callback_data: Ch
     locale.setlocale(locale.LC_TIME, LOCALE)
     formatted_date_string = '%d/%m/%Y'
     state_data = await state.get_data()
-    client = state_data['client']
+    client_id = state_data['client']
+    client = get_client_by_id(client_id)
     lang = state_data['lang']
     training_id = int(callback_data.option)
     training = get_client_training(tg_id=client.tg_id, training_id=training_id)
@@ -192,7 +195,8 @@ async def create_comment(callback: CallbackQuery, callback_data: MoveCallback, s
 async def process_comment(message: Message, state: FSMContext):
     state_data = await state.get_data()
     has_video = True
-    client = state_data['client']
+    client_id = state_data['client']
+    client = get_client_by_id(client_id)
     lang = state_data['lang']
     training_id = state_data['training_id']
     selected_exercise_id = state_data['selected_exercise_id']

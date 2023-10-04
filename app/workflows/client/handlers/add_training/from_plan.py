@@ -15,7 +15,7 @@ from app.s3.uploader import upload_to_s3_and_update_progress
 from app.keyboards.yes_no import YesNoKeyboard
 from app.entities.single_file.models import Training, ClientTrainingExercise
 from app.entities.single_file.crud import get_client_by_id
-from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo
+from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo, ClientAddTrainingMoveTo
 from app.workflows.client.utils.callback_properties.targets import ClientAddTrainingTargets
 from app.workflows.client.utils.keyboards.training_plan import PlanExerciseGoBackKeyboard
 from app.workflows.client.utils.callback_properties.targets import ClientMyPlanTargets
@@ -31,6 +31,9 @@ from app.utilities.helpers_functions import album_handler
 from app.translations.base_translations import translations
 
 training_from_plan_router = Router()
+
+
+
 
 @training_from_plan_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.show_day))
 @callback_error_handler

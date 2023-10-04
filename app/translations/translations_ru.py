@@ -114,9 +114,11 @@ class RussianTranslations(Enum):
     trainer_my_clients_menu_single_clietn_create_plan_save_client_notification = "{} {} только что составил для тебя план тренировок можешь его посмотреть"
     trainer_my_clients_menu_single_clietn_create_plan_save_trainer_alert = "План сохранен, клиент может его просмотреть, ему отправлено уведомление"
     trainer_my_clients_menu_single_clietn_create_plan_save_plan_question = "Сохранить план?"
+    trainer_my_clients_menu_single_client_publish_plan = "Опубликовать план у клиента"
+    trainer_my_clients_menu_single_client_publish_plan_notification = "План опубликован и заменит текущий, если он есть"
 
     trainer_my_clients_edit_plan_exercise_change_exercise = "Заменить упражнение"
-    trainer_my_clients_edit_plan_exercise_cange_runs = "Изменить количество подходов"
+    trainer_my_clients_edit_plan_exercise_change_runs = "Изменить количество подходов"
     trainer_my_clients_edit_plan_exercise_change_repeats = "Изменить количетсво повторений"
     trainer_my_clients_edit_plan_exercise_change_trainer_note = "Изменить примечание"
 
