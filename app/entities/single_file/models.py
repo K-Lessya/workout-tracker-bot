@@ -22,7 +22,7 @@ class Client(Document):
     height = IntField()
     trainer = ReferenceField(Trainer)
     custom_exercises = ListField(ReferenceField(Exercise))
-    training_plan = EmbeddedDocumentField(DbTrainingPlan)
+    training_plans = EmbeddedDocumentListField(DbTrainingPlan)
     trainings = EmbeddedDocumentListField(Training)
 
 

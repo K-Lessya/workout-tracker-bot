@@ -95,8 +95,8 @@ class EnglishTranslations(Enum):
     trainer_my_clients_menu_single_client_create_plan_select_exercise = "Let's choose exercise for day {}, or you can create new exercise"
 
     trainer_my_clients_menu_single_client_create_plan_start = "Creating plan for client {} {}.\n" \
-                                                              "Type how many days of training should be in plan"
-    trainer_my_clients_menu_single_client_create_plan_day_name = "There're {} days in a plan\nType the name of the day {}"
+                                                              "Add new day or edit existing one"
+    trainer_my_clients_menu_single_client_create_plan_day_name = "Type the name of the day {}"
     trainer_my_clients_menu_single_client_create_plan_no_exercises = "There are no exercise in your db yet, just add one"
     trainer_my_clients_menu_single_client_create_plan_add_trainer_note = "Add your own recommendation(hint) about the" \
                                                                          " base technique(It's a basic " \
@@ -148,10 +148,12 @@ class EnglishTranslations(Enum):
     trainer_my_clients_single_clietn_menu_btn_questionnaire = "Questionnaire"
     trainer_my_clients_single_clietn_menu_btn_trainings = "Trainings"
     trainer_my_clients_single_clietn_menu_btn_create_plan = "Create training plan"
-    trainer_my_clients_single_clietn_menu_btn_show_plan = "Training plan"
+    trainer_my_clients_single_clietn_menu_btn_show_plan = "Training plans"
 
-    trainer_exercise_plan_list_keyboard_save_day = "Save training day {}"
+    trainer_exercise_plan_list_keyboard_save_day = "Go back to other plan days"
     trainer_exercise_plan_list_keyboard_add_exercise = "Add exercise to day"
+
+    trainer_my_clients_single_client_create_plan_menu = "Add day to plan"
 
     trainer_client_plan_menu_keyboard_show_plan = "Show client plan"
     trainer_client_plan_menu_keyboard_create_new_plan = "Create new plan"
@@ -161,7 +163,7 @@ class EnglishTranslations(Enum):
     trainer_client_plan_days_keyboard_day_btn = "Day {}({})"
 
     trainer_add_exercise_btn_add_exercise = "Create exercise"
-
+    trainer_create_plan_notification = "All changes that you will make will be saved automatically\nYou will be able to edit or add smomething later if you will decide to quit current plan creation process"
     ################## Client ########################
     client_main_menu = "ClientMenu"
 

@@ -40,6 +40,7 @@ class ClientTraining(StatesGroup):
 
 
 class CreatePlan(StatesGroup):
+    process_start = State()
     process_day_name = State()
     process_num_days = State()
     process_body_parts = State()
@@ -47,9 +48,17 @@ class CreatePlan(StatesGroup):
     process_num_runs = State()
     process_num_repeats = State()
 
+
+class EditPlanExercise(StatesGroup):
+    edit_num_runs = State()
+    edit_num_repeats = State()
+    edit_trainer_note = State()
+
+
 class MyClients(StatesGroup):
     create_plan = CreatePlan()
     client_training = ClientTraining()
+    edit_plan_exercise = EditPlanExercise()
 
 
 class TrainerStates(StatesGroup):

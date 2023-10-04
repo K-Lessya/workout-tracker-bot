@@ -62,21 +62,15 @@ class SingleClientKeyboard(InlineKeyboardBuilder):
             text=translations[lang].trainer_my_clients_single_clietn_menu_btn_trainings.value,
             callback_data=MoveCallback(target=MyCLientsMoveTo.show_trainings)
         )
-        if not client.training_plan:
-            self.button(
-                text=translations[lang].trainer_my_clients_single_clietn_menu_btn_create_plan.value,
-                callback_data=MoveToCallback(move_to=MyCLientsMoveTo.create_client_plan).pack()
-            )
-        else:
-            self.button(
-                text=translations[lang].trainer_my_clients_single_clietn_menu_btn_show_plan.value,
-                callback_data=MoveCallback(target=MyCLientsMoveTo.show_client_plan_menu).pack()
-            )
+        self.button(
+            text=translations[lang].trainer_my_clients_single_clietn_menu_btn_show_plan.value,
+            callback_data=MoveCallback(target=MyCLientsMoveTo.show_client_plan_menu).pack()
+        )
         self.button(
             text=translations[lang].go_back_btn.value,
             callback_data=MoveToCallback(move_to=TrainerMainMenuMoveTo.my_clients).pack()
         )
-        self.adjust(2,1,1)
+        self.adjust(2, 1, 1)
 
 
 # class PlanDaysKeyboard(InlineKeyboardBuilder):

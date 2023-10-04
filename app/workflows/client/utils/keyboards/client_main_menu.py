@@ -41,14 +41,14 @@ def create_client_main_menu_keyboard(client: Client, lang):
     for button in builder_buttons:
         if not client.trainings and button['text'] == translations[lang].client_main_menu_btn_my_trainings.value:
             pass
-        elif not client.training_plan and button['text'] == translations[lang].client_main_menu_btn_my_plan.value:
+        elif not client.training_plans and button['text'] == translations[lang].client_main_menu_btn_my_plan.value:
             pass
         else:
             builder.button(
                 text=button['text'], callback_data=MoveCallback(target=button['target'])
             )
     if len(builder_buttons) == 6:
-        builder.adjust(1, 2, 2,1)
+        builder.adjust(1, 2, 2, 1)
     elif len(builder_buttons) == 5:
         builder.adjust(1, 2, 1,1)
     elif len(builder_buttons) == 4:

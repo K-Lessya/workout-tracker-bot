@@ -30,7 +30,13 @@ class MyCLientsMoveTo:
     client_quiz = 'my_client_client_quiz'
     single_client = 'single_client'
     create_client_plan = "create_client_plan"
+    add_day_to_plan = "client_plan_add_day"
+    add_exercise_to_day = "add_exercise_to_client_plan"
     save_client_plan = 'save_client_plan'
+    change_exercise = 'change_exercise'
+    change_num_runs = 'change_num_runs'
+    change_num_repeats = 'change_num_repeats'
+    change_trainer_note = 'change_trainer_note'
     save_client_day = 'save_client_day'
     edit_client_plan = 'edit_client_plan'
     show_trainings = 'my_clients_show_client_training'

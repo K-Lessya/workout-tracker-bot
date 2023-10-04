@@ -98,8 +98,8 @@ class RussianTranslations(Enum):
     trainer_my_clients_menu_single_client_menu = "Клиент:\nИмя: {}\nФамилия: {}"
 
     trainer_my_clients_menu_single_client_create_plan_start = "Составляем план для клиента {} {}.\n" \
-                                                              "Введи количество дней в плане"
-    trainer_my_clients_menu_single_client_create_plan_day_name = "В плане {} дней\nВведи название дня {}"
+                                                              "Можешь добавить день или отредактировать уже существующий"
+    trainer_my_clients_menu_single_client_create_plan_day_name = "Введи название дня {}"
     trainer_my_clients_menu_single_client_create_plan_select_exercise = "Давай выберем упражнения для дня {}, либо создай новое упражнение"
     trainer_my_clients_menu_single_client_create_plan_no_exercises = "Пока в твоей базе нет упражнений, давай добавим упраднение"
     trainer_my_clients_menu_single_client_create_plan_add_trainer_note = "Добавь свой комментарий или рекомендацию по" \
@@ -114,6 +114,11 @@ class RussianTranslations(Enum):
     trainer_my_clients_menu_single_clietn_create_plan_save_client_notification = "{} {} только что составил для тебя план тренировок можешь его посмотреть"
     trainer_my_clients_menu_single_clietn_create_plan_save_trainer_alert = "План сохранен, клиент может его просмотреть, ему отправлено уведомление"
     trainer_my_clients_menu_single_clietn_create_plan_save_plan_question = "Сохранить план?"
+
+    trainer_my_clients_edit_plan_exercise_change_exercise = "Заменить упражнение"
+    trainer_my_clients_edit_plan_exercise_cange_runs = "Изменить количество подходов"
+    trainer_my_clients_edit_plan_exercise_change_repeats = "Изменить количетсво повторений"
+    trainer_my_clients_edit_plan_exercise_change_trainer_note = "Изменить примечание"
 
     trainer_my_clients_menu_single_client_plan_menu = "Выбери просмотреть план или cоздать новый план"
     trainer_my_clients_menu_single_client_vieew_plan_show_days = "Выбери  день из плана"
@@ -157,9 +162,11 @@ class RussianTranslations(Enum):
     trainer_my_clients_single_clietn_menu_btn_questionnaire = "Анкета"
     trainer_my_clients_single_clietn_menu_btn_trainings = "Тренировки"
     trainer_my_clients_single_clietn_menu_btn_create_plan = "Составить план"
-    trainer_my_clients_single_clietn_menu_btn_show_plan = "Тренировочный план"
+    trainer_my_clients_single_clietn_menu_btn_show_plan = "Планы тренировок"
 
-    trainer_exercise_plan_list_keyboard_save_day = "Сохранить день {}"
+    trainer_my_clients_single_client_create_plan_menu = "Добавить день в план"
+
+    trainer_exercise_plan_list_keyboard_save_day = "Назад к другим дням плана"
     trainer_exercise_plan_list_keyboard_add_exercise = "Добавить упражнение"
 
     trainer_client_plan_menu_keyboard_show_plan = "Просмотреть план"
@@ -172,6 +179,7 @@ class RussianTranslations(Enum):
 
     trainer_add_exercise_btn_add_exercise = "Добавить упражнение"
 
+    trainer_create_plan_notification = "Все изменения и добавления сохраняются автоматически\nТы сможешь вернуться к редактированию в любой момент если решишь прервать создание плана"
 ################## Client ########################
     client_main_menu = "Меню клиента"
 

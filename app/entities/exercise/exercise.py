@@ -24,9 +24,9 @@ class Exercise(Document):
 
 class PlanTrainingExercise(EmbeddedDocument):
     exercise = ReferenceField(Exercise, required=True)
-    num_repeats = IntField()
-    num_runs = IntField()
-    trainer_note = StringField()
+    num_repeats = IntField(default=None)
+    num_runs = IntField(default=None)
+    trainer_note = StringField(default=None)
 
     meta = {"allow_inheritance": True}
 

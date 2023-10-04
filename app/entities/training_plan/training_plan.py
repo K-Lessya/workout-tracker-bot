@@ -2,9 +2,11 @@ from mongoengine import *
 from app.entities.exercise.exercise import *
 
 class DbTrainingDay(EmbeddedDocument):
-    name = StringField()
-    training_exercises = EmbeddedDocumentListField(PlanTrainingExercise, required=True)
+    name = StringField(required=True)
+    training_exercises = EmbeddedDocumentListField(PlanTrainingExercise, default=[])
 
 
 class DbTrainingPlan(EmbeddedDocument):
-    days = EmbeddedDocumentListField(DbTrainingDay)
+    date = DateField()
+    days = EmbeddedDocumentListField(DbTrainingDay, default=[])
+    published = BooleanField(required=True, default=False)
