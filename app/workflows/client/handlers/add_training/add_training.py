@@ -12,7 +12,7 @@ from app.workflows.client.utils.states import ClientStates
 from app.bot import bot
 from app.workflows.client.utils.keyboards.training import TrainingTypeKeyboard
 from app.entities.single_file.models import Training, ClientTrainingExercise
-from app.entities.single_file.crud import create_training, get_client_by_id
+from app.entities.single_file.crud import create_training, get_client_by_id, get_trainer
 from app.workflows.client.utils.keyboards.client_main_menu import create_client_main_menu_keyboard
 from app.workflows.client.utils.keyboards.create_trainings import create_add_exercise_keyboard
 from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
@@ -68,3 +68,16 @@ async def process_training_type(callback: CallbackQuery, callback_data: ChooseCa
                                                                                go_back_target=CommonGoBackMoveTo.to_client_main_menu).as_markup())
         else:
             await callback.answer(translations[lang].client_add_training_add_from_plan_no_plan.value, show_alert=True)
+
+
+
+@add_training_router.callback_query(ChooseCallback.filter(F.target == 'send-training-notification'))
+@callback_error_handler
+async def send_notifications(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
+    state_data = await state.get_data()
+    lang = state_data.get('lang')
+    client = get_client_by_id(callback.from_user.id)
+    trainer_id = client.trainer.tg_id
+    if callback_data.option == YesNoOptions.yes:
+        await bot.send_message(chat_id=trainer_id, text="текст уведомления")
+

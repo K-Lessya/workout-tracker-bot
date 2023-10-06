@@ -168,7 +168,7 @@ class RussianTranslations(Enum):
 
     trainer_my_clients_single_client_create_plan_menu = "Добавить день в план"
 
-    trainer_exercise_plan_list_keyboard_save_day = "Назад к другим дням плана"
+    trainer_exercise_plan_list_keyboard_save_day = "Вернуться к добавленым в день упражнениям"
     trainer_exercise_plan_list_keyboard_add_exercise = "Добавить упражнение"
 
     trainer_client_plan_menu_keyboard_show_plan = "Просмотреть план"

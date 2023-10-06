@@ -53,6 +53,7 @@ class EditPlanExercise(StatesGroup):
     edit_num_runs = State()
     edit_num_repeats = State()
     edit_trainer_note = State()
+    show_exercise = State()
 
 
 class MyClients(StatesGroup):

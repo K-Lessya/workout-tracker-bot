@@ -103,7 +103,7 @@ class EnglishTranslations(Enum):
                                                                          "recommendation, which will be shown " \
                                                                          "with exercise)\n Or if you don't want to add anything press" \
                                                                          " next"
-    trainer_my_clietns_menu_single_client_create_plan_exercise_already_added = "You have already added this exercise into plan, please selec another exercise or save day"
+    trainer_my_clietns_menu_single_client_create_plan_exercise_already_added = "You have already added this exercise into the plan, please select another exercise or save the day"
     trainer_my_clietns_menu_single_client_create_plan_add_num_runs = "Type how many runs should be in exercise"
     trainer_my_clietns_menu_single_client_create_plan_add_num_repeats = "Type how many repeats should be in each run"
     trainer_my_clietns_menu_single_client_create_plan_trainer_note_was_not_added = "Trainer didn't add any hints"
@@ -157,7 +157,7 @@ class EnglishTranslations(Enum):
     trainer_my_clients_single_clietn_menu_btn_create_plan = "Create training plan"
     trainer_my_clients_single_clietn_menu_btn_show_plan = "Training plans"
 
-    trainer_exercise_plan_list_keyboard_save_day = "Go back to other plan days"
+    trainer_exercise_plan_list_keyboard_save_day = "Go back to day exercises list"
     trainer_exercise_plan_list_keyboard_add_exercise = "Add exercise to day"
 
     trainer_my_clients_single_client_create_plan_menu = "Add day to plan"
@@ -200,9 +200,9 @@ class EnglishTranslations(Enum):
 
     client_add_training_choose_training = "Do you want to add a custom training or add a traiing from your plan?"
     client_add_training_add_custom_start = "  You create your own exercises for custom trainings and in this trainings you are not allowed to:\n\n" \
-                                           "- Use trainer's exercises\n" \
-                                           "- See exercises techinque description and media\n" \
-                                           "- Your trainer's personal recommendation about exercise technique\n" \
+                                           "     - Use trainer's exercises\n" \
+                                           "     - See exercises techinque description and media\n" \
+                                           "     - Your trainer's personal recommendation when you will track training(after training creation trainer comment about your video is still available)\n" \
                                            "  All above is allowed only if you will create training from plan\n\n" \
                                            "  However you are still able to record your own videos of exercises and your trainer will be able to make corrections\n\n" \
                                            "  If you don't have trainer now, your custom trainings will be available for your future trainer to watch them\n\n" \

@@ -84,30 +84,30 @@ def create_exercise_db_choose_keyboard(options: Optional[list[BodyPart | MuscleG
 class ExerciseCommonListKeyboard(InlineKeyboardBuilder):
     def __init__(self, items: list[BodyPart | MuscleGroup | Exercise], tg_id: int):
         super().__init__()
+        if items:
+            if isinstance(items[0], BodyPart):
+                if get_trainer(tg_id=tg_id):
+                    target = TrainerMyClientsTargets.choose_body_part
+                elif get_client_by_id(tg_id=tg_id):
+                    target = ClientAddCustomTrainingTargets.choose_body_parts
 
-        if isinstance(items[0], BodyPart):
-            if get_trainer(tg_id=tg_id):
-                target = TrainerMyClientsTargets.choose_body_part
-            elif get_client_by_id(tg_id=tg_id):
-                target = ClientAddCustomTrainingTargets.choose_body_parts
+            elif isinstance(items[0], MuscleGroup):
+                if get_trainer(tg_id=tg_id):
+                    target = TrainerMyClientsTargets.choose_muscle_group
+                elif get_client_by_id(tg_id=tg_id):
+                    target = ClientAddCustomTrainingTargets.choose_muscle_group
 
-        elif isinstance(items[0], MuscleGroup):
-            if get_trainer(tg_id=tg_id):
-                target = TrainerMyClientsTargets.choose_muscle_group
-            elif get_client_by_id(tg_id=tg_id):
-                target = ClientAddCustomTrainingTargets.choose_muscle_group
+            else:
+                if get_trainer(tg_id=tg_id):
+                    target = TrainerMyClientsTargets.choose_exercise_for_plan
+                elif get_client_by_id(tg_id=tg_id):
+                    target = ClientAddCustomTrainingTargets.choose_exercise
 
-        else:
-            if get_trainer(tg_id=tg_id):
-                target = TrainerMyClientsTargets.choose_exercise_for_plan
-            elif get_client_by_id(tg_id=tg_id):
-                target = ClientAddCustomTrainingTargets.choose_exercise
-
-        for item in items:
-            self.row(InlineKeyboardButton(text=f'{item.name}',
-                        callback_data=ChooseCallback(
-                            target=target,
-                            option=str(item.id)).pack()))
+            for item in items:
+                self.row(InlineKeyboardButton(text=f'{item.name}',
+                            callback_data=ChooseCallback(
+                                target=target,
+                                option=str(item.id)).pack()))
 
 
 

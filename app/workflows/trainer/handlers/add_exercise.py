@@ -9,9 +9,10 @@ from app.keyboards.yes_no import YesNoKeyboard
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback,MoveToCallback, YesNoOptions
 from app.utilities.default_keyboards.yes_no import create_yes_no_keyboard
 from app.s3.uploader import upload_to_s3_and_update_progress
+from ..utils.keyboards.clients_plan import ClientPlanExercisesKeyboard
 from ..utils.keyboards.exercise_db import ExercisePlanListKeyboard
 from ..utils.states import TrainerStates
-from ..utils.callback_properties.targets import CreateExerciseTargets
+from ..utils.callback_properties.targets import CreateExerciseTargets, TrainerMyClientsTargets
 from app.workflows.common.utils.keyboards.exercise_db_choose import create_exercise_db_choose_keyboard
 from app.workflows.common.utils.callback_properties.targets import ExerciseDbTargets
 from app.workflows.common.utils.callback_properties.movetos import ExerciseDbMoveTo, UpstreamMenuMoveTo,\
@@ -51,10 +52,11 @@ async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, s
             await state.clear()
 
     state_data = await state.get_data()
+    day_id = state_data.get('day_id')
     if not 'executing_from_plan' in state_data.keys():
-        go_back = CommonGoBackMoveTo.to_trainer_main_menu
+        go_back = MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu)
     else:
-        go_back = MyCLientsMoveTo.go_back_to_bodyparts_list
+        go_back = ChooseCallback(target=TrainerMyClientsTargets.show_client_plan_day, option=day_id)
 
     print(state_data)
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_body_part_name)
@@ -66,7 +68,7 @@ async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, s
                                      reply_markup=create_exercise_db_choose_keyboard(
                                          options=body_parts, source=callback,
                                          target=CreateExerciseTargets.process_body_part_name,
-                                         go_back_filter=MoveToCallback(move_to=go_back),
+                                         go_back_filter=go_back,
                                          lang=lang
                                      ))
     await callback.answer()
@@ -76,7 +78,9 @@ async def add_exercise(callback: CallbackQuery, callback_data: ChooseCallback, s
 async def process_body_part_name_message(message: Message, state: FSMContext):
     await state.update_data({'body_part': message.text})
     state_data = await state.get_data()
-    lang = state_data.get('lang')
+    trainer = get_trainer(message.from_user.id)
+    lang = trainer.lang
+    await state.update_data({'lang': lang})
     await state.set_state(TrainerStates.exercises_db.add_exercise.process_muscle_group_name)
     await message.answer(translations[lang].trainer_add_exercise_create_muscle_group_message.value)
 
@@ -225,8 +229,6 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
     lang = trainer.lang
     if callback_data.option == YesNoOptions.yes:
         state_data = await state.get_data()
-        if not "executing_from_plan" in state_data.keys():
-            await state.clear()
 
         if state_data['exercise_media_link'] != 'defaults/panda_workout.jpeg':
             await callback.message.edit_text(translations[lang].trainer_add_exercise_process_save_process_file.value)
@@ -281,33 +283,34 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
             await state.update_data({"to_delete_keyboard": message_with_button})
             await callback.message.delete()
         else:
-
+            await state.set_state(TrainerStates.exercises_db.add_exercise.process_body_part_name)
             await callback.message.answer(translations[lang].trainer_exercise_db_choose_bodypart.value,
                                              reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
                                                                                              source=callback,
                                                                                              target=ExerciseDbTargets.show_body_part,
-                                                                                             go_back_filter=MoveToCallback(
-                                                                                                 move_to=UpstreamMenuMoveTo.show_exercise_db),
+                                                                                             go_back_filter=MoveToCallback(move_to=CommonGoBackMoveTo.to_trainer_main_menu),
                                                                                              lang=lang
                                                                                              ))
             await callback.message.delete()
 
     elif callback_data.option == YesNoOptions.no:
-
+        await state.set_state(TrainerStates.exercises_db.add_exercise.process_body_part_name)
         body_parts = get_all_body_parts(trainer)
         state_data = await state.get_data()
         if 'executing_from_plan' in state_data.keys():
             await callback.answer(translations[lang].trainer_add_exercise_process_save_not_saved.value, show_alert=True)
-            plan = state_data['plan']
-            current_day = plan.days[-1]
+            plan_id = state_data.get('plan_id')
+            client_id = state_data.get('client')
+            day_id = state_data.get('day_id')
+            plan = get_single_plan(client_id, plan_id)
+            current_day = plan.days[day_id]
+            exercises = current_day.training_exercises
+
             await callback.message.answer(translations[lang].trainer_create_plan_choose_exercise_for_day.value.format(len(plan.days)),
-                                          reply_markup=ExercisePlanListKeyboard(items=body_parts,
-                                                                                tg_id=callback.from_user.id,
-                                                                                day_num=len(plan.days),
-                                                                                exercises_length=len(
-                                                                                    current_day.exercises)).as_markup())
+                                          reply_markup=ClientPlanExercisesKeyboard(plan_day_exercises=exercises, lang=lang, plan_id=plan_id).as_markup())
         else:
-            await state.clear()
+
+
             await callback.message.answer(translations[lang].trainer_add_exercise_process_save_not_saved.value,
                                              reply_markup=create_exercise_db_choose_keyboard(options=body_parts,
                                                                                          source=callback,
@@ -318,3 +321,4 @@ async def proces_save(callback: CallbackQuery, callback_data: ChooseCallback, st
                                                                                          ))
         await callback.message.delete()
         await callback.answer()
+

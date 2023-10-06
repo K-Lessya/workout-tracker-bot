@@ -96,3 +96,8 @@ def publish_new_plan(client_id: int, plan_id: int):
     client.training_plans[plan_id].published = True
     client.save()
 
+
+def create_exercise_training_note(client_id: int, plan_id: int, day_id: int, exercise_id: int, trainer_note: str):
+    client = Client.objects(tg_id=client_id).first()
+    client.training_plans[plan_id].days[day_id].training_exercises[exercise_id].trainer_note = trainer_note
+    client.save()

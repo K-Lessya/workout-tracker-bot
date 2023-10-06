@@ -3,6 +3,7 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from app.bot import bot
+from app.entities.training_plan.crud import get_single_plan
 from app.keyboards.yes_no import YesNoKeyboard
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, MoveToCallback, YesNoOptions
 from ..utils.keyboards.my_clients import MyClientsKeyboard, SingleClientKeyboard, ClientQuizKeyboard
@@ -154,17 +155,20 @@ async def process_num_days(message: Message, state: FSMContext):
 #                              reply_markup=create_trainer_main_menu_keyboard(lang=lang))
 #
 
-@my_clients_router.message(TrainerStates.my_clients.create_plan.process_body_parts)
-async def process_message_on_body_parts(message: Message, state: FSMContext):
-    await message.delete()
+# @my_clients_router.message(TrainerStates.my_clients.create_plan.process_body_parts)
+# async def process_message_on_body_parts(message: Message, state: FSMContext):
+#     await message.delete()
 
 
 @my_clients_router.callback_query(MoveToCallback.filter(F.move_to == MyCLientsMoveTo.go_back_to_bodyparts_list))
 async def show_body_parts(callback: CallbackQuery, callback_data: MoveToCallback, state: FSMContext):
     state_data = await state.get_data()
-    plan = state_data['plan']
+    plan_id = state_data.get('plan_id')
+    client_id = state_data.get('client')
+    day_id = state_data.get('day_id')
     lang = state_data['lang']
-    current_day = plan.days[-1]
+    plan = get_single_plan(client_id, plan_id)
+    current_day = plan.days[day_id]
     body_parts = get_all_body_parts(trainer_id=get_trainer(callback.from_user.id))
     if body_parts:
         await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
@@ -173,10 +177,10 @@ async def show_body_parts(callback: CallbackQuery, callback_data: MoveToCallback
                                          .format(len(plan.days)),
                              reply_markup=ExercisePlanListKeyboard(items=body_parts,
                                                                    tg_id=callback.from_user.id,
-                                                                   day_num=len(plan.days),
+                                                                   plan_id=plan_id,
                                                                    lang=lang,
                                                                    exercises_length=len(
-                                                                       current_day.exercises)).as_markup())
+                                                                       current_day.training_exercises)).as_markup())
 
 
 

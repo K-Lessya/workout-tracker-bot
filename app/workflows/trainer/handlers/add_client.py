@@ -133,6 +133,7 @@ async def add_client_profile(callback: CallbackQuery, callback_data: ChooseCallb
 @callback_error_handler
 async def go_to_main_menu(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     lang = get_trainer(callback.from_user.id).lang
+    await state.clear()
     await callback.message.edit_text(translations[lang].trainer_add_client_menu_back_to_main_menu.value,
                                      reply_markup=create_trainer_main_menu_keyboard(lang=lang))
     await bot.set_chat_menu_button(chat_id=callback.from_user.id, menu_button=MenuButtonCommands(type='commands'))

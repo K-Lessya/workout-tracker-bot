@@ -89,20 +89,28 @@ async def show_client_plan_day(callback: CallbackQuery, callback_data: ChooseCal
 @callback_error_handler
 async def add_exercise_to_day(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
     state_data = await state.get_data()
+    await state.set_state(TrainerStates.exercises_db.add_exercise.process_body_part_name)
     lang = state_data.get('lang')
     plan_id = state_data.get('plan_id', -1)
     day_id = state_data.get('day_id', -1)
+
     client_id = state_data.get('client')
+    await state.update_data({'executing_from_plan': True})
     trainer = get_trainer(callback.from_user.id)
     days = get_training_days(client_id, plan_id)
-    await state.set_state(TrainerStates.my_clients.create_plan.process_body_parts)
+    if day_id == -1:
+        msg_day = len(days)
+    else:
+        msg_day = day_id+1
+    await state.set_state(TrainerStates.exercises_db.add_exercise.process_body_part_name)
     body_parts = get_all_body_parts(trainer)
-    await callback.message.edit_text(text=translations[lang].trainer_create_plan_choose_exercise_for_day.value,
+    await callback.message.edit_text(text=translations[lang].trainer_create_plan_choose_exercise_for_day.value.format(msg_day),
                                      reply_markup=ExercisePlanListKeyboard(body_parts,
                                                                len(days[day_id].training_exercises),
                                                                callback.from_user.id,
                                                                lang,
-                                                               plan_id,
+                                                               day_id,
+
 
                                                                ).as_markup())
 
@@ -110,6 +118,7 @@ async def add_exercise_to_day(callback: CallbackQuery, callback_data: MoveCallba
 @callback_error_handler
 async def show_client_plan_exercise(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     await callback.message.delete()
+
     await state.update_data({'exercise_id': callback_data.option})
     state_data = await state.get_data()
     lang = state_data['lang']
@@ -204,6 +213,7 @@ async def process_edit_num_runs(message: Message, state: FSMContext):
                 .value)
             await bot.send_video(video=file, **kwargs)
             await notification.delete()
+        await state.set_state(TrainerStates.my_clients.edit_plan_exercise.show_exercise)
     else:
         await message.answer(translations[lang].client_number_required.value)
 
@@ -261,8 +271,10 @@ async def process_edit_num_runs(message: Message, state: FSMContext):
                 .value)
             await bot.send_video(video=file, **kwargs)
             await notification.delete()
+        await state.set_state(TrainerStates.my_clients.edit_plan_exercise.show_exercise)
     else:
         await message.answer(translations[lang].client_number_required.value)
+
 
 
 
@@ -319,6 +331,7 @@ async def process_edit_trainer_note(message: Message, state: FSMContext):
             .value)
         await bot.send_video(video=file, **kwargs)
         await notification.delete()
+    await state.set_state(TrainerStates.my_clients.edit_plan_exercise.show_exercise)
 
 
 @client_plan_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.publish_plan))

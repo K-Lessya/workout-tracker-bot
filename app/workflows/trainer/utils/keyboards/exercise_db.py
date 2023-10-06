@@ -11,25 +11,33 @@ from app.translations.base_translations import translations
 
 
 class ExercisePlanListKeyboard(ExerciseCommonListKeyboard):
-    def __init__(self, items: list[BodyPart | Exercise | MuscleGroup], exercises_length: int, tg_id: int, lang, plan_id,
+    def __init__(self, items: list[BodyPart | Exercise | MuscleGroup], exercises_length: int, tg_id: int, lang, day_id,
                  body_part_id=None):
         super().__init__(items=items, tg_id=tg_id)
+        if items:
+            if exercises_length >= 1 and isinstance(items[0], BodyPart):
+                self.button(text=translations[lang].trainer_exercise_plan_list_keyboard_save_day.value,
+                            callback_data=ChooseCallback(target=TrainerMyClientsTargets.show_client_plan_day, option=str(day_id)))
 
-        if exercises_length >= 1 and isinstance(items[0], BodyPart):
-            self.button(text=translations[lang].trainer_exercise_plan_list_keyboard_save_day.value,
-                        callback_data=ChooseCallback(target=TrainerMyClientsTargets.show_client_plans, option=str(plan_id)))
 
-        if isinstance(items[0], BodyPart):
-            self.button(text=translations[lang].trainer_exercise_plan_list_keyboard_add_exercise.value,
-                        callback_data=MoveToCallback(move_to=ExerciseDbMoveTo.create_exercise))
+            # if isinstance(items[0], BodyPart):
+            #     self.button(text=translations[lang].trainer_exercise_plan_list_keyboard_add_exercise.value,
+            #             callback_data=MoveToCallback(move_to=ExerciseDbMoveTo.create_exercise))
 
-        elif isinstance(items[0], MuscleGroup):
-            self.button(text=translations[lang].go_back_btn.value,
+            elif isinstance(items[0], MuscleGroup):
+                self.button(text=translations[lang].go_back_btn.value,
                         callback_data=ChooseCallback(target=TrainerMyClientsTargets.show_body_parts, option=""))
 
-        else:
-            self.button(text=translations[lang].go_back_btn.value,
+            elif isinstance(items[0], Exercise):
+                self.button(text=translations[lang].go_back_btn.value,
                         callback_data=ChooseCallback(target=TrainerMyClientsTargets.choose_body_part, option=body_part_id).pack())
+        else:
+            self.button(text=translations[lang].trainer_exercise_plan_list_keyboard_save_day.value,
+                        callback_data=ChooseCallback(target=TrainerMyClientsTargets.show_client_plan_day,
+                                                     option=str(day_id)))
+            # self.button(text=translations[lang].trainer_exercise_plan_list_keyboard_add_exercise.value,
+            #             callback_data=MoveToCallback(move_to=ExerciseDbMoveTo.create_exercise))
+
 
 
 
