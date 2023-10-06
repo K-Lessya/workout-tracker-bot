@@ -36,6 +36,7 @@ class ExercisesDb(StatesGroup):
 
 class ClientTraining(StatesGroup):
     process_comment = State()
+    process_append_comment = State()
     working_with_menu = State()
 
 

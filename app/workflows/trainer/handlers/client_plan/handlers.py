@@ -334,6 +334,8 @@ async def process_edit_trainer_note(message: Message, state: FSMContext):
     await state.set_state(TrainerStates.my_clients.edit_plan_exercise.show_exercise)
 
 
+
+
 @client_plan_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.publish_plan))
 @callback_error_handler
 async def publish_plan(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):

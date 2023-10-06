@@ -46,3 +46,7 @@ async def fill_questionare(callback: CallbackQuery, callback_data: MoveCallback,
     await callback.answer("Загрузка завершена")
 
 
+
+
+
+

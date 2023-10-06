@@ -103,6 +103,8 @@ class EnglishTranslations(Enum):
                                                                          "recommendation, which will be shown " \
                                                                          "with exercise)\n Or if you don't want to add anything press" \
                                                                          " next"
+    trainer_my_clients_menu_single_client_create_plan_append_trainer_note = "Add another note to exercise."
+
     trainer_my_clietns_menu_single_client_create_plan_exercise_already_added = "You have already added this exercise into the plan, please select another exercise or save the day"
     trainer_my_clietns_menu_single_client_create_plan_add_num_runs = "Type how many runs should be in exercise"
     trainer_my_clietns_menu_single_client_create_plan_add_num_repeats = "Type how many repeats should be in each run"
@@ -122,6 +124,7 @@ class EnglishTranslations(Enum):
     trainer_my_clients_edit_plan_exercise_change_runs = "Edit number of runs"
     trainer_my_clients_edit_plan_exercise_change_repeats = "Edit number of repeats"
     trainer_my_clients_edit_plan_exercise_change_trainer_note = "Edit trainer note"
+    trainer_my_clients_edit_plan_exercise_append_trainer_note = "Add comment"
 
     trainer_my_clients_menu_single_client_plan_menu = "You can view current plan or create a new one"
     trainer_my_clients_menu_single_client_vieew_plan_show_days = "Choose a day from plan"
@@ -138,10 +141,12 @@ class EnglishTranslations(Enum):
                                                                          "Runs x Repeats: {}x{}\n" \
                                                                          "Working weight: {} kg"
     trainer_my_clients_menu_single_client_view_trainings_update_comment = "Update comment"
+    trainer_my_clients_menu_single_client_view_trainings_append_comment = "Add another comment"
     trainer_my_clients_menu_single_client_view_trainings_create_comment = "Add comment"
-    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video = "Client note: {}\nTrainer comment: {}"
-    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video_no_comment = "Client note: {}\nNo trainer comment"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video = "Client note:\n{}\n\nTrainer comment:\n{}"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video_no_comment = "Client note:\n {}\n\n No trainer comment"
     trainer_my_clients_menu_single_client_view_trainings_show_exercise_as_for_comment = "Type your comment about client video"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_as_for_append_comment = "Add some notes to your comment"
     trainer_my_clients_menu_single_client_view_trainings_show_exercise_comment_saved = "Comment has been saved"
 
     trainer_main_menu_btn_add_client = "Add client"

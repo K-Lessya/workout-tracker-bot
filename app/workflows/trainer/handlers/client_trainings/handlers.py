@@ -165,6 +165,11 @@ async def show_exercise_video(callback: CallbackQuery, callback_data: MoveCallba
                                       .value if exercise.comment else translations[lang]
                                       .trainer_my_clients_menu_single_client_view_trainings_create_comment.value,
                                       callback_data=MoveCallback(target=MyCLientsMoveTo.create_video_comment).pack()))
+    if exercise.comment:
+        keyboard.row(InlineKeyboardButton(
+            text=translations[lang].trainer_my_clients_menu_single_client_view_trainings_append_comment.value,
+            callback_data=MoveCallback(target=MyCLientsMoveTo.append_video_comment).pack()
+        ))
 
 
     await bot.send_video(chat_id=callback.from_user.id, video=file,
@@ -201,6 +206,39 @@ async def process_comment(message: Message, state: FSMContext):
     training_id = state_data['training_id']
     selected_exercise_id = state_data['selected_exercise_id']
     client.trainings[int(training_id)].training_exercises[int(selected_exercise_id)].comment = message.text
+    await state.update_data({'selected_exercise': client.trainings[int(training_id)].training_exercises[int(selected_exercise_id)]})
+    client.save()
+    await state.set_state(TrainerStates.my_clients.client_training.working_with_menu)
+    await message.answer(text=translations[lang]
+                         .trainer_my_clients_menu_single_client_view_trainings_show_exercise_comment_saved.value,
+                         reply_markup=TrainingSingleExerciseKeyboard(has_video=has_video,
+                                                                     target=MyCLientsMoveTo.show_exercise_video,
+                                                                     go_back_target=TrainerMyClientsTargets.show_training,
+                                                                     source_option=str(training_id),
+                                                                     lang=lang).as_markup())
+
+@my_clients_trainings_router.callback_query(MoveCallback.filter(F.target == MyCLientsMoveTo.append_video_comment))
+@callback_error_handler
+async def append_comment(callback: CallbackQuery, callback_data: MoveCallback, state: FSMContext):
+    await state.set_state(TrainerStates.my_clients.client_training.process_append_comment)
+    state_data = await state.get_data()
+    lang = state_data['lang']
+    await callback.message.edit_caption(
+        caption=translations[lang]
+        .trainer_my_clients_menu_single_client_view_trainings_show_exercise_as_for_append_comment.value,
+        reply_markup=None)
+
+
+@my_clients_trainings_router.message(TrainerStates.my_clients.client_training.process_append_comment)
+async def process_append_comment(message: Message, state: FSMContext):
+    state_data = await state.get_data()
+    has_video = True
+    client_id = state_data['client']
+    client = get_client_by_id(client_id)
+    lang = state_data['lang']
+    training_id = state_data['training_id']
+    selected_exercise_id = state_data['selected_exercise_id']
+    client.trainings[int(training_id)].training_exercises[int(selected_exercise_id)].comment += f"\n{message.text}"
     await state.update_data({'selected_exercise': client.trainings[int(training_id)].training_exercises[int(selected_exercise_id)]})
     client.save()
     await state.set_state(TrainerStates.my_clients.client_training.working_with_menu)

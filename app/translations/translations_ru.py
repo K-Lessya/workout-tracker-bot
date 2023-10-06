@@ -106,6 +106,9 @@ class RussianTranslations(Enum):
                                                                          " общей технике выполнения(Это общая " \
                                                                          "рекомендация, которая будет выводиться " \
                                                                          "вместе с упраднением), либо нажми далее"
+    trainer_my_clients_menu_single_client_create_plan_append_trainer_note = "Напиши дополнение к своему комментарию, оно будет добавлено к текущему"
+
+
     trainer_my_clietns_menu_single_client_create_plan_exercise_already_added = "Ты уже добавил это упражнение в план, выбери другое"
     trainer_my_clietns_menu_single_client_create_plan_add_num_runs = "Введи количество подходов"
     trainer_my_clietns_menu_single_client_create_plan_add_num_repeats = "Введи количество повторений за подход"
@@ -121,6 +124,7 @@ class RussianTranslations(Enum):
     trainer_my_clients_edit_plan_exercise_change_runs = "Изменить количество подходов"
     trainer_my_clients_edit_plan_exercise_change_repeats = "Изменить количетсво повторений"
     trainer_my_clients_edit_plan_exercise_change_trainer_note = "Изменить примечание"
+    trainer_my_clients_edit_plan_exercise_append_trainer_note = "Дополнить комментарий"
 
     trainer_my_clients_menu_single_client_plan_menu = "Выбери просмотреть план или cоздать новый план"
     trainer_my_clients_menu_single_client_vieew_plan_show_days = "Выбери  день из плана"
@@ -139,9 +143,11 @@ class RussianTranslations(Enum):
                                                                          "Вес с которым работал: {} кг"
     trainer_my_clients_menu_single_client_view_trainings_update_comment = "Обновить комментарий"
     trainer_my_clients_menu_single_client_view_trainings_create_comment = "Добавить комментарий"
-    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video = "Пометка клиента: {}\nКомментарий: {}"
-    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video_no_comment = "Пометка клиента: {}\nКомментарий отсутствует"
+    trainer_my_clients_menu_single_client_view_trainings_append_comment = "Дополнить комментарий"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video = "Пометка клиента:\n{}\n\nКомментарий:\n{}"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_video_no_comment = "Пометка клиента:\n {}\n\nКомментарий отсутствует"
     trainer_my_clients_menu_single_client_view_trainings_show_exercise_as_for_comment = "Напиши свой комментарий к видео"
+    trainer_my_clients_menu_single_client_view_trainings_show_exercise_as_for_append_comment = 'Дополни свой комментарий'
     trainer_my_clients_menu_single_client_view_trainings_show_exercise_comment_saved = "Комментарий сохранен"
 
 
