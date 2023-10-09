@@ -8,3 +8,9 @@ class ChooseCallback(CallbackData, prefix="choose"):
 
 class MoveCallback(CallbackData, prefix="move"):
     target: str
+
+
+class TrainingNotificationCallback(CallbackData, prefix="training_notification"):
+    target: str
+    client_id: str
+    training_id: str

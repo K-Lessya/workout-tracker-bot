@@ -4,6 +4,7 @@ from aiogram.types import CallbackQuery, Message
 from aiogram import F
 from aiogram.fsm.context import FSMContext
 from app.entities.exercise.crud import get_all_exercises
+from app.keyboards.trainings.keyboard import TrainingNotificationKeyboard
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback, YesNoOptions, MoveToCallback
 from app.workflows.client.utils.callback_property import CreateTrainingCallback, CreateTrainingCallbackActions, ClientMainMenuTargets,\
     ClientMainMenuOptions, ClientExerciseTargets
@@ -71,13 +72,26 @@ async def process_training_type(callback: CallbackQuery, callback_data: ChooseCa
 
 
 
-@add_training_router.callback_query(ChooseCallback.filter(F.target == 'send-training-notification'))
+@add_training_router.callback_query(ChooseCallback.filter(F.target == ClientAddTrainingTargets.ask_send_notification))
 @callback_error_handler
 async def send_notifications(callback: CallbackQuery, callback_data: ChooseCallback, state: FSMContext):
     state_data = await state.get_data()
     lang = state_data.get('lang')
     client = get_client_by_id(callback.from_user.id)
     trainer_id = client.trainer.tg_id
+    trainer_lang = client.trainer.lang
+    training_id = len(client.trainings)-1
+
     if callback_data.option == YesNoOptions.yes:
-        await bot.send_message(chat_id=trainer_id, text="текст уведомления")
+        await bot.send_message(chat_id=trainer_id,
+                               text=translations[trainer_lang].new_training_notification.value.format(client.name,
+                                                                                                client.surname),
+                               reply_markup=TrainingNotificationKeyboard(trainer_lang,
+                                                                         callback.from_user.id,
+                                                                         training_id).as_markup())
+        await callback.message.edit_text(translations[lang].client_main_menu.value,
+                                         reply_markup=create_client_main_menu_keyboard(client=client, lang=lang))
+    elif callback_data.option == YesNoOptions.no:
+        await callback.message.edit_text(translations[lang].client_main_menu.value,
+                                         reply_markup=create_client_main_menu_keyboard(client=client, lang=lang))
 

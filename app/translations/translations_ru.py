@@ -156,8 +156,11 @@ class RussianTranslations(Enum):
     trainer_create_plan_add_trainer_note = 'Добавь свой комментарий или рекомендацию по общей технике выполнения' \
                                            '(Это общая рекомендация, которая будет выводиться вместе с упражнением)'
 
-
-
+    ask_from_add_training_notification = 'Уведомить тренера о добавленной тренировке?'
+    new_training_notification = '{} {} только что добавил тренировку'
+    open_training_from_notification = "Просмотреть тренировку"
+    skip_training_notification = 'Пропустить'
+    skip_training_notification_alarm = 'Ты все еще можешь посмотреть тренировку в профиле клиента'
 
     trainer_main_menu_btn_add_client = "Добавить клиента"
     trainer_main_menu_btn_my_clients = "Мои клиенты"

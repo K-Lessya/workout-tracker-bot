@@ -245,6 +245,11 @@ class EnglishTranslations(Enum):
 
     multiple_files_alert = "You've sent multiple files, ony the first one will be processed"
 
+    ask_from_add_training_notification = 'Send notification to trainer about new training?'
+    new_training_notification = 'Your client {} {} have added new training'
+    open_training_from_notification = "See training"
+    skip_training_notification = 'Skip'
+    skip_training_notification_alarm = "You are still able to see training in your client's profile"
 
 
     go_back_btn = "Go Back"

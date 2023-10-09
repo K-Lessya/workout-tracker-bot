@@ -289,9 +289,14 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
     client = get_client_by_id(callback.from_user.id)
     client.trainings.append(mongo_training)
     client.save()
-
-    await callback.message.edit_text(translations[lang].client_main_menu.value,
-                                     reply_markup=create_client_main_menu_keyboard(client=client, lang=lang))
+    if client.trainer:
+        await callback.message.edit_text(translations[lang].ask_from_add_training_notification.value,
+                                         reply_markup=YesNoKeyboard(
+                                             target=ClientAddTrainingTargets.ask_send_notification,
+                                             lang=lang).as_markup())
+    else:
+        await callback.message.edit_text(translations[lang].client_main_menu.value,
+                                         reply_markup=create_client_main_menu_keyboard(client=client, lang=lang))
 
 
 

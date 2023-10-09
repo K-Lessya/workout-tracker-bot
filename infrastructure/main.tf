@@ -82,6 +82,8 @@ resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
 }
 
+
+
 resource "aws_security_group" "this" {
   vpc_id = aws_vpc.this.id
   name = "Workout-bot_sg"
