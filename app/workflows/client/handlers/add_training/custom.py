@@ -13,7 +13,8 @@ from app.workflows.client.utils.states import ClientStates
 from app.workflows.client.classes.training import ClientTrainingSchema, ClientTrainingExerciseSchema
 from app.workflows.common.utils.keyboards.exercise_db_choose import ExerciseCommonListKeyboard
 from app.entities.exercise.crud import get_all_body_parts
-from app.workflows.client.utils.callback_properties.targets import ClientAddCustomTrainingTargets
+from app.workflows.client.utils.callback_properties.targets import ClientAddCustomTrainingTargets, \
+    ClientAddTrainingTargets
 from app.workflows.client.utils.callback_properties.movetos import ClientMainMenuMoveTo
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback
 from app.entities.single_file.models import Training
@@ -265,7 +266,10 @@ async def process_save_training(callback: CallbackQuery, callback_data: MoveCall
     client.trainings.append(mongo_training)
     client.save()
 
-    await callback.message.edit_text(translations[lang].client_main_menu.value, reply_markup=create_client_main_menu_keyboard(client, lang))
+    await callback.message.edit_text(translations[lang].ask_from_add_training_notification.value,
+                                     reply_markup=YesNoKeyboard(
+                                         target=ClientAddTrainingTargets.ask_send_notification,
+                                         lang=lang).as_markup())
 
 
 

@@ -15,6 +15,7 @@ class ClientAddTrainingTargets:
     process_video_link = 'client_add_training_process_video_link'
     process_client_note = 'client_add_training_process_client_note'
     save_training = "client_add_training_save_training"
+    ask_send_notification = 'client_ask_for_notify_trainer'
 
 
 class ClientAddCustomTrainingTargets:

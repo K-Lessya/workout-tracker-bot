@@ -1,6 +1,7 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
-from app.callbacks.callbacks import MoveCallback
+from app.callbacks.callbacks import MoveCallback, TrainingNotificationCallback
+from app.callbacks.targets.notifications import TrainingNotificationTargets
 from app.utilities.default_callbacks.default_callbacks import ChooseCallback
 from typing import Optional
 from app.keyboards.menus.classes import MenuOption
@@ -60,6 +61,19 @@ class TrainingVideoKeyboard(InlineKeyboardBuilder):
         self.row(InlineKeyboardButton(text=translations[lang].go_back_btn.value,
                                       callback_data=ChooseCallback(target=go_back_target,
                                                                    option=source_option).pack()))
+
+
+class TrainingNotificationKeyboard(InlineKeyboardBuilder):
+    def __init__(self, lang, client_id, training_id):
+        super().__init__()
+        self.row(InlineKeyboardButton(
+            text=translations[lang].open_training_from_notification.value,
+            callback_data=TrainingNotificationCallback(target=TrainingNotificationTargets.open_training, client_id=str(client_id), training_id=str(training_id)).pack()
+        ))
+        self.row(InlineKeyboardButton(
+            text=translations[lang].skip_training_notification.value,
+            callback_data=MoveCallback(target=TrainingNotificationTargets.skip_training).pack()
+        ))
 
 
 
